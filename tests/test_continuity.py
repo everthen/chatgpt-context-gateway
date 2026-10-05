@@ -57,3 +57,23 @@ def test_compare_has_provenance(tmp_path: Path):
     assert result["count"] == 2
     assert result["conversations"][0]["provider"] == "chatgpt"
     assert result["conversations"][0]["account_id"] == "main"
+
+def test_openai_export_smoke(tmp_path: Path):
+    import json
+    from context_gateway.openai_export import import_openai_export
+
+    source = tmp_path / "conversations.json"
+    source.write_text(json.dumps([{
+        "id": "c-export-1",
+        "title": "Imported",
+        "create_time": 1,
+        "update_time": 2,
+        "mapping": {},
+    }]), encoding="utf-8")
+    db = ArchiveDB(tmp_path / "export.sqlite3")
+    summary = import_openai_export(source, "secondary", db, tmp_path / "raw")
+    assert sum(summary.values()) == 1
+    row = db.get("c-export-1")
+    assert row["provider"] == "openai"
+    assert row["account_id"] == "secondary"
+    assert "/openai/secondary/" in row["raw_path"]

@@ -6,10 +6,12 @@ from pathlib import Path
 from typing import Sequence
 
 from .client import AuthenticationError, ChatGPTClient, ChatGPTClientError
+from .connect import DEFAULT_ENV_PATH, run_connect
 from .config import get_db_path, get_raw_dir
 from .db import ArchiveDB
 from .server import run_server
 from .mcp_server import run_mcp
+from .openai_export import OpenAIExportError, import_openai_export
 from .sync import sync_project, sync_projects
 
 def format_timestamp(ts: float | int | str | None) -> str:
@@ -174,6 +176,38 @@ def cmd_mcp_serve(args: argparse.Namespace) -> int:
     run_mcp(db_path=get_db_path(args.db), host=args.host, port=args.port)
     return 0
 
+def cmd_connect(args: argparse.Namespace) -> int:
+    try:
+        return run_connect(
+            env_path=args.env_file or DEFAULT_ENV_PATH,
+            host=args.host,
+            port=args.port,
+            open_browser=not args.no_browser,
+        )
+    except OSError as exc:
+        print(f"Connect flow failed: {exc}", file=sys.stderr)
+        return 1
+
+
+def cmd_import_openai(args: argparse.Namespace) -> int:
+    db = ArchiveDB(get_db_path(args.db))
+    raw_dir = get_raw_dir(args.raw_dir)
+    try:
+        summary = import_openai_export(
+            source=args.source,
+            account_id=args.account_id,
+            db=db,
+            raw_dir=raw_dir,
+        )
+    except OpenAIExportError as exc:
+        print(f"OpenAI export import failed: {exc}", file=sys.stderr)
+        return 1
+    total = sum(summary.values())
+    print(f"Imported {total} conversation(s) into account '{args.account_id}'.")
+    for project, count in summary.items():
+        print(f"  - {project}: {count}")
+    return 0
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="chatgpt-context",
@@ -222,6 +256,17 @@ def build_parser() -> argparse.ArgumentParser:
     p_mcp.add_argument("--host", default="127.0.0.1", help="Host address to bind")
     p_mcp.add_argument("--port", type=int, default=8766, help="Port to bind")
     p_mcp.set_defaults(func=cmd_mcp_serve)
+
+    p_connect = subparsers.add_parser("connect", help="Open the local ChatGPT Web credential connection flow")
+    p_connect.add_argument("--host", default="127.0.0.1", help="Local bind address (must stay localhost-only)")
+    p_connect.add_argument("--port", type=int, default=8780, help="Local port (default: 8780)")
+    p_connect.add_argument("--no-browser", action="store_true", help="Do not open the local setup page automatically")
+    p_connect.set_defaults(func=cmd_connect)
+
+    p_import = subparsers.add_parser("import-openai", help="Import a ChatGPT/OpenAI data export")
+    p_import.add_argument("source", help="Path to conversations.json, JSON export directory, or ZIP export")
+    p_import.add_argument("--account-id", required=True, help="Stable local account identifier")
+    p_import.set_defaults(func=cmd_import_openai)
 
     return parser
 

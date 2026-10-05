@@ -56,7 +56,7 @@ def _get_json(url: str):
 def test_server_health(test_server: str):
     data = _get_json(f"{test_server}/health")
     assert data["status"] == "ok"
-    assert data["version"] == "0.2.0"
+    assert data["version"] == "0.2.1"
 
 def test_server_projects(test_server: str):
     projects = _get_json(f"{test_server}/projects")

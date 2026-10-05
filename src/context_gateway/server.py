@@ -58,7 +58,7 @@ class GatewayRequestHandler(BaseHTTPRequestHandler):
 
         try:
             if path == "/health":
-                self._send_json(200, {"status": "ok", "version": "0.2.0"})
+                self._send_json(200, {"status": "ok", "version": "0.2.1"})
                 return
 
             if path == "/projects":

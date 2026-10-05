@@ -9,6 +9,8 @@ from context_gateway.contracts import (
     ContextContractError,
     ContextRequest,
     ContextScope,
+    ContextTarget,
+    CurrentSessionContext,
     FreshnessPolicy,
 )
 from context_gateway.continuity import context_request
@@ -378,3 +380,176 @@ def test_run_context_request_acquires_and_retries(tmp_path: Path):
     assert result["acquisition"]["status"] == "acquired_and_retried"
     assert result["evidence"]
     assert any(item["snapshot_seq"] >= 2 for item in result["evidence"])
+
+
+def test_targeted_session_retrieval_is_exact_and_ordered(tmp_path: Path):
+    db = ArchiveDB(tmp_path / "db.sqlite3")
+    rows = [
+        _record(tmp_path, "session-a", "A_ONLY context"),
+        _record(tmp_path, "session-b", "B_ONLY context"),
+        _record(tmp_path, "session-c", "C_ONLY context"),
+    ]
+    for row in rows:
+        db.upsert_conversation(row)
+
+    a_uid = db._conversation_uid_from_record(rows[0])
+    result = context_request(
+        db,
+        ContextRequest(
+            consumer="hermes",
+            session_id="consumer-1",
+            query="",
+            intent="retrieve",
+            target=ContextTarget(type="conversation", conversation_uid=a_uid),
+            budget=ContextBudget(max_messages=10, max_bytes=50000),
+        ),
+    )
+
+    assert result["retrieval"]["method"] == "exact-snapshot"
+    assert result["target"]["resolved_snapshot_id"]
+    assert result["retrieval"]["read_fence"] == result["target"]["resolved_snapshot_id"]
+    assert [item["role"] for item in result["transcript"]] == ["user", "assistant"]
+    assert "A_ONLY" in result["transcript"][0]["text"]
+    assert all("B_ONLY" not in item["text"] for item in result["transcript"])
+    assert all("C_ONLY" not in item["text"] for item in result["transcript"])
+    assert result["completeness"]["status"] == "complete"
+
+
+def test_targeted_snapshot_read_fence_is_pinned(tmp_path: Path):
+    db = ArchiveDB(tmp_path / "db.sqlite3")
+    first = _record(tmp_path, "fenced", "first snapshot")
+    db.upsert_conversation(first)
+    uid = db._conversation_uid_from_record(first)
+    first_snapshot = db.current_snapshot(uid)["snapshot_id"]
+
+    second = _record(tmp_path, "fenced", "second snapshot", update=1700000010)
+    db.upsert_conversation(second)
+
+    assert db.current_snapshot(uid)["snapshot_id"] != first_snapshot
+    result = context_request(
+        db,
+        ContextRequest(
+            consumer="hermes",
+            session_id="fence",
+            query="",
+            intent="retrieve",
+            target=ContextTarget(
+                type="conversation",
+                conversation_uid=uid,
+                snapshot="explicit",
+                snapshot_id=first_snapshot,
+            ),
+        ),
+    )
+
+    assert result["target"]["resolved_snapshot_id"] == first_snapshot
+    assert result["retrieval"]["read_fence"] == first_snapshot
+    assert result["transcript"][0]["text"] == "first snapshot"
+
+
+def test_targeted_transcript_budget_returns_cursor(tmp_path: Path):
+    db = ArchiveDB(tmp_path / "db.sqlite3")
+    row = _record(tmp_path, "paged", "page one")
+    db.upsert_conversation(row)
+    uid = db._conversation_uid_from_record(row)
+    snapshot_id = db.current_snapshot(uid)["snapshot_id"]
+
+    first = context_request(
+        db,
+        ContextRequest(
+            consumer="hermes",
+            session_id="page-1",
+            query="",
+            intent="retrieve",
+            target=ContextTarget(type="conversation", conversation_uid=uid),
+            budget=ContextBudget(max_messages=1, max_bytes=50000),
+        ),
+    )
+
+    assert first["completeness"]["status"] == "partial"
+    assert first["next_cursor"].startswith(snapshot_id + "|")
+
+    second = context_request(
+        db,
+        ContextRequest(
+            consumer="hermes",
+            session_id="page-2",
+            query="",
+            intent="retrieve",
+            target=ContextTarget(
+                type="conversation",
+                conversation_uid=uid,
+                snapshot="explicit",
+                snapshot_id=snapshot_id,
+                cursor=first["next_cursor"],
+            ),
+            budget=ContextBudget(max_messages=10, max_bytes=50000),
+        ),
+    )
+    assert second["target"]["resolved_snapshot_id"] == snapshot_id
+    assert second["transcript"][0]["ordinal"] == 1
+    assert second["completeness"]["status"] == "complete"
+
+
+def test_reobservation_refreshes_current_observation_time(tmp_path: Path):
+    import time
+
+    db = ArchiveDB(tmp_path / "db.sqlite3")
+    row = _record(tmp_path, "same-content", "same content")
+    db.upsert_conversation(row)
+    uid = db._conversation_uid_from_record(row)
+    before = db.current_snapshot(uid)["last_observed_at"]
+
+    time.sleep(0.01)
+    refreshed = dict(row)
+    refreshed["captured_at"] = time.time()
+    db.upsert_conversation(refreshed)
+    after = db.current_snapshot(uid)["last_observed_at"]
+
+    assert db.snapshots(uid)
+    assert db.current_snapshot(uid)["snapshot_id"].endswith("snapshot-000001")
+    assert after > before
+
+
+def test_camofox_preserves_duplicate_message_occurrences():
+    from context_gateway.camofox import collect_conversation
+
+    class FakeClient:
+        def get_tab(self, user_id, tab_id):
+            return {
+                "tabId": tab_id,
+                "url": "https://chatgpt.com/c/duplicate-test",
+                "title": "Duplicate test",
+            }
+
+        def snapshot(self, user_id, tab_id):
+            return {
+                "snapshot": """- heading "You said:"
+- paragraph: "same"
+- heading "ChatGPT said:"
+- paragraph: "reply"
+- heading "You said:"
+- paragraph: "same"
+- heading "ChatGPT said:"
+- paragraph: "reply 2"
+"""
+            }
+
+        def scroll_metrics(self, user_id, tab_id):
+            return {"scrollTop": 0, "scrollHeight": 1000, "clientHeight": 500}
+
+    observation = collect_conversation(
+        FakeClient(),
+        user_id="camofox-human-login",
+        tab_id="tab-1",
+        account_id="main",
+        settle_seconds=0,
+    )
+
+    assert observation.complete is True
+    assert [(turn.role, turn.text) for turn in observation.turns] == [
+        ("user", "\"same\""),
+        ("assistant", "\"reply\""),
+        ("user", "\"same\""),
+        ("assistant", "\"reply 2\""),
+    ]

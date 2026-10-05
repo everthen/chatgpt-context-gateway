@@ -429,7 +429,8 @@ class ArchiveDB:
 
     def current_snapshot(self, conversation_uid: str) -> dict[str, Any] | None:
         row = self.conn.execute(
-            """SELECT s.*, c.id AS conversation_id, c.provider, c.account_id
+            """SELECT s.*, c.id AS conversation_id, c.provider, c.account_id,
+                      cc.current_at AS last_observed_at
                FROM conversation_current cc
                JOIN conversation_snapshots s ON s.snapshot_id=cc.snapshot_id
                JOIN conversations c ON c.conversation_uid=cc.conversation_uid
@@ -701,9 +702,11 @@ class ArchiveDB:
     def get_snapshot(self, snapshot_id: str):
         row = self.conn.execute(
             """SELECT s.*,c.id AS conversation_id,c.project_id,c.project_name,c.title,
-                      c.provider,c.account_id,c.source
+                      c.provider,c.account_id,c.source,
+                      cc.current_at AS last_observed_at
                FROM conversation_snapshots s
                JOIN conversations c ON c.conversation_uid=s.conversation_uid
+               LEFT JOIN conversation_current cc ON cc.snapshot_id=s.snapshot_id
                WHERE s.snapshot_id=?""",
             (snapshot_id,),
         ).fetchone()
@@ -754,6 +757,7 @@ class ArchiveDB:
                     c.id AS id,c.project_id,c.project_name,c.title,c.update_time,c.create_time,
                     c.provider,c.account_id,c.source,
                     s.snapshot_seq,s.captured_at,s.source_updated_at,s.raw_path,s.raw_hash,
+                    (SELECT current_at FROM conversation_current WHERE snapshot_id=s.snapshot_id) AS last_observed_at,
                     bm25(message_fts) AS score
                  FROM message_fts f
                  JOIN messages m ON m.message_uid=f.message_uid

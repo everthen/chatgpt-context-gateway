@@ -9,6 +9,10 @@ class ContextContractError(ValueError):
 
 
 FreshnessMode = Literal["accept_stale", "prefer_fresh", "require_fresh"]
+ContextIntent = Literal["search", "retrieve", "continue"]
+TargetType = Literal["conversation"]
+SnapshotSelector = Literal["current", "explicit"]
+TranscriptMode = Literal["active_chain"]
 
 
 @dataclass(frozen=True)
@@ -35,6 +39,66 @@ class ContextScope:
             "providers": list(self.providers),
             "accounts": self.accounts if self.accounts == "all" else list(self.accounts),
             "project": self.project,
+        }
+
+
+@dataclass(frozen=True)
+class ContextTarget:
+    type: TargetType
+    conversation_uid: str
+    snapshot: SnapshotSelector = "current"
+    snapshot_id: str | None = None
+    transcript_mode: TranscriptMode = "active_chain"
+    anchor_message_uid: str | None = None
+    anchor_ordinal: int | None = None
+    start_ordinal: int | None = None
+    cursor: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.type != "conversation":
+            raise ContextContractError("target.type is invalid")
+        if not self.conversation_uid.strip():
+            raise ContextContractError("target.conversation_uid is required")
+        if self.snapshot not in {"current", "explicit"}:
+            raise ContextContractError("target.snapshot is invalid")
+        if self.snapshot == "explicit" and not self.snapshot_id:
+            raise ContextContractError("target.snapshot_id is required for explicit snapshot")
+        if self.snapshot == "current" and self.snapshot_id is not None:
+            raise ContextContractError("target.snapshot_id must be omitted for current snapshot")
+        if self.transcript_mode != "active_chain":
+            raise ContextContractError("target.transcript_mode is invalid")
+        if self.anchor_ordinal is not None and self.anchor_ordinal < 0:
+            raise ContextContractError("target.anchor_ordinal must be >= 0")
+        if self.start_ordinal is not None and self.start_ordinal < 0:
+            raise ContextContractError("target.start_ordinal must be >= 0")
+
+    @classmethod
+    def from_dict(cls, value: dict[str, Any] | None) -> "ContextTarget | None":
+        if not value:
+            return None
+        return cls(
+            type=str(value.get("type", "")),
+            conversation_uid=str(value.get("conversation_uid", "")),
+            snapshot=str(value.get("snapshot", "current")),
+            snapshot_id=(str(value["snapshot_id"]) if value.get("snapshot_id") else None),
+            transcript_mode=str(value.get("transcript_mode", "active_chain")),
+            anchor_message_uid=(str(value["anchor_message_uid"]) if value.get("anchor_message_uid") else None),
+            anchor_ordinal=(int(value["anchor_ordinal"]) if value.get("anchor_ordinal") is not None else None),
+            start_ordinal=(int(value["start_ordinal"]) if value.get("start_ordinal") is not None else None),
+            cursor=(str(value["cursor"]) if value.get("cursor") else None),
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "type": self.type,
+            "conversation_uid": self.conversation_uid,
+            "snapshot": self.snapshot,
+            "snapshot_id": self.snapshot_id,
+            "transcript_mode": self.transcript_mode,
+            "anchor_message_uid": self.anchor_message_uid,
+            "anchor_ordinal": self.anchor_ordinal,
+            "start_ordinal": self.start_ordinal,
+            "cursor": self.cursor,
         }
 
 
@@ -222,24 +286,39 @@ class ContextRequest:
     consumer: str
     session_id: str
     query: str
+    intent: ContextIntent = "search"
     scope: ContextScope = field(default_factory=ContextScope)
     freshness: FreshnessPolicy = field(default_factory=FreshnessPolicy)
     budget: ContextBudget = field(default_factory=ContextBudget)
     trust: str = "historical_evidence"
     exclude_conversation_uids: tuple[str, ...] = ()
     current_session: CurrentSessionContext | None = None
+    target: ContextTarget | None = None
 
     def __post_init__(self) -> None:
         if not self.consumer.strip():
             raise ContextContractError("consumer is required")
         if not self.session_id.strip():
             raise ContextContractError("session_id is required")
-        if not self.query.strip():
-            raise ContextContractError("query is required")
+        if self.intent not in {"search", "retrieve", "continue"}:
+            raise ContextContractError("intent is invalid")
+        if self.intent == "search" and not self.query.strip():
+            raise ContextContractError("query is required for search intent")
+        if self.intent in {"retrieve", "continue"} and self.target is None and not self.query.strip():
+            raise ContextContractError("query or target is required")
         if self.trust != "historical_evidence":
             raise ContextContractError("trust must be 'historical_evidence'")
         if len(self.query) > 500:
             raise ContextContractError("query exceeds 500 characters")
+        if (
+            self.target
+            and self.current_session
+            and self.current_session.current_conversation_uid
+            and self.target.conversation_uid != self.current_session.current_conversation_uid
+        ):
+            raise ContextContractError(
+                "target.conversation_uid must match current_session.current_conversation_uid when both are provided"
+            )
         if self.current_session and self.current_session.session_id != self.session_id:
             raise ContextContractError(
                 "current_session.session_id must match request.session_id"
@@ -254,6 +333,7 @@ class ContextRequest:
             consumer=str(value.get("consumer", "")),
             session_id=session_id,
             query=str(value.get("query", "")),
+            intent=str(value.get("intent", "search")),
             scope=ContextScope.from_dict(value.get("scope")),
             freshness=FreshnessPolicy.from_dict(value.get("freshness")),
             budget=ContextBudget.from_dict(value.get("budget")),
@@ -265,6 +345,7 @@ class ContextRequest:
                 value.get("current_session"),
                 session_id=session_id,
             ),
+            target=ContextTarget.from_dict(value.get("target")),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -280,6 +361,7 @@ class ContextRequest:
             "consumer": self.consumer,
             "session_id": self.session_id,
             "query": self.query,
+            "intent": self.intent,
             "scope": self.scope.to_dict(),
             "freshness": self.freshness.to_dict(),
             "budget": self.budget.to_dict(),
@@ -288,6 +370,7 @@ class ContextRequest:
             "current_session": (
                 self.current_session.to_dict() if self.current_session else None
             ),
+            "target": self.target.to_dict() if self.target else None,
         }
 
 

@@ -83,7 +83,7 @@ class GatewayRequestHandler(BaseHTTPRequestHandler):
             if path == "/context":
                 request = ContextRequest.from_dict(body)
                 adapter = None
-                if request.freshness.allow_live_acquisition and request.current_session:
+                if request.freshness.allow_live_acquisition and (request.target or request.current_session):
                     adapter = acquire_current_conversation_via_camofox
                 self._send_json(200, run_context_request(self.db, request, adapter=adapter, max_attempts=1))
                 return

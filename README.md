@@ -129,3 +129,36 @@ The important invariant is:
         -> continue
 
 A historical snapshot is evidence, not an authority over current session state.
+
+## Targeted Session Reconstruction v0.1
+
+The Gateway can now address one exact conversation by scoped conversation_uid without using semantic search to choose the target.
+
+A targeted request pins one snapshot as a read fence and reconstructs the active chain in chronological order:
+
+    {
+      "consumer": "hermes",
+      "session_id": "consumer-session",
+      "intent": "retrieve",
+      "query": "",
+      "target": {
+        "type": "conversation",
+        "conversation_uid": "<scoped-uid>",
+        "snapshot": "current",
+        "transcript_mode": "active_chain"
+      },
+      "freshness": {
+        "mode": "accept_stale",
+        "allow_live_acquisition": false
+      },
+      "budget": {
+        "max_messages": 30,
+        "max_bytes": 120000
+      }
+    }
+
+Targeted responses expose the resolved snapshot/read fence, transcript, completeness, provenance, freshness, and explicit pagination when the budget truncates the transcript.
+
+An exact target is never silently replaced by semantic search. Failed or incomplete live acquisition is not promoted to a trusted current snapshot.
+
+See docs/TARGETED_SESSION_RECONSTRUCTION_V0.1.md for the frozen contract and invariants.

@@ -263,14 +263,30 @@ def collect_conversation(
     conversation_id = conversation_id_from_url(url)
     title = str(tab.get("title") or "Untitled")
 
-    observed: dict[str, BrowserTurn] = {}
-    sequences: list[list[str]] = []
+    ordered: list[BrowserTurn] = []
     snapshot_hashes: list[str] = []
     raw_snapshots: list[str] = []
-    previous_frontier: tuple[str, ...] | None = None
+    previous_frontier: tuple[tuple[str, str], ...] | None = None
     no_new_frontier_rounds = 0
     complete = False
     rounds = 0
+
+    def turn_signature(turn: BrowserTurn) -> tuple[str, str]:
+        return turn.role, turn.text
+
+    def merge_scrolled_window(existing: list[BrowserTurn], visible: list[BrowserTurn]) -> list[BrowserTurn]:
+        if not existing:
+            return list(visible)
+        if not visible:
+            return existing
+
+        existing_sig = [turn_signature(turn) for turn in existing]
+        visible_sig = [turn_signature(turn) for turn in visible]
+        max_overlap = min(len(existing_sig), len(visible_sig))
+        for overlap in range(max_overlap, 0, -1):
+            if visible_sig[-overlap:] == existing_sig[:overlap]:
+                return visible + existing[overlap:]
+        return visible + existing
 
     for round_index in range(max_scrolls + 1):
         rounds = round_index
@@ -280,15 +296,8 @@ def collect_conversation(
         raw_snapshots.append(text)
 
         visible = parse_visible_turns(text)
-        keys = []
-        for turn in visible:
-            key = _turn_key(turn)
-            observed.setdefault(key, turn)
-            keys.append(key)
-        if keys:
-            sequences.append(keys)
-
-        frontier = tuple(keys[:3])
+        ordered = merge_scrolled_window(ordered, visible)
+        frontier = tuple(turn_signature(turn) for turn in visible[:3])
         if frontier and frontier == previous_frontier:
             no_new_frontier_rounds += 1
         else:
@@ -311,31 +320,9 @@ def collect_conversation(
         if settle_seconds > 0:
             time.sleep(settle_seconds)
 
-    # Accessibility snapshots are chronological within the visible viewport. Merge all
-    # overlapping sequences into a stable partial-order, then topologically sort it.
-    edges: dict[str, set[str]] = {key: set() for key in observed}
-    indegree: dict[str, int] = {key: 0 for key in observed}
-    for sequence in sequences:
-        for left, right in zip(sequence, sequence[1:]):
-            if right not in edges[left]:
-                edges[left].add(right)
-                indegree[right] += 1
-
-    queue = [key for key, degree in indegree.items() if degree == 0]
-    order: list[str] = []
-    while queue:
-        key = queue.pop(0)
-        order.append(key)
-        for child in sorted(edges[key]):
-            indegree[child] -= 1
-            if indegree[child] == 0:
-                queue.append(child)
-
-    if len(order) != len(observed):
-        # Defensive fallback for malformed/ambiguous DOM observations.
-        order = list(observed.keys())
-
-    ordered = [observed[key] for key in order]
+    # Browser snapshots expose chronological viewport order. Scrolling upward adds older
+    # turns before the existing window; longest exact boundary overlap preserves repeated
+    # identical message occurrences instead of globally deduplicating by text.
 
     return CamofoxObservation(
         provider="chatgpt",

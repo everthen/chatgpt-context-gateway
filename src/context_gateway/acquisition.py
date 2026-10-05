@@ -147,18 +147,25 @@ def ingest_camofox_observation(
 
 
 def _conversation_context(request: ContextRequest, db: ArchiveDB) -> tuple[str, str, str, str]:
+    target = request.target
     current = request.current_session
-    if not current:
-        raise ValueError("live acquisition requires current_session")
-    conversation_id = current.current_conversation_id
-    conversation_uid = current.current_conversation_uid
-    if not conversation_id:
-        if conversation_uid and ":" in conversation_uid:
-            conversation_id = conversation_uid.rsplit(":", 1)[-1]
-        else:
-            raise ValueError("current_session.current_conversation_id is required")
-
-    record = db.get(conversation_uid or conversation_id)
+    if target:
+        conversation_uid = target.conversation_uid
+        record = db.get(conversation_uid)
+        if not record:
+            raise ValueError(f"target conversation '{conversation_uid}' is not present in the local archive")
+        conversation_id = str(record.get("id") or "")
+    elif current:
+        conversation_id = current.current_conversation_id
+        conversation_uid = current.current_conversation_uid
+        if not conversation_id:
+            if conversation_uid and ":" in conversation_uid:
+                conversation_id = conversation_uid.rsplit(":", 1)[-1]
+            else:
+                raise ValueError("current_session.current_conversation_id is required")
+        record = db.get(conversation_uid or conversation_id)
+    else:
+        raise ValueError("live acquisition requires target or current_session")
     if not record:
         raise ValueError(f"conversation '{conversation_id}' is not present in the local archive")
 

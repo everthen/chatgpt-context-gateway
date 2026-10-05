@@ -5,6 +5,12 @@ from pathlib import Path
 DEFAULT_DATA_DIR = Path("data")
 DEFAULT_DB_PATH = DEFAULT_DATA_DIR / "archive.sqlite3"
 DEFAULT_RAW_DIR = DEFAULT_DATA_DIR / "raw"
+DEFAULT_CAMOFOX_PROFILE_ID = "camofox-human-login"
+
+def get_camofox_profile_id(override: str | None = None) -> str:
+    if override:
+        return override
+    return os.environ.get("CAMOFOX_PROFILE_ID", DEFAULT_CAMOFOX_PROFILE_ID)
 
 def get_db_path(override: str | Path | None = None) -> Path:
     if override:

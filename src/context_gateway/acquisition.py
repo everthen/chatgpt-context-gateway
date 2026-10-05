@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from .camofox import CamofoxClient, CamofoxObservation, collect_conversation
-from .config import get_raw_dir, safe_project_name
+from .config import get_camofox_profile_id, get_raw_dir, safe_project_name
 from .contracts import ContextRequest
 from .continuity import context_request
 from .db import ArchiveDB
@@ -184,13 +184,14 @@ def acquire_current_conversation_via_camofox(
     db: ArchiveDB,
     *,
     client: CamofoxClient | None = None,
-    user_id: str = "camofox-human-login",
+    user_id: str | None = None,
     max_scrolls: int = 60,
 ) -> dict[str, Any]:
     conversation_id, project_id, project_name, account_id = _conversation_context(request, db)
+    profile_id = get_camofox_profile_id(user_id)
     client = client or CamofoxClient()
 
-    tabs = client.list_tabs(user_id)
+    tabs = client.list_tabs(profile_id)
     matching = [
         tab
         for tab in tabs
@@ -198,7 +199,8 @@ def acquire_current_conversation_via_camofox(
     ]
     if not matching:
         raise ValueError(
-            f"no authenticated Camofox tab found for conversation '{conversation_id}'"
+            f"no authenticated Camofox tab found for conversation '{conversation_id}' "
+            f"under acquisition profile '{profile_id}'"
         )
 
     tab = matching[0]
@@ -208,7 +210,7 @@ def acquire_current_conversation_via_camofox(
 
     observation = collect_conversation(
         client,
-        user_id=user_id,
+        user_id=profile_id,
         tab_id=tab_id,
         account_id=account_id,
         max_scrolls=max_scrolls,

@@ -3,6 +3,7 @@ from __future__ import annotations
 from hashlib import sha256
 from pathlib import Path
 
+from .acquisition import acquire_current_conversation_via_camofox, run_context_request
 from .config import get_db_path
 from .contracts import ContextRequest
 from .continuity import compare, context_request as resolve_context_request, continuity, project_context, timeline
@@ -102,7 +103,16 @@ def build_mcp(db_path: str | Path | None = None):
                 "transcript_mode": "active_chain",
             }
 
-        bundle = resolve_context_request(db, ContextRequest.from_dict(raw_request))
+        context = ContextRequest.from_dict(raw_request)
+        if context.freshness.allow_live_acquisition and raw_request.get("target"):
+            bundle = run_context_request(
+                db,
+                context,
+                adapter=acquire_current_conversation_via_camofox,
+                max_attempts=1,
+            )
+        else:
+            bundle = resolve_context_request(db, context)
         bundle["host_session_binding"] = _safe_binding(binding)
         return bundle
 

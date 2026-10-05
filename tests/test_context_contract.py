@@ -511,6 +511,17 @@ def test_reobservation_refreshes_current_observation_time(tmp_path: Path):
     assert after > before
 
 
+def test_camofox_profile_id_is_separate_from_account_id(monkeypatch):
+    from context_gateway.config import get_camofox_profile_id
+
+    monkeypatch.delenv("CAMOFOX_PROFILE_ID", raising=False)
+    assert get_camofox_profile_id() == "camofox-human-login"
+
+    monkeypatch.setenv("CAMOFOX_PROFILE_ID", "chatgpt_human_login")
+    assert get_camofox_profile_id() == "chatgpt_human_login"
+    assert get_camofox_profile_id("explicit-profile") == "explicit-profile"
+
+
 def test_camofox_preserves_duplicate_message_occurrences():
     from context_gateway.camofox import collect_conversation
 

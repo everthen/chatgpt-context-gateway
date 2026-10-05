@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any
+import time
 
+from .contracts import ContextRequest
 from .db import ArchiveDB
 
 
@@ -265,3 +267,122 @@ def compare(db: ArchiveDB, conversation_ids: list[str]) -> dict[str, Any]:
             }
         )
     return {"conversations": records, "count": len(records)}
+
+
+def _request_scope_pairs(request: ContextRequest) -> list[tuple[str | None, str | None]]:
+    providers = list(request.scope.providers) or [None]
+    accounts = (
+        [None]
+        if request.scope.accounts == "all"
+        else list(request.scope.accounts)
+    )
+    return [(provider, account) for provider in providers for account in accounts]
+
+
+def context_request(db: ArchiveDB, request: ContextRequest) -> dict[str, Any]:
+    now = time.time()
+    min_captured_at = (
+        now - request.freshness.max_age_seconds
+        if request.freshness.max_age_seconds is not None
+        else None
+    )
+
+    evidence_by_id: dict[str, dict[str, Any]] = {}
+    timeline_rows: list[dict[str, Any]] = []
+    project_rows: list[dict[str, Any]] = []
+
+    for provider, account_id in _request_scope_pairs(request):
+        resolved = resolve_project(
+            db,
+            request.scope.project,
+            provider=provider,
+            account_id=account_id,
+        )
+        if resolved:
+            project_rows.append(resolved)
+            timeline_rows.extend(
+                timeline(
+                    db,
+                    request.scope.project,
+                    limit=min(request.budget.max_messages, 10),
+                    provider=provider,
+                    account_id=account_id,
+                )
+            )
+
+        hits = db.search_detailed(
+            request.query,
+            limit=min(request.budget.max_messages, 50),
+            project_id=resolved["project_uid"] if resolved else request.scope.project,
+            provider=provider,
+            account_id=account_id,
+            exclude_conversation_uids=request.exclude_conversation_uids,
+            min_captured_at=min_captured_at,
+        )
+        for hit in hits:
+            evidence_by_id[hit["evidence_id"]] = hit
+
+    evidence = sorted(
+        evidence_by_id.values(),
+        key=lambda item: (
+            float(item.get("score") or 0),
+            -(item.get("captured_at") or item.get("update_time") or item.get("create_time") or 0),
+        ),
+    )
+
+    selected: list[dict[str, Any]] = []
+    used_bytes = 0
+    for item in evidence:
+        if len(selected) >= request.budget.max_messages:
+            break
+        encoded_size = len((item.get("excerpt") or "").encode("utf-8"))
+        if selected and used_bytes + encoded_size > request.budget.max_bytes:
+            continue
+        selected.append(item)
+        used_bytes += encoded_size
+
+    unique_projects = {item["project_uid"]: item for item in project_rows}
+    unique_timeline = {item["conversation_uid"]: item for item in timeline_rows}
+
+    bundle = _context_bundle(
+        next(iter(unique_projects.values()), None),
+        sorted(
+            unique_timeline.values(),
+            key=lambda item: item.get("update_time") or item.get("create_time") or 0,
+            reverse=True,
+        )[:10],
+        selected,
+        request.query,
+    )
+    bundle["request"] = request.to_dict()
+    bundle["retrieval"]["freshness"] = {
+        "checked_at": now,
+        "max_age_seconds": request.freshness.max_age_seconds,
+        "min_captured_at": min_captured_at,
+        "fresh_evidence_count": len(selected),
+    }
+    bundle["retrieval"]["scope"] = request.scope.to_dict()
+    bundle["retrieval"]["budget"] = request.budget.to_dict()
+    bundle["retrieval"]["excluded_conversation_uids"] = list(
+        request.exclude_conversation_uids
+    )
+    bundle["acquisition"] = {
+        "live_acquisition_allowed": request.freshness.allow_live_acquisition,
+        "status": (
+            "satisfied"
+            if selected
+            else (
+                "acquisition_required"
+                if request.freshness.allow_live_acquisition
+                else "no_fresh_evidence"
+            )
+        ),
+        "next_action": (
+            "run_provider_acquisition"
+            if request.freshness.allow_live_acquisition and not selected
+            else None
+        ),
+    }
+    bundle["project_scope"] = list(unique_projects.values())
+    bundle["packet"] = _assemble_packet(bundle)
+    return bundle

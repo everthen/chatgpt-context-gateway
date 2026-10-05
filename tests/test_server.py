@@ -34,7 +34,7 @@ def test_server(tmp_path: Path):
     }
     db.upsert_conversation(c1)
 
-    server = create_server(host="127.0.0.1", port=0, db=db)
+    server = create_server(host="127.0.0.1", port=0, db=db, raw_dir=tmp_path / "raw")
     port = server.server_address[1]
 
     thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -49,6 +49,20 @@ def test_server(tmp_path: Path):
 
 def _get_json(url: str):
     req = urllib.request.Request(url)
+    with urllib.request.urlopen(req) as resp:
+        assert resp.status == 200
+        assert "application/json" in resp.headers.get("Content-Type")
+        return json.loads(resp.read().decode("utf-8"))
+
+
+def _post_json(url: str, payload: dict):
+    body = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=body,
+        method="POST",
+        headers={"Content-Type": "application/json"},
+    )
     with urllib.request.urlopen(req) as resp:
         assert resp.status == 200
         assert "application/json" in resp.headers.get("Content-Type")
@@ -134,3 +148,68 @@ def test_server_bad_limit(test_server: str):
     with pytest.raises(urllib.error.HTTPError) as exc_info:
         urllib.request.urlopen(f"{test_server}/search?q=tradeoffs&limit=0")
     assert exc_info.value.code == 400
+
+
+
+def test_server_context_request(test_server: str):
+    data = _post_json(
+        f"{test_server}/context",
+        {
+            "consumer": "hermes",
+            "session_id": "s-current",
+            "query": "FastAPI tradeoffs",
+            "scope": {"providers": ["chatgpt"], "accounts": ["main"], "project": "proj-abc"},
+            "budget": {"max_messages": 5, "max_bytes": 50000},
+        },
+    )
+    assert data["request"]["consumer"] == "hermes"
+    assert data["evidence"][0]["id"] == "conv-xyz"
+    assert data["retrieval"]["budget"]["max_messages"] == 5
+
+
+def test_server_acquisition_ingest(test_server: str, tmp_path: Path):
+    payload = {
+        "id": "camo-live-1",
+        "title": "Latest browser conversation",
+        "create_time": 1700000200.0,
+        "update_time": 1700000300.0,
+        "mapping": {
+            "n1": {
+                "id": "n1",
+                "parent": None,
+                "children": ["n2"],
+                "message": {
+                    "id": "m1",
+                    "author": {"role": "user"},
+                    "content": {"content_type": "text", "parts": ["latest browser evidence"]},
+                    "create_time": 1700000200.0,
+                },
+            },
+            "n2": {
+                "id": "n2",
+                "parent": "n1",
+                "children": [],
+                "message": {
+                    "id": "m2",
+                    "author": {"role": "assistant"},
+                    "content": {"content_type": "text", "parts": ["acknowledged"]},
+                    "create_time": 1700000300.0,
+                },
+            },
+        },
+        "current_node": "n2",
+    }
+    data = _post_json(
+        f"{test_server}/acquisition/ingest",
+        {
+            "provider": "chatgpt",
+            "account_id": "main",
+            "project_id": "proj-abc",
+            "project_name": "API Testing",
+            "acquisition_method": "camofox",
+            "payload": payload,
+        },
+    )
+    assert data["snapshot_id"]
+    assert data["acquisition"]["method"] == "camofox"
+    assert data["raw_path"].endswith("snapshot-001.json")

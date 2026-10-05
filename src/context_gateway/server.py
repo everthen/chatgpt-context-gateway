@@ -4,13 +4,16 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from typing import Any
 
-from .config import get_db_path
-from .continuity import compare, continuity, project_context, timeline
+from .acquisition import ingest_conversation_payload
+from .config import get_db_path, get_raw_dir
+from .contracts import ContextRequest
+from .continuity import compare, context_request, continuity, project_context, timeline
 from .db import ArchiveDB
 
 
 class GatewayRequestHandler(BaseHTTPRequestHandler):
     db: ArchiveDB
+    raw_dir: Path
 
     def log_message(self, format: str, *args: Any) -> None:
         pass
@@ -47,6 +50,63 @@ class GatewayRequestHandler(BaseHTTPRequestHandler):
         if len(value) > maximum:
             raise ValueError(f"parameter {name} exceeds {maximum} characters")
         return value or None
+
+    def _read_json_body(self, max_bytes: int = 5_000_000) -> dict[str, Any]:
+        raw_length = self.headers.get("Content-Length")
+        if raw_length is None:
+            raise ValueError("Content-Length is required")
+        try:
+            length = int(raw_length)
+        except ValueError:
+            raise ValueError("Content-Length must be an integer")
+        if length < 0 or length > max_bytes:
+            raise ValueError(f"request body exceeds {max_bytes} bytes")
+        raw = self.rfile.read(length)
+        try:
+            payload = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise ValueError(f"invalid JSON body: {exc}")
+        if not isinstance(payload, dict):
+            raise ValueError("request body must be a JSON object")
+        return payload
+
+    def do_POST(self) -> None:
+        if not self._is_localhost():
+            self._send_error_json(403, "forbidden", "Access restricted to localhost.")
+            return
+
+        parsed = urllib.parse.urlparse(self.path)
+        path = parsed.path.rstrip("/")
+
+        try:
+            body = self._read_json_body()
+            if path == "/context":
+                request = ContextRequest.from_dict(body)
+                self._send_json(200, context_request(self.db, request))
+                return
+
+            if path == "/acquisition/ingest":
+                payload = body.get("payload")
+                if not isinstance(payload, dict):
+                    raise ValueError("payload must be an object")
+                result = ingest_conversation_payload(
+                    payload,
+                    project_id=str(body.get("project_id") or ""),
+                    project_name=str(body.get("project_name") or ""),
+                    provider=str(body.get("provider") or "chatgpt"),
+                    account_id=str(body.get("account_id") or "default"),
+                    acquisition_method=str(body.get("acquisition_method") or "manual"),
+                    db=self.db,
+                    raw_dir=self.raw_dir,
+                )
+                self._send_json(200, result)
+                return
+
+            self._send_error_json(404, "not_found", f"Endpoint '{path}' not found.")
+        except ValueError as exc:
+            self._send_error_json(400, "bad_request", str(exc))
+        except Exception as exc:
+            self._send_error_json(500, "internal_error", str(exc))
 
     def do_GET(self) -> None:
         if not self._is_localhost():
@@ -184,19 +244,39 @@ class GatewayRequestHandler(BaseHTTPRequestHandler):
             self._send_error_json(500, "internal_error", str(exc))
 
 
-def create_server(host="127.0.0.1", port=8765, db: ArchiveDB | None = None, db_path: str | Path | None = None) -> HTTPServer:
+def create_server(
+    host="127.0.0.1",
+    port=8765,
+    db: ArchiveDB | None = None,
+    db_path: str | Path | None = None,
+    raw_dir: str | Path | None = None,
+) -> HTTPServer:
     if db is None:
         db = ArchiveDB(get_db_path(db_path), check_same_thread=False)
+    resolved_raw_dir = Path(raw_dir) if raw_dir is not None else get_raw_dir()
 
     class CustomHandler(GatewayRequestHandler):
         pass
 
     CustomHandler.db = db
+    CustomHandler.raw_dir = resolved_raw_dir
     return HTTPServer((host, port), CustomHandler)
 
 
-def run_server(host="127.0.0.1", port=8765, db: ArchiveDB | None = None, db_path: str | Path | None = None) -> None:
-    server = create_server(host=host, port=port, db=db, db_path=db_path)
+def run_server(
+    host="127.0.0.1",
+    port=8765,
+    db: ArchiveDB | None = None,
+    db_path: str | Path | None = None,
+    raw_dir: str | Path | None = None,
+) -> None:
+    server = create_server(
+        host=host,
+        port=port,
+        db=db,
+        db_path=db_path,
+        raw_dir=raw_dir,
+    )
     print(f"Context Gateway retrieval server running on http://{host}:{port}")
     try:
         server.serve_forever()

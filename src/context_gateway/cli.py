@@ -190,7 +190,12 @@ def cmd_continuity(args: argparse.Namespace) -> int:
 
 
 def cmd_serve(args: argparse.Namespace) -> int:
-    run_server(host=args.host, port=args.port, db_path=get_db_path(args.db))
+    run_server(
+        host=args.host,
+        port=args.port,
+        db_path=get_db_path(args.db),
+        raw_dir=get_raw_dir(args.raw_dir),
+    )
     return 0
 
 

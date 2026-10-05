@@ -130,6 +130,27 @@ def sync_project(
         if len(items) < limit:
             break
 
+    db.upsert_acquisition_checkpoint(
+        {
+            "provider": provider,
+            "account_id": account_id,
+            "scope_type": "project",
+            "scope_id": str(project_id),
+            "method": "chatgpt-api",
+            "status": "success",
+            "cursor": None,
+            "last_success_at": time.time(),
+            "last_seen_remote_at": max(
+                (
+                    float(r.get("update_time"))
+                    for r in synced_records
+                    if r.get("update_time") is not None
+                ),
+                default=None,
+            ),
+            "last_error": None,
+        }
+    )
     return synced_records
 
 

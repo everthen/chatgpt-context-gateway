@@ -78,6 +78,24 @@ CREATE TABLE IF NOT EXISTS conversation_current(
     current_at REAL NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS acquisition_checkpoints(
+    provider TEXT NOT NULL,
+    account_id TEXT NOT NULL,
+    scope_type TEXT NOT NULL,
+    scope_id TEXT NOT NULL,
+    method TEXT NOT NULL,
+    status TEXT NOT NULL,
+    cursor TEXT,
+    last_success_at REAL,
+    last_seen_remote_at REAL,
+    last_error TEXT,
+    updated_at REAL NOT NULL,
+    PRIMARY KEY(provider, account_id, scope_type, scope_id, method)
+);
+
+CREATE INDEX IF NOT EXISTS idx_acquisition_checkpoints_scope
+    ON acquisition_checkpoints(provider, account_id, scope_type, scope_id);
+
 CREATE TABLE IF NOT EXISTS messages(
     message_uid TEXT PRIMARY KEY,
     conversation_uid TEXT NOT NULL,
@@ -534,6 +552,60 @@ class ArchiveDB:
             "snapshot": self.current_snapshot(conversation_uid),
         }
 
+    def upsert_acquisition_checkpoint(self, checkpoint: dict[str, Any]) -> dict[str, Any]:
+        now = float(checkpoint.get("updated_at") or time.time())
+        self.conn.execute(
+            """INSERT INTO acquisition_checkpoints
+               (provider,account_id,scope_type,scope_id,method,status,cursor,
+                last_success_at,last_seen_remote_at,last_error,updated_at)
+               VALUES(?,?,?,?,?,?,?,?,?,?,?)
+               ON CONFLICT(provider,account_id,scope_type,scope_id,method) DO UPDATE SET
+                 status=excluded.status,
+                 cursor=excluded.cursor,
+                 last_success_at=excluded.last_success_at,
+                 last_seen_remote_at=excluded.last_seen_remote_at,
+                 last_error=excluded.last_error,
+                 updated_at=excluded.updated_at""",
+            (
+                checkpoint["provider"],
+                checkpoint.get("account_id", "default"),
+                checkpoint["scope_type"],
+                checkpoint["scope_id"],
+                checkpoint["method"],
+                checkpoint.get("status", "unknown"),
+                checkpoint.get("cursor"),
+                checkpoint.get("last_success_at"),
+                checkpoint.get("last_seen_remote_at"),
+                checkpoint.get("last_error"),
+                now,
+            ),
+        )
+        self.conn.commit()
+        return self.get_acquisition_checkpoint(
+            checkpoint["provider"],
+            checkpoint.get("account_id", "default"),
+            checkpoint["scope_type"],
+            checkpoint["scope_id"],
+            checkpoint["method"],
+        ) or {}
+
+    def get_acquisition_checkpoint(
+        self,
+        provider: str,
+        account_id: str,
+        scope_type: str,
+        scope_id: str,
+        method: str,
+    ) -> dict[str, Any] | None:
+        row = self.conn.execute(
+            """SELECT provider,account_id,scope_type,scope_id,method,status,cursor,
+                      last_success_at,last_seen_remote_at,last_error,updated_at
+               FROM acquisition_checkpoints
+               WHERE provider=? AND account_id=? AND scope_type=? AND scope_id=? AND method=?""",
+            (provider, account_id, scope_type, scope_id, method),
+        ).fetchone()
+        return dict(row) if row else None
+
     def projects(self):
         return [
             dict(r)
@@ -672,6 +744,8 @@ class ArchiveDB:
         account_id: str | None = None,
         snapshot_id: str | None = None,
         current_only: bool = True,
+        exclude_conversation_uids: list[str] | tuple[str, ...] | None = None,
+        min_captured_at: float | None = None,
     ):
         limit = max(1, min(int(limit), 50))
         sql = """SELECT
@@ -696,6 +770,16 @@ class ArchiveDB:
         if snapshot_id:
             clauses.append("f.snapshot_id=?")
             args.append(snapshot_id)
+
+        excluded = [str(x) for x in (exclude_conversation_uids or ()) if str(x)]
+        if excluded:
+            placeholders = ",".join("?" for _ in excluded)
+            clauses.append(f"f.conversation_uid NOT IN ({placeholders})")
+            args.extend(excluded)
+
+        if min_captured_at is not None:
+            clauses.append("s.captured_at >= ?")
+            args.append(float(min_captured_at))
 
         if project_id:
             project_uids = [
@@ -741,13 +825,24 @@ class ArchiveDB:
             results.append(item)
         return results
 
-    def search_detailed(self, q, limit=20, project_id=None, provider=None, account_id=None):
+    def search_detailed(
+        self,
+        q,
+        limit=20,
+        project_id=None,
+        provider=None,
+        account_id=None,
+        exclude_conversation_uids=None,
+        min_captured_at=None,
+    ):
         return self.search_messages(
             q,
             limit=limit,
             project_id=project_id,
             provider=provider,
             account_id=account_id,
+            exclude_conversation_uids=exclude_conversation_uids,
+            min_captured_at=min_captured_at,
         )
 
     def search(self, q, limit=20):

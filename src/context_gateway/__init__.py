@@ -13,6 +13,9 @@ from .config import (
     get_raw_dir,
     safe_project_name,
 )
+from .acquisition import ingest_camofox_observation, ingest_conversation_payload
+from .camofox import CamofoxClient, CamofoxObservation, BrowserTurn, collect_conversation, parse_visible_turns
+from .contracts import AcquisitionCheckpoint, ContextBudget, ContextRequest, ContextScope, FreshnessPolicy
 from .db import ArchiveDB
 from .normalize import extract_messages, extract_text, make_record, messages_from_indexed_text, stable_hash
 from .server import create_server, run_server
@@ -30,6 +33,18 @@ __all__ = [
     "get_raw_dir",
     "safe_project_name",
     "ArchiveDB",
+    "ContextRequest",
+    "ContextScope",
+    "ContextBudget",
+    "FreshnessPolicy",
+    "AcquisitionCheckpoint",
+    "BrowserTurn",
+    "CamofoxClient",
+    "CamofoxObservation",
+    "collect_conversation",
+    "parse_visible_turns",
+    "ingest_conversation_payload",
+    "ingest_camofox_observation",
     "extract_messages",
     "extract_text",
     "messages_from_indexed_text",

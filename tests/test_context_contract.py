@@ -1,0 +1,251 @@
+from pathlib import Path
+
+import pytest
+
+from context_gateway.acquisition import ingest_camofox_observation, ingest_conversation_payload
+from context_gateway.camofox import BrowserTurn, CamofoxObservation
+from context_gateway.contracts import (
+    ContextBudget,
+    ContextContractError,
+    ContextRequest,
+    ContextScope,
+    FreshnessPolicy,
+)
+from context_gateway.continuity import context_request
+from context_gateway.db import ArchiveDB
+from context_gateway.normalize import make_record
+
+
+def _payload(cid: str, text: str, update: float = 1700000000):
+    nodes = [
+        {
+            "id": f"node-{cid}-0",
+            "parent": None,
+            "children": [f"node-{cid}-1"],
+            "message": {
+                "id": f"msg-{cid}-0",
+                "author": {"role": "user"},
+                "content": {"content_type": "text", "parts": [text]},
+                "create_time": update,
+            },
+        },
+        {
+            "id": f"node-{cid}-1",
+            "parent": f"node-{cid}-0",
+            "children": [],
+            "message": {
+                "id": f"msg-{cid}-1",
+                "author": {"role": "assistant"},
+                "content": {"content_type": "text", "parts": [f"reply to {text}"]},
+                "create_time": update + 1,
+            },
+        },
+    ]
+    return {
+        "id": cid,
+        "title": f"Conversation {cid}",
+        "create_time": update,
+        "update_time": update,
+        "mapping": {item["id"]: item for item in nodes},
+        "current_node": nodes[-1]["id"],
+    }
+
+
+def _record(tmp_path: Path, cid: str, text: str, update: float = 1700000000):
+    return make_record(
+        _payload(cid, text, update),
+        project_id="project-1",
+        project_name="Engineering",
+        raw_path=str(tmp_path / cid / "snapshot-001.json"),
+        provider="chatgpt",
+        account_id="main",
+        source="export",
+        captured_at=update,
+    )
+
+
+def test_context_request_contract_round_trip():
+    request = ContextRequest.from_dict(
+        {
+            "consumer": "hermes",
+            "session_id": "session-current",
+            "query": "continue engineering loop",
+            "scope": {
+                "providers": ["openai", "google"],
+                "accounts": ["main"],
+                "project": "Engineering",
+            },
+            "freshness": {
+                "max_age_seconds": 86400,
+                "allow_live_acquisition": True,
+                "require_fresh": True,
+            },
+            "budget": {"max_messages": 12, "max_bytes": 50000},
+            "trust": "historical_evidence",
+            "exclude_conversation_uids": ["current-uid"],
+        }
+    )
+    encoded = request.to_dict()
+    restored = ContextRequest.from_dict(encoded)
+    assert restored == request
+    assert restored.scope.providers == ("openai", "google")
+    assert restored.scope.accounts == ("main",)
+    assert restored.budget.max_messages == 12
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        {"max_messages": 0, "max_bytes": 50000},
+        {"max_messages": 10, "max_bytes": 100},
+    ],
+)
+def test_invalid_budget_is_rejected(value):
+    with pytest.raises(ContextContractError):
+        ContextBudget.from_dict(value)
+
+
+def test_ingestion_creates_snapshot_and_checkpoint(tmp_path: Path):
+    db = ArchiveDB(tmp_path / "db.sqlite3")
+    result = ingest_conversation_payload(
+        _payload("camo-c1", "latest from browser"),
+        project_id="project-1",
+        project_name="Engineering",
+        provider="chatgpt",
+        account_id="main",
+        acquisition_method="camofox",
+        db=db,
+        raw_dir=tmp_path / "raw",
+    )
+    assert result["snapshot_id"]
+    assert result["raw_path"].endswith("snapshot-001.json")
+    checkpoint = db.get_acquisition_checkpoint(
+        "chatgpt", "main", "conversation", "camo-c1", "camofox"
+    )
+    assert checkpoint["status"] == "success"
+    assert checkpoint["method"] == "camofox"
+    assert checkpoint["last_success_at"] is not None
+
+
+def test_incomplete_camofox_observation_is_not_promoted(tmp_path: Path):
+    db = ArchiveDB(tmp_path / "db.sqlite3")
+    observation = CamofoxObservation(
+        provider="chatgpt",
+        account_id="main",
+        conversation_id="camo-1",
+        title="Engineering",
+        url="https://chatgpt.com/c/camo-1",
+        turns=(BrowserTurn("user", "partial", 0),),
+        snapshot_hashes=("h1",),
+        raw_snapshots=("partial snapshot",),
+        scroll_rounds=3,
+        complete=False,
+        captured_at=1700000000,
+    )
+
+    with pytest.raises(ValueError, match="incomplete"):
+        ingest_camofox_observation(
+            observation,
+            project_id="project-1",
+            project_name="Engineering",
+            db=db,
+            raw_dir=tmp_path / "raw",
+        )
+
+
+def test_context_request_excludes_current_session_evidence(tmp_path: Path):
+    db = ArchiveDB(tmp_path / "db.sqlite3")
+    row_current = _record(tmp_path, "current-conversation", "engineering loop latest decision")
+    row_old = _record(tmp_path, "historical-conversation", "engineering loop latest decision")
+    db.upsert_conversation(row_current)
+    db.upsert_conversation(row_old)
+
+    current_uid = db._conversation_uid_from_record(row_current)
+    result = context_request(
+        db,
+        ContextRequest(
+            consumer="chatgpt",
+            session_id="current-session",
+            query="engineering loop latest decision",
+            exclude_conversation_uids=(current_uid,),
+            budget=ContextBudget(max_messages=10, max_bytes=50000),
+        ),
+    )
+
+    old_uid = db._conversation_uid_from_record(row_old)
+    ids = {item["conversation_uid"] for item in result["evidence"]}
+    assert current_uid not in ids
+    assert old_uid in ids
+    assert result["retrieval"]["excluded_conversation_uids"] == [current_uid]
+
+
+def test_context_request_enforces_freshness_and_exposes_acquisition_needed(tmp_path: Path):
+    db = ArchiveDB(tmp_path / "db.sqlite3")
+    stale = _record(tmp_path, "stale", "freshness test evidence", update=1700000000)
+    db.upsert_conversation(stale)
+
+    result = context_request(
+        db,
+        ContextRequest(
+            consumer="hermes",
+            session_id="s1",
+            query="freshness test evidence",
+            freshness=FreshnessPolicy(
+                max_age_seconds=60,
+                allow_live_acquisition=True,
+                require_fresh=True,
+            ),
+        ),
+    )
+
+    assert result["evidence"] == []
+    assert result["acquisition"]["status"] == "acquisition_required"
+    assert result["acquisition"]["next_action"] == "run_provider_acquisition"
+    assert result["retrieval"]["freshness"]["fresh_evidence_count"] == 0
+
+
+def test_context_request_can_union_multiple_provider_scopes(tmp_path: Path):
+    db = ArchiveDB(tmp_path / "db.sqlite3")
+    db.upsert_project(
+        {
+            "id": "p-openai",
+            "name": "Engineering",
+            "provider": "openai",
+            "account_id": "main",
+        }
+    )
+    db.upsert_project(
+        {
+            "id": "p-google",
+            "name": "Engineering",
+            "provider": "google",
+            "account_id": "main",
+        }
+    )
+
+    openai = _record(tmp_path, "openai-1", "broker bootstrap engineering loop")
+    openai["provider"] = "openai"
+    openai["account_id"] = "main"
+    openai["project_id"] = "p-openai"
+    google = _record(tmp_path, "google-1", "broker bootstrap engineering loop")
+    google["provider"] = "google"
+    google["account_id"] = "main"
+    google["project_id"] = "p-google"
+    db.upsert_conversation(openai)
+    db.upsert_conversation(google)
+
+    result = context_request(
+        db,
+        ContextRequest(
+            consumer="hermes",
+            session_id="s2",
+            query="broker bootstrap engineering loop",
+            scope=ContextScope(
+                providers=("openai", "google"),
+                accounts=("main",),
+                project="Engineering",
+            ),
+        ),
+    )
+    assert {item["provider"] for item in result["evidence"]} == {"openai", "google"}
+    assert result["request"]["consumer"] == "hermes"

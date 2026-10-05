@@ -3,7 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from .config import get_db_path
-from .continuity import compare, continuity, project_context, timeline
+from .contracts import ContextRequest
+from .continuity import compare, context_request as resolve_context_request, continuity, project_context, timeline
 from .db import ArchiveDB
 
 
@@ -22,6 +23,11 @@ def build_mcp(db_path: str | Path | None = None):
         stateless_http=True,
     )
     db = ArchiveDB(get_db_path(db_path), check_same_thread=False)
+
+    @mcp.tool()
+    def context_request(request: dict) -> dict:
+        """Resolve a structured ContextRequest into an evidence-backed Context Bundle."""
+        return resolve_context_request(db, ContextRequest.from_dict(request))
 
     @mcp.tool()
     def context_search(

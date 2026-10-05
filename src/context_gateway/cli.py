@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Sequence
 
 from .client import AuthenticationError, ChatGPTClient, ChatGPTClientError
+from .connect import DEFAULT_ENV_PATH, run_connect
 from .config import get_db_path, get_raw_dir
 from .db import ArchiveDB
 from .server import run_server
@@ -175,6 +176,19 @@ def cmd_mcp_serve(args: argparse.Namespace) -> int:
     run_mcp(db_path=get_db_path(args.db), host=args.host, port=args.port)
     return 0
 
+def cmd_connect(args: argparse.Namespace) -> int:
+    try:
+        return run_connect(
+            env_path=args.env_file or DEFAULT_ENV_PATH,
+            host=args.host,
+            port=args.port,
+            open_browser=not args.no_browser,
+        )
+    except OSError as exc:
+        print(f"Connect flow failed: {exc}", file=sys.stderr)
+        return 1
+
+
 def cmd_import_openai(args: argparse.Namespace) -> int:
     db = ArchiveDB(get_db_path(args.db))
     raw_dir = get_raw_dir(args.raw_dir)
@@ -205,28 +219,34 @@ def build_parser() -> argparse.ArgumentParser:
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
+    # projects
     p_proj = subparsers.add_parser("projects", help="List projects")
     p_proj.add_argument("--remote", action="store_true", help="Fetch projects live from ChatGPT instead of local DB")
     p_proj.set_defaults(func=cmd_projects)
 
+    # sync
     p_sync = subparsers.add_parser("sync", help="Sync projects and conversations from ChatGPT")
     p_sync.add_argument("--project", "-p", default=None, help="Specific project name or ID to sync")
     p_sync.set_defaults(func=cmd_sync)
 
+    # chats
     p_chats = subparsers.add_parser("chats", help="List conversations in a project or all projects")
     p_chats.add_argument("--project", "-p", default=None, help="Filter conversations by project name or ID")
     p_chats.set_defaults(func=cmd_chats)
 
+    # get
     p_get = subparsers.add_parser("get", help="Get a conversation by ID")
     p_get.add_argument("--conversation-id", "-c", required=True, help="Conversation ID to retrieve")
     p_get.add_argument("--full", action="store_true", help="Output full raw JSON payload")
     p_get.set_defaults(func=cmd_get)
 
+    # search
     p_search = subparsers.add_parser("search", help="Search conversations using full-text index")
     p_search.add_argument("query", help="Full-text search query")
     p_search.add_argument("--limit", type=int, default=20, help="Maximum number of results (default: 20)")
     p_search.set_defaults(func=cmd_search)
 
+    # serve
     p_serve = subparsers.add_parser("serve", help="Run localhost retrieval HTTP API server")
     p_serve.add_argument("--host", default="127.0.0.1", help="Host address to bind (default: 127.0.0.1)")
     p_serve.add_argument("--port", type=int, default=8765, help="Port to bind (default: 8765)")
@@ -236,6 +256,12 @@ def build_parser() -> argparse.ArgumentParser:
     p_mcp.add_argument("--host", default="127.0.0.1", help="Host address to bind")
     p_mcp.add_argument("--port", type=int, default=8766, help="Port to bind")
     p_mcp.set_defaults(func=cmd_mcp_serve)
+
+    p_connect = subparsers.add_parser("connect", help="Open the local ChatGPT Web credential connection flow")
+    p_connect.add_argument("--host", default="127.0.0.1", help="Local bind address (must stay localhost-only)")
+    p_connect.add_argument("--port", type=int, default=8780, help="Local port (default: 8780)")
+    p_connect.add_argument("--no-browser", action="store_true", help="Do not open the local setup page automatically")
+    p_connect.set_defaults(func=cmd_connect)
 
     p_import = subparsers.add_parser("import-openai", help="Import a ChatGPT/OpenAI data export")
     p_import.add_argument("source", help="Path to conversations.json, JSON export directory, or ZIP export")

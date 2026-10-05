@@ -9,14 +9,17 @@ from .config import get_raw_dir, safe_project_name
 from .db import ArchiveDB
 from .normalize import make_record
 
+
 class OpenAIExportError(Exception):
     pass
+
 
 def _iter_json_documents(path: Path) -> Iterable[tuple[str, Any]]:
     if path.is_dir():
         for item in sorted(path.rglob("*.json")):
             yield from _iter_json_documents(item)
         return
+
     if path.suffix.lower() == ".zip":
         with zipfile.ZipFile(path) as zf:
             names = [n for n in zf.namelist() if n.lower().endswith(".json") and not n.endswith("/")]
@@ -26,23 +29,29 @@ def _iter_json_documents(path: Path) -> Iterable[tuple[str, Any]]:
                 except (UnicodeDecodeError, json.JSONDecodeError) as exc:
                     raise OpenAIExportError(f"invalid JSON in export member: {name}") from exc
         return
+
     if path.suffix.lower() != ".json":
         raise OpenAIExportError("input must be a JSON file, directory, or ZIP export")
+
     try:
         yield path.name, json.loads(path.read_text(encoding="utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise OpenAIExportError(f"invalid JSON file: {path}") from exc
 
+
 def _conversation_items(document: Any) -> list[dict[str, Any]]:
     if isinstance(document, list):
         return [x for x in document if isinstance(x, dict) and (x.get("id") or x.get("conversation_id"))]
+
     if isinstance(document, dict):
         candidates = document.get("conversations")
         if isinstance(candidates, list):
             return [x for x in candidates if isinstance(x, dict) and (x.get("id") or x.get("conversation_id"))]
         if document.get("id") or document.get("conversation_id"):
             return [document]
+
     return []
+
 
 def _project_fields(conv: dict[str, Any]) -> tuple[str, str]:
     gizmo = conv.get("gizmo")
@@ -50,6 +59,7 @@ def _project_fields(conv: dict[str, Any]) -> tuple[str, str]:
     project_id = conv.get("project_id") or conv.get("gizmo_id") or gizmo.get("id")
     project_name = conv.get("project_name") or conv.get("gizmo_name") or gizmo.get("name")
     return str(project_id or "imported-openai"), str(project_name or "Imported / OpenAI")
+
 
 def import_openai_export(
     source: str | Path,

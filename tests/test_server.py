@@ -25,11 +25,7 @@ def test_server(tmp_path: Path):
         "update_time": 1700000100.0,
         "raw_path": "/path/to/raw.json",
         "raw_hash": "hash123",
-        "indexed_text": "user:
-What are the tradeoffs between FastAPI and Flask?
-
-assistant:
-FastAPI is async-first.",
+        "indexed_text": "user:\nWhat are the tradeoffs between FastAPI and Flask?\n\nassistant:\nFastAPI is async-first.",
         "raw_json": '{"id": "conv-xyz", "title": "FastAPI vs Flask"}',
         "provider": "chatgpt",
         "account_id": "main",
@@ -39,10 +35,13 @@ FastAPI is async-first.",
 
     server = create_server(host="127.0.0.1", port=0, db=db)
     port = server.server_address[1]
+
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
+
     base_url = f"http://127.0.0.1:{port}"
     yield base_url
+
     server.shutdown()
     server.server_close()
     db.close()
@@ -98,6 +97,7 @@ def test_server_not_found_endpoint(test_server: str):
     with pytest.raises(urllib.error.HTTPError) as exc_info:
         urllib.request.urlopen(f"{test_server}/unknown/endpoint")
     assert exc_info.value.code == 404
+
 
 def test_server_project_context(test_server: str):
     data = _get_json(f"{test_server}/projects/proj-abc/context?topic=tradeoffs")

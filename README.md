@@ -27,6 +27,7 @@ The provider controls how data enters the archive. Retrieval and continuity sema
 - Localhost-only HTTP retrieval API.
 - Optional read-only MCP Streamable HTTP server for future ChatGPT/Gemini/Perplexity/Hermes consumers.
 - External credential isolation; no credentials are stored in source control.
+- Local one-time ChatGPT Web connection bridge that imports a copied browser cURL request without executing it.
 
 ## Installation
 
@@ -44,6 +45,10 @@ Install the MCP extra only when MCP serving is needed.
 
 Credentials stay outside the repository. The client looks for an external env file.
 
+For the normal interactive setup, run `chatgpt-context connect`. The bridge stays on localhost, opens a local setup page, and accepts one copied cURL request from a logged-in ChatGPT Web `/backend-api/` request. It parses only the Authorization/Cookie/account headers, stores the result with mode `0600`, and immediately tests `projects` access. It never executes the pasted cURL.
+
+This is intentionally separate from OpenAI Sign in with ChatGPT: the official OAuth flow provides identity (and, with separate consent, eligible plan usage), but does not grant an app access to the user’s ChatGPT conversations.
+
 Example variable names only:
 
     OAI_AUTHZ_TOKEN=...
@@ -60,9 +65,13 @@ Do not put actual credentials into chat, git, or the repository.
     chatgpt-context chats --project "Project Name"
     chatgpt-context get --conversation-id "<id>"
     chatgpt-context get --conversation-id "<id>" --full
+    chatgpt-context connect
     chatgpt-context search "engineering loop"
     chatgpt-context serve --host 127.0.0.1 --port 8765
     chatgpt-context mcp-serve --host 127.0.0.1 --port 8766
+    chatgpt-context import-openai /path/to/export.zip --account-id openai-secondary
+
+The OpenAI import accepts a JSON file, an export directory, or a ZIP export. It keeps the imported account isolated under the raw archive namespace.
 
 ## HTTP API
 

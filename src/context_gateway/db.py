@@ -1,167 +1,762 @@
+from __future__ import annotations
+
+import hashlib
 import json
 import sqlite3
+import time
 from pathlib import Path
 from typing import Any
 
+from .normalize import extract_messages, make_record, messages_from_indexed_text, stable_hash
+
+
+SCHEMA_VERSION = 3
+
 SCHEMA = """
 PRAGMA journal_mode=WAL;
+
 CREATE TABLE IF NOT EXISTS projects(
- id TEXT PRIMARY KEY, name TEXT NOT NULL, created_at TEXT, updated_at TEXT,
- provider TEXT NOT NULL DEFAULT 'chatgpt', account_id TEXT NOT NULL DEFAULT 'default',
- source TEXT NOT NULL DEFAULT 'chatgpt', raw_json TEXT NOT NULL
+    project_uid TEXT PRIMARY KEY,
+    id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    created_at TEXT,
+    updated_at TEXT,
+    provider TEXT NOT NULL,
+    account_id TEXT NOT NULL,
+    source TEXT NOT NULL,
+    raw_json TEXT NOT NULL,
+    UNIQUE(provider, account_id, id)
 );
+
+CREATE INDEX IF NOT EXISTS idx_projects_provider_account
+    ON projects(provider, account_id);
+
 CREATE TABLE IF NOT EXISTS conversations(
- id TEXT PRIMARY KEY, project_id TEXT, project_name TEXT, title TEXT,
- create_time REAL, update_time REAL, raw_path TEXT NOT NULL, raw_hash TEXT NOT NULL,
- indexed_text TEXT NOT NULL, raw_json TEXT NOT NULL,
- provider TEXT NOT NULL DEFAULT 'chatgpt', account_id TEXT NOT NULL DEFAULT 'default',
- source TEXT NOT NULL DEFAULT 'chatgpt'
+    conversation_uid TEXT PRIMARY KEY,
+    id TEXT NOT NULL,
+    project_uid TEXT,
+    project_id TEXT,
+    project_name TEXT,
+    title TEXT,
+    create_time REAL,
+    update_time REAL,
+    raw_path TEXT NOT NULL,
+    raw_hash TEXT NOT NULL,
+    indexed_text TEXT NOT NULL,
+    raw_json TEXT NOT NULL,
+    provider TEXT NOT NULL,
+    account_id TEXT NOT NULL,
+    source TEXT NOT NULL,
+    UNIQUE(provider, account_id, id)
 );
-CREATE INDEX IF NOT EXISTS idx_conv_project ON conversations(project_id);
-CREATE VIRTUAL TABLE IF NOT EXISTS conversation_fts USING fts5(
- conversation_id UNINDEXED, title, project_name, content
+
+CREATE INDEX IF NOT EXISTS idx_conv_project
+    ON conversations(project_uid);
+
+CREATE INDEX IF NOT EXISTS idx_conv_provider_account
+    ON conversations(provider, account_id);
+
+CREATE TABLE IF NOT EXISTS conversation_snapshots(
+    snapshot_id TEXT PRIMARY KEY,
+    conversation_uid TEXT NOT NULL,
+    snapshot_seq INTEGER NOT NULL,
+    captured_at REAL NOT NULL,
+    source_updated_at REAL,
+    raw_path TEXT NOT NULL,
+    raw_hash TEXT NOT NULL,
+    message_count INTEGER NOT NULL DEFAULT 0,
+    UNIQUE(conversation_uid, snapshot_seq),
+    UNIQUE(conversation_uid, raw_hash)
+);
+
+CREATE INDEX IF NOT EXISTS idx_snapshot_conversation
+    ON conversation_snapshots(conversation_uid, snapshot_seq);
+
+CREATE TABLE IF NOT EXISTS conversation_current(
+    conversation_uid TEXT PRIMARY KEY,
+    snapshot_id TEXT NOT NULL,
+    current_at REAL NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS messages(
+    message_uid TEXT PRIMARY KEY,
+    conversation_uid TEXT NOT NULL,
+    id TEXT NOT NULL,
+    role TEXT NOT NULL,
+    latest_text TEXT NOT NULL,
+    latest_content_hash TEXT NOT NULL,
+    create_time REAL,
+    latest_snapshot_id TEXT,
+    UNIQUE(conversation_uid, id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_messages_conversation
+    ON messages(conversation_uid);
+
+CREATE TABLE IF NOT EXISTS snapshot_messages(
+    snapshot_id TEXT NOT NULL,
+    message_uid TEXT NOT NULL,
+    ordinal INTEGER NOT NULL,
+    parent_message_uid TEXT,
+    role TEXT NOT NULL,
+    text TEXT NOT NULL,
+    content_hash TEXT NOT NULL,
+    create_time REAL,
+    PRIMARY KEY(snapshot_id, message_uid)
+);
+
+CREATE INDEX IF NOT EXISTS idx_snapshot_messages_order
+    ON snapshot_messages(snapshot_id, ordinal);
+
+CREATE VIRTUAL TABLE IF NOT EXISTS message_fts USING fts5(
+    message_uid UNINDEXED,
+    snapshot_id UNINDEXED,
+    conversation_uid UNINDEXED,
+    conversation_id UNINDEXED,
+    project_name,
+    title,
+    role,
+    content
 );
 """
 
+
+def scoped_uid(kind: str, provider: str, account_id: str, external_id: str) -> str:
+    raw = f"{kind}\0{provider}\0{account_id}\0{external_id}".encode()
+    return hashlib.sha256(raw).hexdigest()
+
+
+def snapshot_uid(conversation_uid: str, seq: int) -> str:
+    return f"{conversation_uid}:snapshot-{seq:06d}"
+
+
+def message_uid_for(conversation_uid: str, provider_message_id: str) -> str:
+    raw = f"message\0{conversation_uid}\0{provider_message_id}".encode()
+    return hashlib.sha256(raw).hexdigest()
+
+
 class ArchiveDB:
     def __init__(self, path: Path, check_same_thread: bool = False):
+        path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
-        self.path = Path(path)
-        self.conn = sqlite3.connect(self.path, check_same_thread=check_same_thread)
+        self.path = path
+        self.conn = sqlite3.connect(path, check_same_thread=check_same_thread)
         self.conn.row_factory = sqlite3.Row
-        self.conn.executescript(SCHEMA)
-        self._migrate()
+        self._prepare_schema()
 
-    def _migrate(self) -> None:
-        migrations = {
-            "projects": {
-                "provider": "TEXT NOT NULL DEFAULT 'chatgpt'",
-                "account_id": "TEXT NOT NULL DEFAULT 'default'",
-                "source": "TEXT NOT NULL DEFAULT 'chatgpt'",
-            },
-            "conversations": {
-                "provider": "TEXT NOT NULL DEFAULT 'chatgpt'",
-                "account_id": "TEXT NOT NULL DEFAULT 'default'",
-                "source": "TEXT NOT NULL DEFAULT 'chatgpt'",
-            },
-        }
-        for table, columns in migrations.items():
-            existing = {row["name"] for row in self.conn.execute(f"PRAGMA table_info({table})")}
-            for name, definition in columns.items():
-                if name not in existing:
-                    self.conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {definition}")
-        self.conn.execute("CREATE INDEX IF NOT EXISTS idx_conv_provider_account ON conversations(provider, account_id)")
+    def _prepare_schema(self) -> None:
+        self.conn.execute("PRAGMA journal_mode=WAL")
+        if self._has_legacy_schema():
+            self._migrate_legacy()
+        else:
+            self.conn.executescript(SCHEMA)
+        self.conn.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
         self.conn.commit()
 
+    def _has_legacy_schema(self) -> bool:
+        tables = {
+            row["name"]
+            for row in self.conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'"
+            )
+        }
+        if "conversations" not in tables:
+            return False
+        columns = {
+            row["name"] for row in self.conn.execute("PRAGMA table_info(conversations)")
+        }
+        return "conversation_uid" not in columns
+
+    def _migrate_legacy(self) -> None:
+        legacy_projects = "legacy_projects_migration"
+        legacy_conversations = "legacy_conversations_migration"
+
+        self.conn.execute(f"ALTER TABLE projects RENAME TO {legacy_projects}")
+        self.conn.execute(f"ALTER TABLE conversations RENAME TO {legacy_conversations}")
+        self.conn.execute("DROP TABLE IF EXISTS conversation_fts")
+        self.conn.executescript(SCHEMA)
+
+        project_rows = list(
+            self.conn.execute(f"SELECT * FROM {legacy_projects}")
+        )
+        for row in project_rows:
+            provider = row["provider"] if "provider" in row.keys() else "chatgpt"
+            account_id = row["account_id"] if "account_id" in row.keys() else "default"
+            project_id = row["id"]
+            project_uid = scoped_uid("project", provider, account_id, project_id)
+            self.conn.execute(
+                """INSERT OR IGNORE INTO projects
+                   (project_uid,id,name,created_at,updated_at,provider,account_id,source,raw_json)
+                   VALUES(?,?,?,?,?,?,?,?,?)""",
+                (
+                    project_uid,
+                    project_id,
+                    row["name"],
+                    row["created_at"],
+                    row["updated_at"],
+                    provider,
+                    account_id,
+                    row["source"] if "source" in row.keys() else provider,
+                    row["raw_json"],
+                ),
+            )
+
+        conv_rows = list(
+            self.conn.execute(f"SELECT * FROM {legacy_conversations}")
+        )
+        for row in conv_rows:
+            provider = row["provider"] if "provider" in row.keys() else "chatgpt"
+            account_id = row["account_id"] if "account_id" in row.keys() else "default"
+            source = row["source"] if "source" in row.keys() else provider
+            conversation_id = row["id"]
+            conversation_uid = scoped_uid(
+                "conversation", provider, account_id, conversation_id
+            )
+            project_id = row["project_id"]
+            project_uid = (
+                scoped_uid("project", provider, account_id, project_id)
+                if project_id
+                else None
+            )
+            raw_json = row["raw_json"]
+            try:
+                payload = json.loads(raw_json)
+            except Exception:
+                payload = {"id": conversation_id, "title": row["title"]}
+            messages = extract_messages(payload)
+            if not messages:
+                messages = messages_from_indexed_text(row["indexed_text"])
+
+            self.conn.execute(
+                """INSERT OR IGNORE INTO conversations
+                   (conversation_uid,id,project_uid,project_id,project_name,title,create_time,update_time,
+                    raw_path,raw_hash,indexed_text,raw_json,provider,account_id,source)
+                   VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (
+                    conversation_uid,
+                    conversation_id,
+                    project_uid,
+                    project_id,
+                    row["project_name"],
+                    row["title"],
+                    row["create_time"],
+                    row["update_time"],
+                    row["raw_path"],
+                    row["raw_hash"],
+                    row["indexed_text"],
+                    raw_json,
+                    provider,
+                    account_id,
+                    source,
+                ),
+            )
+
+            captured_at = float(row["update_time"] or row["create_time"] or time.time())
+            snapshot_id = snapshot_uid(conversation_uid, 1)
+            self.conn.execute(
+                """INSERT OR IGNORE INTO conversation_snapshots
+                   (snapshot_id,conversation_uid,snapshot_seq,captured_at,source_updated_at,raw_path,raw_hash,message_count)
+                   VALUES(?,?,?,?,?,?,?,?)""",
+                (
+                    snapshot_id,
+                    conversation_uid,
+                    1,
+                    captured_at,
+                    row["update_time"],
+                    row["raw_path"],
+                    row["raw_hash"],
+                    len(messages),
+                ),
+            )
+            self._insert_messages(
+                conversation_uid=conversation_uid,
+                snapshot_id=snapshot_id,
+                conversation_id=conversation_id,
+                project_name=row["project_name"],
+                title=row["title"],
+                provider=provider,
+                account_id=account_id,
+                messages=messages,
+            )
+            self.conn.execute(
+                """INSERT OR REPLACE INTO conversation_current
+                   (conversation_uid,snapshot_id,current_at)
+                   VALUES(?,?,?)""",
+                (conversation_uid, snapshot_id, captured_at),
+            )
+
+        self.conn.execute(f"DROP TABLE {legacy_projects}")
+        self.conn.execute(f"DROP TABLE {legacy_conversations}")
+
+    def _insert_messages(
+        self,
+        conversation_uid: str,
+        snapshot_id: str,
+        conversation_id: str,
+        project_name: str,
+        title: str,
+        provider: str,
+        account_id: str,
+        messages: list[dict[str, Any]],
+    ) -> None:
+        self.conn.execute(
+            "DELETE FROM message_fts WHERE snapshot_id=?",
+            (snapshot_id,),
+        )
+        for item in messages:
+            provider_message_id = item["provider_message_id"]
+            msg_uid = message_uid_for(conversation_uid, provider_message_id)
+            text = item["text"]
+            content_hash = stable_hash(text)
+            parent_uid = (
+                message_uid_for(conversation_uid, item["parent_message_id"])
+                if item.get("parent_message_id")
+                else None
+            )
+            self.conn.execute(
+                """INSERT INTO messages
+                   (message_uid,conversation_uid,id,role,latest_text,latest_content_hash,create_time,latest_snapshot_id)
+                   VALUES(?,?,?,?,?,?,?,?)
+                   ON CONFLICT(message_uid) DO UPDATE SET
+                     latest_text=excluded.latest_text,
+                     latest_content_hash=excluded.latest_content_hash,
+                     create_time=excluded.create_time,
+                     latest_snapshot_id=excluded.latest_snapshot_id""",
+                (
+                    msg_uid,
+                    conversation_uid,
+                    provider_message_id,
+                    item["role"],
+                    text,
+                    content_hash,
+                    item.get("create_time"),
+                    snapshot_id,
+                ),
+            )
+            self.conn.execute(
+                """INSERT OR REPLACE INTO snapshot_messages
+                   (snapshot_id,message_uid,ordinal,parent_message_uid,role,text,content_hash,create_time)
+                   VALUES(?,?,?,?,?,?,?,?)""",
+                (
+                    snapshot_id,
+                    msg_uid,
+                    item["ordinal"],
+                    parent_uid,
+                    item["role"],
+                    text,
+                    content_hash,
+                    item.get("create_time"),
+                ),
+            )
+            self.conn.execute(
+                """INSERT INTO message_fts
+                   (message_uid,snapshot_id,conversation_uid,conversation_id,project_name,title,role,content)
+                   VALUES(?,?,?,?,?,?,?,?)""",
+                (
+                    msg_uid,
+                    snapshot_id,
+                    conversation_uid,
+                    conversation_id,
+                    project_name,
+                    title,
+                    item["role"],
+                    text,
+                ),
+            )
+
     def close(self):
-        if self.conn:
-            self.conn.close()
+        self.conn.close()
 
     def upsert_project(self, p: dict[str, Any]):
         provider = p.get("provider", "chatgpt")
+        account_id = p.get("account_id", "default")
+        project_id = str(p["id"])
+        project_uid = scoped_uid("project", provider, account_id, project_id)
         self.conn.execute(
             """INSERT INTO projects
-            (id,name,created_at,updated_at,provider,account_id,source,raw_json)
-            VALUES(?,?,?,?,?,?,?,?)
-            ON CONFLICT(id) DO UPDATE SET
-              name=excluded.name, created_at=excluded.created_at, updated_at=excluded.updated_at,
-              provider=excluded.provider, account_id=excluded.account_id,
-              source=excluded.source, raw_json=excluded.raw_json""",
+               (project_uid,id,name,created_at,updated_at,provider,account_id,source,raw_json)
+               VALUES(?,?,?,?,?,?,?,?,?)
+               ON CONFLICT(project_uid) DO UPDATE SET
+                 id=excluded.id,name=excluded.name,created_at=excluded.created_at,updated_at=excluded.updated_at,
+                 provider=excluded.provider,account_id=excluded.account_id,source=excluded.source,raw_json=excluded.raw_json""",
             (
-                p["id"], p.get("name") or "", p.get("created_at"), p.get("updated_at"),
-                provider, p.get("account_id", "default"), p.get("source", provider),
+                project_uid,
+                project_id,
+                p.get("name") or "",
+                p.get("created_at"),
+                p.get("updated_at"),
+                provider,
+                account_id,
+                p.get("source", provider),
                 json.dumps(p, ensure_ascii=False),
             ),
         )
         self.conn.commit()
 
+    def _conversation_uid_from_record(self, c: dict[str, Any]) -> str:
+        return scoped_uid(
+            "conversation",
+            c.get("provider", "chatgpt"),
+            c.get("account_id", "default"),
+            str(c["id"]),
+        )
+
+    def next_snapshot_seq(self, c: dict[str, Any]) -> int:
+        uid = self._conversation_uid_from_record(c)
+        row = self.conn.execute(
+            "SELECT COALESCE(MAX(snapshot_seq),0)+1 AS next_seq FROM conversation_snapshots WHERE conversation_uid=?",
+            (uid,),
+        ).fetchone()
+        return int(row["next_seq"])
+
+    def current_snapshot(self, conversation_uid: str) -> dict[str, Any] | None:
+        row = self.conn.execute(
+            """SELECT s.*, c.id AS conversation_id, c.provider, c.account_id
+               FROM conversation_current cc
+               JOIN conversation_snapshots s ON s.snapshot_id=cc.snapshot_id
+               JOIN conversations c ON c.conversation_uid=cc.conversation_uid
+               WHERE cc.conversation_uid=?""",
+            (conversation_uid,),
+        ).fetchone()
+        return dict(row) if row else None
+
+    def current_snapshot_for_record(self, c: dict[str, Any]) -> dict[str, Any] | None:
+        return self.current_snapshot(self._conversation_uid_from_record(c))
+
     def upsert_conversation(self, c: dict[str, Any]):
         provider = c.get("provider", "chatgpt")
+        account_id = c.get("account_id", "default")
+        conversation_id = str(c["id"])
+        conversation_uid = self._conversation_uid_from_record(c)
+
+        project_id = c.get("project_id")
+        project_uid = (
+            scoped_uid("project", provider, account_id, str(project_id))
+            if project_id
+            else None
+        )
+
         self.conn.execute(
             """INSERT INTO conversations
-            (id,project_id,project_name,title,create_time,update_time,raw_path,raw_hash,
-             indexed_text,raw_json,provider,account_id,source)
-            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)
-            ON CONFLICT(id) DO UPDATE SET
-              project_id=excluded.project_id, project_name=excluded.project_name,
-              title=excluded.title, create_time=excluded.create_time, update_time=excluded.update_time,
-              raw_path=excluded.raw_path, raw_hash=excluded.raw_hash,
-              indexed_text=excluded.indexed_text, raw_json=excluded.raw_json,
-              provider=excluded.provider, account_id=excluded.account_id, source=excluded.source""",
+               (conversation_uid,id,project_uid,project_id,project_name,title,create_time,update_time,
+                raw_path,raw_hash,indexed_text,raw_json,provider,account_id,source)
+               VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+               ON CONFLICT(conversation_uid) DO UPDATE SET
+                 project_uid=excluded.project_uid,project_id=excluded.project_id,project_name=excluded.project_name,
+                 title=excluded.title,create_time=excluded.create_time,update_time=excluded.update_time,
+                 raw_path=excluded.raw_path,raw_hash=excluded.raw_hash,indexed_text=excluded.indexed_text,
+                 raw_json=excluded.raw_json,provider=excluded.provider,account_id=excluded.account_id,source=excluded.source""",
             (
-                c["id"], c.get("project_id"), c.get("project_name"), c.get("title") or "Untitled",
-                c.get("create_time"), c.get("update_time"), c["raw_path"], c["raw_hash"],
-                c.get("indexed_text", ""), c.get("raw_json", "{}"),
-                provider, c.get("account_id", "default"), c.get("source", provider),
+                conversation_uid,
+                conversation_id,
+                project_uid,
+                project_id,
+                c.get("project_name"),
+                c.get("title") or "Untitled",
+                c.get("create_time"),
+                c.get("update_time"),
+                c["raw_path"],
+                c["raw_hash"],
+                c.get("indexed_text", ""),
+                c.get("raw_json", "{}"),
+                provider,
+                account_id,
+                c.get("source", provider),
             ),
         )
-        self.conn.execute("DELETE FROM conversation_fts WHERE conversation_id=?", (c["id"],))
+
+        existing = self.conn.execute(
+            """SELECT snapshot_id FROM conversation_snapshots
+               WHERE conversation_uid=? AND raw_hash=?""",
+            (conversation_uid, c["raw_hash"]),
+        ).fetchone()
+
+        now = float(c.get("captured_at") or time.time())
+        if existing:
+            snapshot_id = existing["snapshot_id"]
+            existing_snapshot = self.conn.execute(
+                "SELECT raw_path FROM conversation_snapshots WHERE snapshot_id=?",
+                (snapshot_id,),
+            ).fetchone()
+            if existing_snapshot:
+                self.conn.execute(
+                    "UPDATE conversations SET raw_path=? WHERE conversation_uid=?",
+                    (existing_snapshot["raw_path"], conversation_uid),
+                )
+        else:
+            snapshot_seq = self.next_snapshot_seq(c)
+            snapshot_id = snapshot_uid(conversation_uid, snapshot_seq)
+            messages = c.get("messages") or []
+            if not messages:
+                try:
+                    messages = extract_messages(json.loads(c.get("raw_json", "{}")))
+                except Exception:
+                    messages = []
+            if not messages:
+                messages = messages_from_indexed_text(c.get("indexed_text", ""))
+            self.conn.execute(
+                """INSERT INTO conversation_snapshots
+                   (snapshot_id,conversation_uid,snapshot_seq,captured_at,source_updated_at,raw_path,raw_hash,message_count)
+                   VALUES(?,?,?,?,?,?,?,?)""",
+                (
+                    snapshot_id,
+                    conversation_uid,
+                    snapshot_seq,
+                    now,
+                    c.get("update_time"),
+                    c["raw_path"],
+                    c["raw_hash"],
+                    len(messages),
+                ),
+            )
+            self._insert_messages(
+                conversation_uid=conversation_uid,
+                snapshot_id=snapshot_id,
+                conversation_id=conversation_id,
+                project_name=c.get("project_name") or "",
+                title=c.get("title") or "Untitled",
+                provider=provider,
+                account_id=account_id,
+                messages=messages,
+            )
+
         self.conn.execute(
-            "INSERT INTO conversation_fts VALUES(?,?,?,?)",
-            (c["id"], c.get("title") or "Untitled", c.get("project_name") or "", c.get("indexed_text", "")),
+            """INSERT INTO conversation_current(conversation_uid,snapshot_id,current_at)
+               VALUES(?,?,?)
+               ON CONFLICT(conversation_uid) DO UPDATE SET
+                 snapshot_id=excluded.snapshot_id,current_at=excluded.current_at""",
+            (conversation_uid, snapshot_id, now),
         )
         self.conn.commit()
+        return {
+            "conversation_uid": conversation_uid,
+            "snapshot_id": snapshot_id,
+            "snapshot": self.current_snapshot(conversation_uid),
+        }
 
     def projects(self):
         return [
-            dict(r) for r in self.conn.execute(
-                "SELECT id,name,created_at,updated_at,provider,account_id,source FROM projects ORDER BY name"
+            dict(r)
+            for r in self.conn.execute(
+                """SELECT project_uid,id,name,created_at,updated_at,provider,account_id,source
+                   FROM projects ORDER BY name"""
             )
         ]
 
-    def conversations(self, project_id=None):
-        q = """SELECT id,project_id,project_name,title,create_time,update_time,raw_path,
-                      provider,account_id,source FROM conversations"""
-        args = ()
+    def conversations(self, project_id=None, provider=None, account_id=None):
+        q = """SELECT c.conversation_uid,c.id,c.project_uid,c.project_id,c.project_name,c.title,
+                      c.create_time,c.update_time,c.raw_path,c.raw_hash,c.provider,c.account_id,c.source,
+                      cc.snapshot_id AS current_snapshot_id
+               FROM conversations c
+               LEFT JOIN conversation_current cc ON cc.conversation_uid=c.conversation_uid"""
+        clauses: list[str] = []
+        args: list[Any] = []
         if project_id:
-            q += " WHERE project_id=?"
-            args = (project_id,)
-        q += " ORDER BY COALESCE(update_time,create_time) DESC"
-        return [dict(r) for r in self.conn.execute(q, args)]
-
-    def get(self, cid):
-        row = self.conn.execute("SELECT * FROM conversations WHERE id=?", (cid,)).fetchone()
-        return dict(row) if row else None
-
-    def search(self, q, limit=20):
-        return [
-            {k: v for k, v in row.items() if k not in {"indexed_text", "raw_json"}}
-            for row in self.search_detailed(q, limit)
-        ]
-
-    def search_detailed(self, q, limit=20, project_id=None):
-        limit = max(1, min(int(limit), 50))
-        if not q:
-            if project_id:
-                return [
-                    dict(r) for r in self.conn.execute(
-                        """SELECT c.* FROM conversations c
-                           WHERE c.project_id=?
-                           ORDER BY COALESCE(c.update_time,c.create_time) DESC LIMIT ?""",
-                        (project_id, limit),
-                    )
-                ]
-            return [
-                dict(r) for r in self.conn.execute(
-                    """SELECT c.* FROM conversations c
-                       ORDER BY COALESCE(c.update_time,c.create_time) DESC LIMIT ?""",
-                    (limit,),
+            project_uids = [
+                row["project_uid"]
+                for row in self.conn.execute(
+                    "SELECT project_uid FROM projects WHERE project_uid=? OR id=?",
+                    (project_id, project_id),
                 )
             ]
+            if project_uids:
+                clauses.append("c.project_uid IN (" + ",".join("?" for _ in project_uids) + ")")
+                args.extend(project_uids)
+            else:
+                clauses.append("c.project_id=?")
+                args.append(project_id)
+        if provider:
+            clauses.append("c.provider=?")
+            args.append(provider)
+        if account_id:
+            clauses.append("c.account_id=?")
+            args.append(account_id)
+        if clauses:
+            q += " WHERE " + " AND ".join(clauses)
+        q += " ORDER BY COALESCE(c.update_time,c.create_time) DESC"
+        return [dict(r) for r in self.conn.execute(q, args)]
 
-        sql = """SELECT c.*, bm25(conversation_fts) AS score
-                 FROM conversation_fts f
-                 JOIN conversations c ON c.id=f.conversation_id
-                 WHERE conversation_fts MATCH ?"""
-        args: list[Any] = [q]
+    def _resolve_conversation_uid(self, cid: str) -> str:
+        row = self.conn.execute(
+            "SELECT conversation_uid FROM conversations WHERE conversation_uid=?",
+            (cid,),
+        ).fetchone()
+        if row:
+            return row["conversation_uid"]
+
+        rows = list(
+            self.conn.execute(
+                "SELECT conversation_uid FROM conversations WHERE id=?",
+                (cid,),
+            )
+        )
+        if len(rows) == 1:
+            return rows[0]["conversation_uid"]
+        if len(rows) > 1:
+            raise ValueError(
+                f"conversation id '{cid}' is ambiguous across provider/account scopes; use conversation_uid"
+            )
+        return cid
+
+    def get(self, cid):
+        uid = self._resolve_conversation_uid(cid)
+        row = self.conn.execute(
+            "SELECT * FROM conversations WHERE conversation_uid=?",
+            (uid,),
+        ).fetchone()
+        if not row:
+            return None
+        item = dict(row)
+        snapshot = self.current_snapshot(uid)
+        item["current_snapshot"] = snapshot
+        if snapshot:
+            item["messages"] = [
+                dict(r)
+                for r in self.conn.execute(
+                    """SELECT sm.message_uid,m.id AS message_id,m.role,sm.ordinal,sm.text,
+                              sm.content_hash,sm.create_time
+                       FROM snapshot_messages sm
+                       JOIN messages m ON m.message_uid=sm.message_uid
+                       WHERE sm.snapshot_id=?
+                       ORDER BY sm.ordinal""",
+                    (snapshot["snapshot_id"],),
+                )
+            ]
+        else:
+            item["messages"] = []
+        return item
+
+    def get_snapshot(self, snapshot_id: str):
+        row = self.conn.execute(
+            """SELECT s.*,c.id AS conversation_id,c.project_id,c.project_name,c.title,
+                      c.provider,c.account_id,c.source
+               FROM conversation_snapshots s
+               JOIN conversations c ON c.conversation_uid=s.conversation_uid
+               WHERE s.snapshot_id=?""",
+            (snapshot_id,),
+        ).fetchone()
+        if not row:
+            return None
+        item = dict(row)
+        item["messages"] = [
+            dict(r)
+            for r in self.conn.execute(
+                """SELECT sm.message_uid,m.id AS message_id,sm.ordinal,sm.parent_message_uid,
+                          sm.role,sm.text,sm.content_hash,sm.create_time
+                   FROM snapshot_messages sm
+                   JOIN messages m ON m.message_uid=sm.message_uid
+                   WHERE sm.snapshot_id=?
+                   ORDER BY sm.ordinal""",
+                (snapshot_id,),
+            )
+        ]
+        return item
+
+    def snapshots(self, conversation_id: str):
+        uid = self._resolve_conversation_uid(conversation_id)
+        return [
+            dict(r)
+            for r in self.conn.execute(
+                """SELECT * FROM conversation_snapshots
+                   WHERE conversation_uid=? ORDER BY snapshot_seq""",
+                (uid,),
+            )
+        ]
+
+    def search_messages(
+        self,
+        q: str,
+        limit: int = 20,
+        project_id: str | None = None,
+        provider: str | None = None,
+        account_id: str | None = None,
+        snapshot_id: str | None = None,
+        current_only: bool = True,
+    ):
+        limit = max(1, min(int(limit), 50))
+        sql = """SELECT
+                    f.*,
+                    m.id AS message_id,
+                    c.id AS id,c.project_id,c.project_name,c.title,c.update_time,c.create_time,
+                    c.provider,c.account_id,c.source,
+                    s.snapshot_seq,s.captured_at,s.source_updated_at,s.raw_path,s.raw_hash,
+                    bm25(message_fts) AS score
+                 FROM message_fts f
+                 JOIN messages m ON m.message_uid=f.message_uid
+                 JOIN conversations c ON c.conversation_uid=f.conversation_uid
+                 JOIN conversation_snapshots s ON s.snapshot_id=f.snapshot_id"""
+        args: list[Any] = []
+        clauses: list[str] = []
+
+        if current_only and not snapshot_id:
+            sql += " JOIN conversation_current cc ON cc.snapshot_id=f.snapshot_id"
+        if q:
+            clauses.append("message_fts MATCH ?")
+            args.append(q)
+        if snapshot_id:
+            clauses.append("f.snapshot_id=?")
+            args.append(snapshot_id)
+
         if project_id:
-            sql += " AND c.project_id=?"
-            args.append(project_id)
-        sql += " ORDER BY score, COALESCE(c.update_time,c.create_time) DESC LIMIT ?"
+            project_uids = [
+                row["project_uid"]
+                for row in self.conn.execute(
+                    "SELECT project_uid FROM projects WHERE project_uid=? OR id=?",
+                    (project_id, project_id),
+                )
+            ]
+            if project_uids:
+                clauses.append("c.project_uid IN (" + ",".join("?" for _ in project_uids) + ")")
+                args.extend(project_uids)
+            else:
+                clauses.append("c.project_id=?")
+                args.append(project_id)
+        if provider:
+            clauses.append("c.provider=?")
+            args.append(provider)
+        if account_id:
+            clauses.append("c.account_id=?")
+            args.append(account_id)
+
+        if clauses:
+            sql += " WHERE " + " AND ".join(clauses)
+        sql += " ORDER BY score, COALESCE(s.source_updated_at,c.update_time,c.create_time) DESC LIMIT ?"
         args.append(limit)
+
         try:
-            return [dict(r) for r in self.conn.execute(sql, args)]
+            rows = list(self.conn.execute(sql, args))
         except sqlite3.OperationalError:
-            safe_q = '"' + str(q).replace('"', '""') + '"'
-            args[0] = safe_q
-            return [dict(r) for r in self.conn.execute(sql, args)]
+            if not q:
+                rows = list(self.conn.execute(sql, args))
+            else:
+                safe_q = '"' + str(q).replace('"', '""') + '"'
+                args[0] = safe_q
+                rows = list(self.conn.execute(sql, args))
+
+        results = []
+        for row in rows:
+            item = dict(row)
+            item["evidence_id"] = f"{item['snapshot_id']}:{item['message_uid']}"
+            item["excerpt"] = item.get("content", "")
+            results.append(item)
+        return results
+
+    def search_detailed(self, q, limit=20, project_id=None, provider=None, account_id=None):
+        return self.search_messages(
+            q,
+            limit=limit,
+            project_id=project_id,
+            provider=provider,
+            account_id=account_id,
+        )
+
+    def search(self, q, limit=20):
+        hits = self.search_messages(q, limit=limit)
+        seen: set[str] = set()
+        out = []
+        for hit in hits:
+            if hit["conversation_uid"] in seen:
+                continue
+            seen.add(hit["conversation_uid"])
+            out.append(hit)
+        return out

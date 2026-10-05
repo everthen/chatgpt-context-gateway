@@ -77,3 +77,9 @@ def test_openai_export_smoke(tmp_path: Path):
     assert row["provider"] == "openai"
     assert row["account_id"] == "secondary"
     assert "/openai/secondary/" in row["raw_path"]
+    assert row["raw_path"].endswith("/c-export-1/snapshot-001.json")
+    assert len(db.snapshots("c-export-1")) == 1
+
+    # Re-importing identical export data is idempotent at the snapshot layer.
+    import_openai_export(source, "secondary", db, tmp_path / "raw")
+    assert len(db.snapshots("c-export-1")) == 1

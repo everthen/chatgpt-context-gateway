@@ -54,7 +54,7 @@ def test_sync_project_offline(tmp_path: Path):
     # Check safe folder name in data/raw
     # "Deep Learning / AI" -> safe project name e.g. "Deep_Learning_AI"
     safe_folder = "Deep_Learning_AI"
-    raw_file = raw_dir / "chatgpt" / "default" / safe_folder / "conv-a.json"
+    raw_file = raw_dir / "chatgpt" / "default" / safe_folder / "conv-a" / "snapshot-001.json"
     assert raw_file.exists()
 
     payload_on_disk = json.loads(raw_file.read_text(encoding="utf-8"))
@@ -72,7 +72,52 @@ def test_sync_project_offline(tmp_path: Path):
     assert len(search_res) == 1
     assert search_res[0]["id"] == "conv-a"
 
+    # A second sync with the same payload must not create a duplicate snapshot.
+    records_again = sync_project(
+        project_name="Deep Learning / AI",
+        client=mock_client,
+        db=db,
+        raw_dir=raw_dir,
+    )
+    assert records_again[0]["snapshot_id"] == records[0]["snapshot_id"]
+    assert len(db.snapshots("conv-a")) == 1
+
+    # A changed remote payload creates a new immutable snapshot and advances current.
+    changed_payload = dict(mock_client.get_conversation.return_value)
+    changed_payload["update_time"] = 1700000600.0
+    changed_payload["mapping"] = {
+        "node-1": {
+            "id": "node-1",
+            "parent": None,
+            "children": ["node-2"],
+            "message": {
+                "author": {"role": "user"},
+                "content": {"content_type": "text", "parts": ["How to profile CUDA memory?"]},
+            },
+        },
+        "node-2": {
+            "id": "node-2",
+            "parent": "node-1",
+            "children": [],
+            "message": {
+                "author": {"role": "assistant"},
+                "content": {"content_type": "text", "parts": ["Measure allocations with profiler."]},
+            },
+        },
+    }
+    mock_client.get_conversation.return_value = changed_payload
+    changed = sync_project(
+        project_name="Deep Learning / AI",
+        client=mock_client,
+        db=db,
+        raw_dir=raw_dir,
+    )
+    assert len(db.snapshots("conv-a")) == 2
+    assert changed[0]["snapshot_id"] != records[0]["snapshot_id"]
+    assert changed[0]["snapshot_id"].endswith("snapshot-000002")
+
     db.close()
+
 
 def test_sync_projects_offline(tmp_path: Path):
     db_file = tmp_path / "archive.sqlite3"
@@ -126,8 +171,8 @@ def test_sync_projects_offline(tmp_path: Path):
     summary = sync_projects(client=mock_client, db=db, raw_dir=raw_dir)
     assert summary == {"Project One": 1, "Project Two": 1}
 
-    assert (raw_dir / "chatgpt" / "default" / "Project_One" / "c1.json").exists()
-    assert (raw_dir / "chatgpt" / "default" / "Project_Two" / "c2.json").exists()
+    assert (raw_dir / "chatgpt" / "default" / "Project_One" / "c1" / "snapshot-001.json").exists()
+    assert (raw_dir / "chatgpt" / "default" / "Project_Two" / "c2" / "snapshot-001.json").exists()
 
     assert len(db.conversations()) == 2
     db.close()

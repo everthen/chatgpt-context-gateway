@@ -11,6 +11,7 @@ def test_mcp_read_only_tool_registry(tmp_path):
     assert names == [
         "context_search",
         "context_get_conversation",
+        "context_get_snapshot",
         "context_project_context",
         "context_timeline",
         "context_continuity",

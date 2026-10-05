@@ -3,6 +3,7 @@ import threading
 from pathlib import Path
 import urllib.request
 import urllib.error
+import urllib.parse
 import pytest
 
 from context_gateway.db import ArchiveDB
@@ -56,7 +57,7 @@ def _get_json(url: str):
 def test_server_health(test_server: str):
     data = _get_json(f"{test_server}/health")
     assert data["status"] == "ok"
-    assert data["version"] == "0.2.1"
+    assert data["version"] == "0.3.0"
 
 def test_server_projects(test_server: str):
     projects = _get_json(f"{test_server}/projects")
@@ -77,6 +78,16 @@ def test_server_get_conversation(test_server: str):
     assert conv["id"] == "conv-xyz"
     assert conv["title"] == "FastAPI vs Flask"
     assert "FastAPI is async-first" in conv["indexed_text"]
+
+def test_server_snapshot_history(test_server: str):
+    snapshots = _get_json(f"{test_server}/conversations/conv-xyz/snapshots")
+    assert len(snapshots) == 1
+    snapshot_id = snapshots[0]["snapshot_id"]
+    snapshot = _get_json(f"{test_server}/snapshots/{urllib.parse.quote(snapshot_id, safe=":")}")
+    assert snapshot["snapshot_id"] == snapshot_id
+    assert snapshot["message_count"] >= 1
+    assert snapshot["raw_hash"] == "hash123"
+
 
 def test_server_get_conversation_not_found(test_server: str):
     with pytest.raises(urllib.error.HTTPError) as exc_info:

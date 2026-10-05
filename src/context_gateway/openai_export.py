@@ -96,20 +96,29 @@ def import_openai_export(
             }
             db.upsert_project(project)
 
-            out_dir = raw_dir / "openai" / account_id / project_key
-            out_dir.mkdir(parents=True, exist_ok=True)
-            raw_path = out_dir / f"{cid}.json"
-            raw_path.write_text(json.dumps(conv, ensure_ascii=False, indent=2), encoding="utf-8")
-
             record = make_record(
                 conv,
                 project_id=project_id,
                 project_name=project_name,
-                raw_path=str(raw_path),
+                raw_path="",
                 provider="openai",
                 account_id=account_id,
                 source="openai-export",
             )
+            current = db.current_snapshot_for_record(record)
+            if current and current["raw_hash"] == record["raw_hash"]:
+                raw_path = Path(current["raw_path"])
+            else:
+                seq = db.next_snapshot_seq(record)
+                safe_conversation = safe_project_name(cid)
+                out_dir = raw_dir / "openai" / account_id / project_key / safe_conversation
+                out_dir.mkdir(parents=True, exist_ok=True)
+                raw_path = out_dir / f"snapshot-{seq:03d}.json"
+                raw_path.write_text(
+                    json.dumps(conv, ensure_ascii=False, indent=2),
+                    encoding="utf-8",
+                )
+            record["raw_path"] = str(raw_path)
             db.upsert_conversation(record)
             counts[project_name] = counts.get(project_name, 0) + 1
 

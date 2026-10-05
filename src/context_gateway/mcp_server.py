@@ -6,6 +6,7 @@ from .config import get_db_path
 from .continuity import compare, continuity, project_context, timeline
 from .db import ArchiveDB
 
+
 def build_mcp(db_path: str | Path | None = None):
     from mcp.server.fastmcp import FastMCP
 
@@ -23,52 +24,106 @@ def build_mcp(db_path: str | Path | None = None):
     db = ArchiveDB(get_db_path(db_path), check_same_thread=False)
 
     @mcp.tool()
-    def context_search(query: str, project: str | None = None, limit: int = 8) -> dict:
-        "Search archived conversations and return provenance-linked evidence."
-        result = continuity(db, query=query, project=project, limit=limit)
-        return {"query": query, "project": result["project"], "evidence": result["evidence"]}
-
-    @mcp.tool()
-    def context_get_conversation(conversation_id: str) -> dict:
-        "Get one archived conversation record with provenance metadata."
-        item = db.get(conversation_id)
-        if not item:
-            raise ValueError(f"conversation not found: {conversation_id}")
+    def context_search(
+        query: str,
+        project: str | None = None,
+        provider: str | None = None,
+        account_id: str | None = None,
+        limit: int = 8,
+    ) -> dict:
+        "Search archived message-level evidence with provenance."
+        evidence = db.search_messages(
+            query,
+            limit=limit,
+            project_id=project,
+            provider=provider,
+            account_id=account_id,
+        )
         return {
-            "id": item["id"],
-            "provider": item.get("provider", "chatgpt"),
-            "account_id": item.get("account_id", "default"),
-            "project_id": item.get("project_id"),
-            "project_name": item.get("project_name"),
-            "title": item.get("title"),
-            "create_time": item.get("create_time"),
-            "update_time": item.get("update_time"),
-            "raw_path": item.get("raw_path"),
-            "raw_hash": item.get("raw_hash"),
-            "indexed_text": item.get("indexed_text"),
+            "query": query,
+            "evidence": evidence,
+            "retrieval": {
+                "method": "sqlite-fts5",
+                "granularity": "message",
+                "current_only": True,
+            },
         }
 
     @mcp.tool()
-    def context_project_context(project: str, topic: str | None = None, limit: int = 8) -> dict:
-        "Build current project context from recent timeline plus relevant evidence."
-        return project_context(db, project=project, topic=topic, limit=limit)
+    def context_get_conversation(conversation_id: str) -> dict:
+        "Get one current conversation record, snapshot and canonical messages."
+        item = db.get(conversation_id)
+        if not item:
+            raise ValueError(f"conversation not found: {conversation_id}")
+        return item
 
     @mcp.tool()
-    def context_timeline(project: str | None = None, limit: int = 10) -> list[dict]:
-        "Return recent archived conversations for a project or all projects."
-        return timeline(db, project=project, limit=limit)
+    def context_get_snapshot(snapshot_id: str) -> dict:
+        "Get an exact immutable conversation snapshot."
+        item = db.get_snapshot(snapshot_id)
+        if not item:
+            raise ValueError(f"snapshot not found: {snapshot_id}")
+        return item
 
     @mcp.tool()
-    def context_continuity(query: str, project: str | None = None, limit: int = 8) -> dict:
-        "Assemble a compact continuity context packet with source provenance."
-        return continuity(db, query=query, project=project, limit=limit)
+    def context_project_context(
+        project: str,
+        topic: str | None = None,
+        provider: str | None = None,
+        account_id: str | None = None,
+        limit: int = 8,
+    ) -> dict:
+        "Build scoped project context from recent timeline plus exact message evidence."
+        return project_context(
+            db,
+            project=project,
+            topic=topic,
+            provider=provider,
+            account_id=account_id,
+            limit=limit,
+        )
+
+    @mcp.tool()
+    def context_timeline(
+        project: str | None = None,
+        provider: str | None = None,
+        account_id: str | None = None,
+        limit: int = 10,
+    ) -> list[dict]:
+        "Return recent archived conversations for a scoped provider/account."
+        return timeline(
+            db,
+            project=project,
+            provider=provider,
+            account_id=account_id,
+            limit=limit,
+        )
+
+    @mcp.tool()
+    def context_continuity(
+        query: str,
+        project: str | None = None,
+        provider: str | None = None,
+        account_id: str | None = None,
+        limit: int = 8,
+    ) -> dict:
+        "Assemble a compact context bundle with exact message provenance."
+        return continuity(
+            db,
+            query=query,
+            project=project,
+            limit=limit,
+            provider=provider,
+            account_id=account_id,
+        )
 
     @mcp.tool()
     def context_compare(conversation_ids: list[str]) -> dict:
-        "Compare two to five archived conversations side by side."
+        "Compare two to five archived conversations with current snapshots and messages."
         return compare(db, conversation_ids)
 
     return mcp
+
 
 def run_mcp(
     db_path: str | Path | None = None,

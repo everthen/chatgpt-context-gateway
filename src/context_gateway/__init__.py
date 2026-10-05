@@ -1,4 +1,4 @@
-__version__ = "0.2.1"
+__version__ = "0.3.0"
 
 from .client import (
     ChatGPTClient,
@@ -14,7 +14,7 @@ from .config import (
     safe_project_name,
 )
 from .db import ArchiveDB
-from .normalize import extract_text, make_record, stable_hash
+from .normalize import extract_messages, extract_text, make_record, messages_from_indexed_text, stable_hash
 from .server import create_server, run_server
 from .sync import sync_project, sync_projects
 
@@ -30,7 +30,9 @@ __all__ = [
     "get_raw_dir",
     "safe_project_name",
     "ArchiveDB",
+    "extract_messages",
     "extract_text",
+    "messages_from_indexed_text",
     "make_record",
     "stable_hash",
     "create_server",

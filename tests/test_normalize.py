@@ -1,5 +1,5 @@
 import json
-from context_gateway.normalize import extract_text, make_record, stable_hash
+from context_gateway.normalize import extract_messages, extract_text, make_record, stable_hash
 
 def test_stable_hash_deterministic():
     obj1 = {"b": 2, "a": 1, "c": [3, 4]}
@@ -15,6 +15,38 @@ def test_stable_hash_different():
 def test_extract_text_empty():
     assert extract_text({}) == ""
     assert extract_text({"mapping": {}}) == ""
+
+def test_extract_messages_are_canonical_and_ordered():
+    conv = {
+        "current_node": "node-2",
+        "mapping": {
+            "node-1": {
+                "id": "node-1",
+                "parent": None,
+                "children": ["node-2"],
+                "message": {
+                    "id": "msg-1",
+                    "author": {"role": "user"},
+                    "content": {"content_type": "text", "parts": ["First"]},
+                },
+            },
+            "node-2": {
+                "id": "node-2",
+                "parent": "node-1",
+                "children": [],
+                "message": {
+                    "id": "msg-2",
+                    "author": {"role": "assistant"},
+                    "content": {"content_type": "text", "parts": ["Second"]},
+                },
+            },
+        },
+    }
+    messages = extract_messages(conv)
+    assert [m["provider_message_id"] for m in messages] == ["msg-1", "msg-2"]
+    assert [m["ordinal"] for m in messages] == [0, 1]
+    assert messages[1]["parent_message_id"] == "msg-1"
+
 
 def test_extract_text_linear():
     conv = {

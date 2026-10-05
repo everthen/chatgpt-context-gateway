@@ -249,3 +249,132 @@ def test_context_request_can_union_multiple_provider_scopes(tmp_path: Path):
     )
     assert {item["provider"] for item in result["evidence"]} == {"openai", "google"}
     assert result["request"]["consumer"] == "hermes"
+
+
+
+def test_context_request_continuation_uses_current_session_antecedent(tmp_path: Path):
+    db = ArchiveDB(tmp_path / "db.sqlite3")
+    row = _record(
+        tmp_path,
+        "continuation-conversation",
+        "activate the engine as Hermes default and run the golden test",
+        update=1700000000,
+    )
+    db.upsert_conversation(row)
+
+    result = context_request(
+        db,
+        ContextRequest(
+            consumer="hermes",
+            session_id="s-cont",
+            query="Gas bro! Thinking",
+            current_session=__import__("context_gateway.contracts", fromlist=["CurrentSessionContext"]).CurrentSessionContext(
+                session_id="s-cont",
+                current_conversation_uid=db._conversation_uid_from_record(row),
+                current_conversation_id="continuation-conversation",
+                last_assistant_commitment="activate the engine as Hermes default and run the golden test",
+                continuation_requested=True,
+            ),
+            freshness=FreshnessPolicy(max_age_seconds=None),
+        ),
+    )
+
+    assert result["continuation"]["detected"] is True
+    assert result["continuation"]["last_assistant_commitment"]
+    assert result["evidence"]
+    assert any("activate the engine as Hermes default" in item["excerpt"] for item in result["evidence"])
+
+
+def test_context_request_requires_fresh_current_evidence(tmp_path: Path):
+    db = ArchiveDB(tmp_path / "db.sqlite3")
+    old = _record(
+        tmp_path,
+        "current-conversation",
+        "activate engine and run golden test",
+        update=1700000000,
+    )
+    db.upsert_conversation(old)
+    current_uid = db._conversation_uid_from_record(old)
+
+    result = context_request(
+        db,
+        ContextRequest(
+            consumer="hermes",
+            session_id="s-fresh",
+            query="Gas bro! Thinking",
+            current_session=__import__("context_gateway.contracts", fromlist=["CurrentSessionContext"]).CurrentSessionContext(
+                session_id="s-fresh",
+                current_conversation_uid=current_uid,
+                current_conversation_id="current-conversation",
+                last_assistant_commitment="activate engine and run golden test",
+                continuation_requested=True,
+            ),
+            freshness=FreshnessPolicy(
+                mode="require_fresh",
+                max_observation_age_seconds=60,
+                allow_live_acquisition=True,
+            ),
+        ),
+    )
+
+    assert result["evidence"] == []
+    assert result["acquisition"]["status"] == "acquisition_required"
+    assert result["continuation"]["status"] == "awaiting_acquisition"
+
+
+def test_run_context_request_acquires_and_retries(tmp_path: Path):
+    from context_gateway.acquisition import run_context_request
+
+    db = ArchiveDB(tmp_path / "db.sqlite3")
+    old = _record(
+        tmp_path,
+        "acquire-me",
+        "activate engine and run golden test",
+        update=1700000000,
+    )
+    db.upsert_conversation(old)
+
+    calls = []
+
+    def adapter(request, database):
+        calls.append(request.session_id)
+        fresh = _payload(
+            "acquire-me",
+            "activate engine and run golden test now",
+            update=__import__("time").time(),
+        )
+        ingest_conversation_payload(
+            fresh,
+            project_id="project-1",
+            project_name="Engineering",
+            provider="chatgpt",
+            account_id="main",
+            acquisition_method="fake-acquisition",
+            db=database,
+            raw_dir=tmp_path / "raw",
+        )
+        return {"method": "fake-acquisition"}
+
+    request = ContextRequest(
+        consumer="hermes",
+        session_id="s-acquire",
+        query="activate engine and run golden test",
+        current_session=__import__("context_gateway.contracts", fromlist=["CurrentSessionContext"]).CurrentSessionContext(
+            session_id="s-acquire",
+            current_conversation_uid=db._conversation_uid_from_record(old),
+            current_conversation_id="acquire-me",
+            continuation_requested=True,
+        ),
+        freshness=FreshnessPolicy(
+            mode="require_fresh",
+            max_observation_age_seconds=60,
+            allow_live_acquisition=True,
+        ),
+    )
+
+    result = run_context_request(db, request, adapter=adapter, max_attempts=1)
+
+    assert calls == ["s-acquire"]
+    assert result["acquisition"]["status"] == "acquired_and_retried"
+    assert result["evidence"]
+    assert any(item["snapshot_seq"] >= 2 for item in result["evidence"])

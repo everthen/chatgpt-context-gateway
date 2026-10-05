@@ -7,7 +7,6 @@ import time
 from .contracts import ContextRequest
 from .db import ArchiveDB
 
-
 MAX_QUERY = 500
 MAX_TOPIC = 300
 MAX_PROJECT = 200
@@ -108,7 +107,10 @@ def _context_bundle(
     ordered = sorted(
         evidence,
         key=lambda item: (
-            item.get("source_updated_at") or item.get("update_time") or item.get("create_time") or 0
+            item.get("source_updated_at")
+            or item.get("update_time")
+            or item.get("create_time")
+            or 0
         ),
         reverse=True,
     )
@@ -150,10 +152,7 @@ def _assemble_packet(bundle: dict[str, Any]) -> str:
         "",
     ]
     if bundle["scope"].get("project_id"):
-        lines += [
-            f"PROJECT: {bundle['scope'].get('project_id')}",
-            "",
-        ]
+        lines += [f"PROJECT: {bundle['scope'].get('project_id')}", ""]
     if bundle.get("query"):
         lines += [f"QUERY: {bundle['query']}", ""]
     if bundle["timeline"]:
@@ -202,12 +201,258 @@ def project_context(
         provider=provider,
         account_id=account_id,
     )
-    bundle = _context_bundle(resolved, rows, evidence, topic, provider=provider, account_id=account_id)
+    bundle = _context_bundle(
+        resolved,
+        rows,
+        evidence,
+        topic,
+        provider=provider,
+        account_id=account_id,
+    )
     bundle["packet"] = _assemble_packet(bundle)
     return {
         **bundle,
         "project": resolved,
     }
+
+
+def _effective_exclusions(request: ContextRequest) -> tuple[str, ...]:
+    excluded = list(request.exclude_conversation_uids)
+    current = request.current_session
+    if current and current.current_conversation_uid and not current.continuation_requested:
+        if current.current_conversation_uid not in excluded:
+            excluded.append(current.current_conversation_uid)
+    return tuple(excluded)
+
+
+def _retrieval_queries(request: ContextRequest) -> list[str]:
+    queries = [request.query]
+    current = request.current_session
+    if current and current.continuation_requested:
+        for candidate in (
+            current.pending_action,
+            current.last_assistant_commitment,
+            current.last_user_request,
+        ):
+            value = _clean(candidate, MAX_QUERY)
+            if value and value not in queries:
+                queries.append(value)
+    return queries
+
+
+def _age_cutoff(now: float, max_age_seconds: int | None) -> float | None:
+    if max_age_seconds is None:
+        return None
+    return now - max_age_seconds
+
+
+def _is_fresh(item: dict[str, Any], *, observation_cutoff: float | None, source_cutoff: float | None) -> bool:
+    if observation_cutoff is not None:
+        captured_at = item.get("captured_at")
+        if captured_at is None or float(captured_at) < observation_cutoff:
+            return False
+    if source_cutoff is not None:
+        source_updated_at = item.get("source_updated_at")
+        if source_updated_at is None or float(source_updated_at) < source_cutoff:
+            return False
+    return True
+
+
+def _acquisition_status(
+    *,
+    all_hits: list[dict[str, Any]],
+    fresh_hits: list[dict[str, Any]],
+    request: ContextRequest,
+) -> dict[str, Any]:
+    policy = request.freshness
+
+    if fresh_hits:
+        return {
+            "status": "satisfied",
+            "reason": "fresh evidence available",
+            "next_action": None,
+        }
+
+    if policy.allow_live_acquisition:
+        return {
+            "status": "acquisition_required",
+            "reason": "fresh evidence is unavailable",
+            "next_action": "run_provider_acquisition",
+        }
+
+    if all_hits:
+        return {
+            "status": "stale",
+            "reason": "matching evidence exists but does not satisfy freshness policy",
+            "next_action": None,
+        }
+
+    return {
+        "status": "missing",
+        "reason": "no matching evidence found",
+        "next_action": None,
+    }
+
+
+def context_request(db: ArchiveDB, request: ContextRequest) -> dict[str, Any]:
+    now = time.time()
+    policy = request.freshness
+    observation_cutoff = _age_cutoff(
+        now,
+        policy.max_observation_age_seconds,
+    )
+    source_cutoff = _age_cutoff(
+        now,
+        policy.max_source_age_seconds,
+    )
+
+    evidence_by_id: dict[str, dict[str, Any]] = {}
+    all_hit_by_id: dict[str, dict[str, Any]] = {}
+    timeline_rows: list[dict[str, Any]] = []
+    project_rows: list[dict[str, Any]] = []
+    excluded = _effective_exclusions(request)
+    queries = _retrieval_queries(request)
+
+    for provider, account_id in _request_scope_pairs(request):
+        resolved = resolve_project(
+            db,
+            request.scope.project,
+            provider=provider,
+            account_id=account_id,
+        )
+        if resolved:
+            project_rows.append(resolved)
+            timeline_rows.extend(
+                timeline(
+                    db,
+                    request.scope.project,
+                    limit=min(request.budget.max_messages, 10),
+                    provider=provider,
+                    account_id=account_id,
+                )
+            )
+
+        for query in queries:
+            hits = db.search_detailed(
+                query,
+                limit=min(request.budget.max_messages, 50),
+                project_id=resolved["project_uid"] if resolved else request.scope.project,
+                provider=provider,
+                account_id=account_id,
+                exclude_conversation_uids=excluded,
+            )
+            for hit in hits:
+                all_hit_by_id[hit["evidence_id"]] = hit
+                if _is_fresh(
+                    hit,
+                    observation_cutoff=observation_cutoff,
+                    source_cutoff=source_cutoff,
+                ):
+                    evidence_by_id[hit["evidence_id"]] = hit
+
+    all_hits = list(all_hit_by_id.values())
+    evidence = sorted(
+        evidence_by_id.values(),
+        key=lambda item: (
+            float(item.get("score") or 0),
+            -(
+                item.get("source_updated_at")
+                or item.get("captured_at")
+                or item.get("update_time")
+                or item.get("create_time")
+                or 0
+            ),
+        ),
+    )
+
+    selected: list[dict[str, Any]] = []
+    used_bytes = 0
+    for item in evidence:
+        if len(selected) >= request.budget.max_messages:
+            break
+        encoded_size = len((item.get("excerpt") or "").encode("utf-8"))
+        if selected and used_bytes + encoded_size > request.budget.max_bytes:
+            continue
+        selected.append(item)
+        used_bytes += encoded_size
+
+    unique_projects = {item["project_uid"]: item for item in project_rows}
+    unique_timeline = {item["conversation_uid"]: item for item in timeline_rows}
+
+    bundle = _context_bundle(
+        next(iter(unique_projects.values()), None),
+        sorted(
+            unique_timeline.values(),
+            key=lambda item: item.get("update_time") or item.get("create_time") or 0,
+            reverse=True,
+        )[:10],
+        selected,
+        request.query,
+    )
+    bundle["request"] = request.to_dict()
+    status = _acquisition_status(
+        all_hits=all_hits,
+        fresh_hits=selected,
+        request=request,
+    )
+
+    bundle["retrieval"]["freshness"] = {
+        "checked_at": now,
+        "mode": policy.mode,
+        "max_age_seconds": policy.max_age_seconds,
+        "max_observation_age_seconds": policy.max_observation_age_seconds,
+        "max_source_age_seconds": policy.max_source_age_seconds,
+        "observation_cutoff": observation_cutoff,
+        "source_cutoff": source_cutoff,
+        "matching_evidence_count": len(all_hits),
+        "fresh_evidence_count": len(selected),
+    }
+    bundle["retrieval"]["scope"] = request.scope.to_dict()
+    bundle["retrieval"]["budget"] = request.budget.to_dict()
+    bundle["retrieval"]["excluded_conversation_uids"] = list(excluded)
+
+    bundle["acquisition"] = {
+        **status,
+        "live_acquisition_allowed": policy.allow_live_acquisition,
+        "candidate_count": len(all_hits),
+    }
+
+    current = request.current_session
+    if current and current.continuation_requested:
+        bundle["continuation"] = {
+            "detected": True,
+            "status": (
+                "resolved_evidence"
+                if selected
+                else "awaiting_acquisition"
+                if status["status"] == "acquisition_required"
+                else "insufficient_evidence"
+            ),
+            "antecedent_session_id": current.session_id,
+            "antecedent_conversation_uid": current.current_conversation_uid,
+            "antecedent_conversation_id": current.current_conversation_id,
+            "antecedent_turn_id": current.previous_turn_id or current.current_turn_id,
+            "pending_action": current.pending_action,
+            "last_assistant_commitment": current.last_assistant_commitment,
+            "evidence_ids": [item["evidence_id"] for item in selected],
+            "freshness_status": status["status"],
+        }
+    else:
+        bundle["continuation"] = {
+            "detected": False,
+            "status": "not_requested",
+            "evidence_ids": [],
+        }
+
+    bundle["project_scope"] = list(unique_projects.values())
+    bundle["packet"] = _assemble_packet(bundle)
+    return bundle
+
+
+def _request_scope_pairs(request: ContextRequest) -> list[tuple[str | None, str | None]]:
+    providers = list(request.scope.providers) or [None]
+    accounts = [None] if request.scope.accounts == "all" else list(request.scope.accounts)
+    return [(provider, account) for provider in providers for account in accounts]
 
 
 def continuity(
@@ -236,7 +481,14 @@ def continuity(
         provider=provider,
         account_id=account_id,
     )
-    bundle = _context_bundle(resolved, rows, evidence, query, provider=provider, account_id=account_id)
+    bundle = _context_bundle(
+        resolved,
+        rows,
+        evidence,
+        query,
+        provider=provider,
+        account_id=account_id,
+    )
     bundle["packet"] = _assemble_packet(bundle)
     bundle["project"] = resolved
     return bundle
@@ -267,122 +519,3 @@ def compare(db: ArchiveDB, conversation_ids: list[str]) -> dict[str, Any]:
             }
         )
     return {"conversations": records, "count": len(records)}
-
-
-def _request_scope_pairs(request: ContextRequest) -> list[tuple[str | None, str | None]]:
-    providers = list(request.scope.providers) or [None]
-    accounts = (
-        [None]
-        if request.scope.accounts == "all"
-        else list(request.scope.accounts)
-    )
-    return [(provider, account) for provider in providers for account in accounts]
-
-
-def context_request(db: ArchiveDB, request: ContextRequest) -> dict[str, Any]:
-    now = time.time()
-    min_captured_at = (
-        now - request.freshness.max_age_seconds
-        if request.freshness.max_age_seconds is not None
-        else None
-    )
-
-    evidence_by_id: dict[str, dict[str, Any]] = {}
-    timeline_rows: list[dict[str, Any]] = []
-    project_rows: list[dict[str, Any]] = []
-
-    for provider, account_id in _request_scope_pairs(request):
-        resolved = resolve_project(
-            db,
-            request.scope.project,
-            provider=provider,
-            account_id=account_id,
-        )
-        if resolved:
-            project_rows.append(resolved)
-            timeline_rows.extend(
-                timeline(
-                    db,
-                    request.scope.project,
-                    limit=min(request.budget.max_messages, 10),
-                    provider=provider,
-                    account_id=account_id,
-                )
-            )
-
-        hits = db.search_detailed(
-            request.query,
-            limit=min(request.budget.max_messages, 50),
-            project_id=resolved["project_uid"] if resolved else request.scope.project,
-            provider=provider,
-            account_id=account_id,
-            exclude_conversation_uids=request.exclude_conversation_uids,
-            min_captured_at=min_captured_at,
-        )
-        for hit in hits:
-            evidence_by_id[hit["evidence_id"]] = hit
-
-    evidence = sorted(
-        evidence_by_id.values(),
-        key=lambda item: (
-            float(item.get("score") or 0),
-            -(item.get("captured_at") or item.get("update_time") or item.get("create_time") or 0),
-        ),
-    )
-
-    selected: list[dict[str, Any]] = []
-    used_bytes = 0
-    for item in evidence:
-        if len(selected) >= request.budget.max_messages:
-            break
-        encoded_size = len((item.get("excerpt") or "").encode("utf-8"))
-        if selected and used_bytes + encoded_size > request.budget.max_bytes:
-            continue
-        selected.append(item)
-        used_bytes += encoded_size
-
-    unique_projects = {item["project_uid"]: item for item in project_rows}
-    unique_timeline = {item["conversation_uid"]: item for item in timeline_rows}
-
-    bundle = _context_bundle(
-        next(iter(unique_projects.values()), None),
-        sorted(
-            unique_timeline.values(),
-            key=lambda item: item.get("update_time") or item.get("create_time") or 0,
-            reverse=True,
-        )[:10],
-        selected,
-        request.query,
-    )
-    bundle["request"] = request.to_dict()
-    bundle["retrieval"]["freshness"] = {
-        "checked_at": now,
-        "max_age_seconds": request.freshness.max_age_seconds,
-        "min_captured_at": min_captured_at,
-        "fresh_evidence_count": len(selected),
-    }
-    bundle["retrieval"]["scope"] = request.scope.to_dict()
-    bundle["retrieval"]["budget"] = request.budget.to_dict()
-    bundle["retrieval"]["excluded_conversation_uids"] = list(
-        request.exclude_conversation_uids
-    )
-    bundle["acquisition"] = {
-        "live_acquisition_allowed": request.freshness.allow_live_acquisition,
-        "status": (
-            "satisfied"
-            if selected
-            else (
-                "acquisition_required"
-                if request.freshness.allow_live_acquisition
-                else "no_fresh_evidence"
-            )
-        ),
-        "next_action": (
-            "run_provider_acquisition"
-            if request.freshness.allow_live_acquisition and not selected
-            else None
-        ),
-    }
-    bundle["project_scope"] = list(unique_projects.values())
-    bundle["packet"] = _assemble_packet(bundle)
-    return bundle

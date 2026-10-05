@@ -2,13 +2,45 @@ from __future__ import annotations
 
 import json
 import time
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
-from .camofox import CamofoxObservation
+from .camofox import CamofoxClient, CamofoxObservation, collect_conversation
 from .config import get_raw_dir, safe_project_name
+from .contracts import ContextRequest
+from .continuity import context_request
 from .db import ArchiveDB
 from .normalize import make_record
+
+
+AcquisitionAdapter = Callable[[ContextRequest, ArchiveDB], dict[str, Any]]
+
+
+@dataclass(frozen=True)
+class AcquisitionResult:
+    status: str
+    method: str
+    provider: str
+    account_id: str
+    scope_type: str
+    scope_id: str
+    snapshot_id: str | None = None
+    error: str | None = None
+    details: dict[str, Any] | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "status": self.status,
+            "method": self.method,
+            "provider": self.provider,
+            "account_id": self.account_id,
+            "scope_type": self.scope_type,
+            "scope_id": self.scope_id,
+            "snapshot_id": self.snapshot_id,
+            "error": self.error,
+            "details": self.details or {},
+        }
 
 
 def ingest_conversation_payload(
@@ -112,3 +144,134 @@ def ingest_camofox_observation(
         db=db,
         raw_dir=raw_dir,
     )
+
+
+def _conversation_context(request: ContextRequest, db: ArchiveDB) -> tuple[str, str, str, str]:
+    current = request.current_session
+    if not current:
+        raise ValueError("live acquisition requires current_session")
+    conversation_id = current.current_conversation_id
+    conversation_uid = current.current_conversation_uid
+    if not conversation_id:
+        if conversation_uid and ":" in conversation_uid:
+            conversation_id = conversation_uid.rsplit(":", 1)[-1]
+        else:
+            raise ValueError("current_session.current_conversation_id is required")
+
+    record = db.get(conversation_uid or conversation_id)
+    if not record:
+        raise ValueError(f"conversation '{conversation_id}' is not present in the local archive")
+
+    project_id = str(record.get("project_id") or request.scope.project or "")
+    project_name = str(record.get("project_name") or "")
+    if not project_id:
+        raise ValueError("project id is required for Camofox ingestion")
+    if not project_name:
+        project_name = str(request.scope.project or "Untitled")
+
+    return conversation_id, project_id, project_name, str(record.get("account_id") or "default")
+
+
+def acquire_current_conversation_via_camofox(
+    request: ContextRequest,
+    db: ArchiveDB,
+    *,
+    client: CamofoxClient | None = None,
+    user_id: str = "camofox-human-login",
+    max_scrolls: int = 60,
+) -> dict[str, Any]:
+    conversation_id, project_id, project_name, account_id = _conversation_context(request, db)
+    client = client or CamofoxClient()
+
+    tabs = client.list_tabs(user_id)
+    matching = [
+        tab
+        for tab in tabs
+        if conversation_id in str(tab.get("url") or "")
+    ]
+    if not matching:
+        raise ValueError(
+            f"no authenticated Camofox tab found for conversation '{conversation_id}'"
+        )
+
+    tab = matching[0]
+    tab_id = str(tab.get("tabId") or "")
+    if not tab_id:
+        raise ValueError("matching Camofox tab has no tabId")
+
+    observation = collect_conversation(
+        client,
+        user_id=user_id,
+        tab_id=tab_id,
+        account_id=account_id,
+        max_scrolls=max_scrolls,
+    )
+
+    ingested = ingest_camofox_observation(
+        observation,
+        project_id=project_id,
+        project_name=project_name,
+        db=db,
+        require_complete=not request.freshness.allow_partial,
+    )
+    return {
+        "status": "success",
+        "method": "camofox-browser",
+        "conversation_id": conversation_id,
+        "tab_id": tab_id,
+        "observation_complete": observation.complete,
+        "snapshot_id": ingested.get("snapshot_id"),
+        "conversation_uid": ingested.get("conversation_uid"),
+    }
+
+
+def run_context_request(
+    db: ArchiveDB,
+    request: ContextRequest,
+    *,
+    adapter: AcquisitionAdapter | None = None,
+    max_attempts: int = 1,
+) -> dict[str, Any]:
+    if max_attempts < 0:
+        raise ValueError("max_attempts must be >= 0")
+
+    bundle = context_request(db, request)
+    acquisition = bundle.get("acquisition") or {}
+    if acquisition.get("status") != "acquisition_required":
+        return bundle
+    if not request.freshness.allow_live_acquisition:
+        return bundle
+
+    if adapter is None:
+        bundle["acquisition"] = {
+            **acquisition,
+            "status": "acquisition_unavailable",
+            "reason": "live acquisition was requested but no adapter is registered",
+            "next_action": None,
+        }
+        return bundle
+
+    last_error: str | None = None
+    for attempt in range(max_attempts):
+        try:
+            result = adapter(request, db)
+            bundle = context_request(db, request)
+            bundle["acquisition"] = {
+                **(bundle.get("acquisition") or {}),
+                "status": "acquired_and_retried",
+                "attempt": attempt + 1,
+                "result": result,
+                "next_action": None,
+            }
+            return bundle
+        except Exception as exc:  # adapter boundary: failure is data, not a crash
+            last_error = str(exc)
+
+    bundle["acquisition"] = {
+        **acquisition,
+        "status": "acquisition_failed",
+        "reason": last_error or "acquisition failed",
+        "next_action": None,
+        "attempts": max_attempts,
+    }
+    return bundle

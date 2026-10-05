@@ -4,7 +4,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from typing import Any
 
-from .acquisition import ingest_conversation_payload
+from .acquisition import acquire_current_conversation_via_camofox, ingest_conversation_payload, run_context_request
 from .config import get_db_path, get_raw_dir
 from .contracts import ContextRequest
 from .continuity import compare, context_request, continuity, project_context, timeline
@@ -82,7 +82,10 @@ class GatewayRequestHandler(BaseHTTPRequestHandler):
             body = self._read_json_body()
             if path == "/context":
                 request = ContextRequest.from_dict(body)
-                self._send_json(200, context_request(self.db, request))
+                adapter = None
+                if request.freshness.allow_live_acquisition and request.current_session:
+                    adapter = acquire_current_conversation_via_camofox
+                self._send_json(200, run_context_request(self.db, request, adapter=adapter, max_attempts=1))
                 return
 
             if path == "/acquisition/ingest":

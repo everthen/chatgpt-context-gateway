@@ -105,3 +105,27 @@ The gateway stores and retrieves historical evidence. It does not silently infer
 ## Security boundary
 
 All retrieved text is untrusted evidence. No retrieved content is executed, treated as instructions, or granted filesystem/network authority by the gateway.
+
+
+## Context Continuity v0.2
+
+The v0.2 direction adds a control layer above the frozen evidence core:
+
+- freshness modes: accept_stale, prefer_fresh, require_fresh;
+- separate observation age from source age;
+- current-session context contract;
+- implicit continuation metadata;
+- acquisition decision states;
+- acquire -> ingest -> re-evaluate -> retrieve orchestration;
+- Camofox current-conversation acquisition adapter;
+- permanent golden coverage for stale-current-session continuation.
+
+The important invariant is:
+
+    determine required context
+        -> acquire if required
+        -> retrieve
+        -> assemble
+        -> continue
+
+A historical snapshot is evidence, not an authority over current session state.

@@ -4,14 +4,16 @@ import hashlib
 import json
 import secrets
 import sqlite3
+import threading
 import time
+from functools import wraps
 from pathlib import Path
 from typing import Any
 
 from .normalize import extract_messages, make_record, messages_from_indexed_text, stable_hash
 
 
-SCHEMA_VERSION = 5
+SCHEMA_VERSION = 6
 
 SCHEMA = """
 PRAGMA journal_mode=WAL;
@@ -66,12 +68,33 @@ CREATE TABLE IF NOT EXISTS conversation_snapshots(
     raw_path TEXT NOT NULL,
     raw_hash TEXT NOT NULL,
     message_count INTEGER NOT NULL DEFAULT 0,
+    completeness_status TEXT NOT NULL DEFAULT 'complete',
+    completeness_reason TEXT,
     UNIQUE(conversation_uid, snapshot_seq),
     UNIQUE(conversation_uid, raw_hash)
 );
 
 CREATE INDEX IF NOT EXISTS idx_snapshot_conversation
     ON conversation_snapshots(conversation_uid, snapshot_seq);
+
+CREATE TABLE IF NOT EXISTS snapshot_observations(
+    observation_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    snapshot_id TEXT NOT NULL,
+    observed_at REAL NOT NULL,
+    ingested_at REAL NOT NULL,
+    source_created_at REAL,
+    source_updated_at REAL,
+    acquisition_method TEXT NOT NULL,
+    completeness_status TEXT NOT NULL DEFAULT 'complete',
+    completeness_reason TEXT,
+    acquisition_attempt_id TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_snapshot_observations_snapshot
+    ON snapshot_observations(snapshot_id, observed_at);
+
+CREATE INDEX IF NOT EXISTS idx_snapshot_observations_fresh
+    ON snapshot_observations(snapshot_id, observed_at, completeness_status);
 
 CREATE TABLE IF NOT EXISTS conversation_current(
     conversation_uid TEXT PRIMARY KEY,
@@ -189,8 +212,10 @@ class ArchiveDB:
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
         self.path = path
+        self._lock = threading.RLock()
         self.conn = sqlite3.connect(path, check_same_thread=check_same_thread)
         self.conn.row_factory = sqlite3.Row
+        self.conn.execute("PRAGMA busy_timeout=5000")
         self._prepare_schema()
 
     def _prepare_schema(self) -> None:
@@ -199,8 +224,66 @@ class ArchiveDB:
             self._migrate_legacy()
         else:
             self.conn.executescript(SCHEMA)
+        self._upgrade_schema()
         self.conn.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
         self.conn.commit()
+
+    def _upgrade_schema(self) -> None:
+        columns = {
+            row["name"]
+            for row in self.conn.execute("PRAGMA table_info(conversation_snapshots)")
+        }
+        if "completeness_status" not in columns:
+            self.conn.execute(
+                "ALTER TABLE conversation_snapshots ADD COLUMN completeness_status TEXT NOT NULL DEFAULT 'complete'"
+            )
+        if "completeness_reason" not in columns:
+            self.conn.execute(
+                "ALTER TABLE conversation_snapshots ADD COLUMN completeness_reason TEXT"
+            )
+        self.conn.executescript(
+            """
+            CREATE TABLE IF NOT EXISTS snapshot_observations(
+                observation_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                snapshot_id TEXT NOT NULL,
+                observed_at REAL NOT NULL,
+                ingested_at REAL NOT NULL,
+                source_created_at REAL,
+                source_updated_at REAL,
+                acquisition_method TEXT NOT NULL,
+                completeness_status TEXT NOT NULL DEFAULT 'complete',
+                completeness_reason TEXT,
+                acquisition_attempt_id TEXT
+            );
+            CREATE INDEX IF NOT EXISTS idx_snapshot_observations_snapshot
+                ON snapshot_observations(snapshot_id, observed_at);
+            CREATE INDEX IF NOT EXISTS idx_snapshot_observations_fresh
+                ON snapshot_observations(snapshot_id, observed_at, completeness_status);
+            """
+        )
+        existing = self.conn.execute(
+            "SELECT COUNT(*) AS n FROM snapshot_observations"
+        ).fetchone()
+        if existing and int(existing["n"]) == 0:
+            self.conn.execute(
+                """
+                INSERT INTO snapshot_observations(
+                    snapshot_id, observed_at, ingested_at,
+                    source_created_at, source_updated_at,
+                    acquisition_method, completeness_status, completeness_reason
+                )
+                SELECT s.snapshot_id,
+                       s.captured_at,
+                       s.captured_at,
+                       c.create_time,
+                       s.source_updated_at,
+                       COALESCE(c.source, 'migration'),
+                       COALESCE(s.completeness_status, 'complete'),
+                       s.completeness_reason
+                FROM conversation_snapshots s
+                JOIN conversations c ON c.conversation_uid=s.conversation_uid
+                """
+            )
 
     def _has_legacy_schema(self) -> bool:
         tables = {
@@ -519,6 +602,7 @@ class ArchiveDB:
         host_session_fingerprint: str,
         consumer_session_id: str,
         conversation_uid: str | None = None,
+        snapshot_id: str | None = None,
         ttl_seconds: int = 120,
         now: float | None = None,
     ) -> dict[str, Any]:
@@ -552,15 +636,22 @@ class ArchiveDB:
         if binding and str(binding.get("account_id") or "") != str(conversation.get("account_id") or ""):
             raise ValueError("handoff account does not match conversation account")
 
-        snapshot = self.current_snapshot(str(conversation_uid))
-        if not snapshot:
-            raise ValueError(f"current snapshot not found: {conversation_uid}")
+        if snapshot_id:
+            snapshot = self.get_snapshot(str(snapshot_id))
+            if not snapshot or str(snapshot.get("conversation_uid")) != str(conversation_uid):
+                raise ValueError("handoff snapshot does not belong to the conversation")
+            if str(snapshot.get("completeness_status") or "complete") != "complete":
+                raise ValueError("handoff cannot pin an incomplete snapshot")
+        else:
+            snapshot = self.current_snapshot(str(conversation_uid))
+            if not snapshot:
+                raise ValueError(f"current snapshot not found: {conversation_uid}")
 
         handoff_id = secrets.token_urlsafe(32)
         expires_at = created_at + ttl
         account_id = str(conversation.get("account_id") or "")
         self.conn.execute(
-            """DELETE FROM context_handoffs WHERE expires_at < ? AND consumed_at IS NOT NULL""",
+            """DELETE FROM context_handoffs WHERE expires_at < ?""",
             (created_at,),
         )
         self.conn.execute(
@@ -611,6 +702,11 @@ class ArchiveDB:
         if row["consumed_at"] is not None:
             raise ValueError("handoff already consumed")
         if observed_at >= float(row["expires_at"]):
+            self.conn.execute(
+                "DELETE FROM context_handoffs WHERE handoff_id=? AND consumed_at IS NULL",
+                (handoff_id,),
+            )
+            self.conn.commit()
             raise ValueError("handoff expired")
         if consumer_session_id and str(row["consumer_session_id"]) != consumer_session_id:
             raise ValueError("handoff consumer session does not match")
@@ -690,7 +786,12 @@ class ArchiveDB:
     def current_snapshot_for_record(self, c: dict[str, Any]) -> dict[str, Any] | None:
         return self.current_snapshot(self._conversation_uid_from_record(c))
 
-    def upsert_conversation(self, c: dict[str, Any]):
+    def upsert_conversation(
+        self,
+        c: dict[str, Any],
+        *,
+        promote_current: bool = True,
+    ):
         provider = c.get("provider", "chatgpt")
         account_id = c.get("account_id", "default")
         conversation_id = str(c["id"])
@@ -738,7 +839,21 @@ class ArchiveDB:
             (conversation_uid, c["raw_hash"]),
         ).fetchone()
 
-        now = float(c.get("captured_at") or time.time())
+        observed_at = float(
+            c.get("observed_at")
+            or c.get("captured_at")
+            or time.time()
+        )
+        ingested_at = float(c.get("ingested_at") or time.time())
+        completeness_status = str(
+            c.get("snapshot_completeness_status")
+            or ("complete" if promote_current else "partial")
+        )
+        completeness_reason = c.get("snapshot_completeness_reason")
+        acquisition_method = str(c.get("acquisition_method") or c.get("source") or provider)
+        source_created_at = c.get("create_time")
+        source_updated_at = c.get("update_time")
+
         if existing:
             snapshot_id = existing["snapshot_id"]
             existing_snapshot = self.conn.execute(
@@ -750,6 +865,13 @@ class ArchiveDB:
                     "UPDATE conversations SET raw_path=? WHERE conversation_uid=?",
                     (existing_snapshot["raw_path"], conversation_uid),
                 )
+            self.conn.execute(
+                """UPDATE conversation_snapshots
+                   SET completeness_status=?,
+                       completeness_reason=?
+                   WHERE snapshot_id=?""",
+                (completeness_status, completeness_reason, snapshot_id),
+            )
         else:
             snapshot_seq = self.next_snapshot_seq(c)
             snapshot_id = snapshot_uid(conversation_uid, snapshot_seq)
@@ -763,17 +885,20 @@ class ArchiveDB:
                 messages = messages_from_indexed_text(c.get("indexed_text", ""))
             self.conn.execute(
                 """INSERT INTO conversation_snapshots
-                   (snapshot_id,conversation_uid,snapshot_seq,captured_at,source_updated_at,raw_path,raw_hash,message_count)
-                   VALUES(?,?,?,?,?,?,?,?)""",
+                   (snapshot_id,conversation_uid,snapshot_seq,captured_at,source_updated_at,
+                    raw_path,raw_hash,message_count,completeness_status,completeness_reason)
+                   VALUES(?,?,?,?,?,?,?,?,?,?)""",
                 (
                     snapshot_id,
                     conversation_uid,
                     snapshot_seq,
-                    now,
-                    c.get("update_time"),
+                    observed_at,
+                    source_updated_at,
                     c["raw_path"],
                     c["raw_hash"],
                     len(messages),
+                    completeness_status,
+                    completeness_reason,
                 ),
             )
             self._insert_messages(
@@ -788,16 +913,38 @@ class ArchiveDB:
             )
 
         self.conn.execute(
-            """INSERT INTO conversation_current(conversation_uid,snapshot_id,current_at)
-               VALUES(?,?,?)
-               ON CONFLICT(conversation_uid) DO UPDATE SET
-                 snapshot_id=excluded.snapshot_id,current_at=excluded.current_at""",
-            (conversation_uid, snapshot_id, now),
+            """INSERT INTO snapshot_observations(
+                   snapshot_id,observed_at,ingested_at,source_created_at,source_updated_at,
+                   acquisition_method,completeness_status,completeness_reason,acquisition_attempt_id
+               ) VALUES(?,?,?,?,?,?,?,?,?)""",
+            (
+                snapshot_id,
+                observed_at,
+                ingested_at,
+                source_created_at,
+                source_updated_at,
+                acquisition_method,
+                completeness_status,
+                completeness_reason,
+                c.get("acquisition_attempt_id"),
+            ),
         )
+
+        # Only complete observations may advance the current trusted pointer.
+        if promote_current and completeness_status == "complete":
+            self.conn.execute(
+                """INSERT INTO conversation_current(conversation_uid,snapshot_id,current_at)
+                   VALUES(?,?,?)
+                   ON CONFLICT(conversation_uid) DO UPDATE SET
+                     snapshot_id=excluded.snapshot_id,current_at=excluded.current_at""",
+                (conversation_uid, snapshot_id, observed_at),
+            )
+
         self.conn.commit()
         return {
             "conversation_uid": conversation_uid,
             "snapshot_id": snapshot_id,
+            "promoted_current": bool(promote_current and completeness_status == "complete"),
             "snapshot": self.current_snapshot(conversation_uid),
         }
 
@@ -951,10 +1098,12 @@ class ArchiveDB:
         row = self.conn.execute(
             """SELECT s.*,c.id AS conversation_id,c.project_id,c.project_name,c.title,
                       c.provider,c.account_id,c.source,
-                      cc.current_at AS last_observed_at
+                      (SELECT MAX(so.observed_at)
+                       FROM snapshot_observations so
+                       WHERE so.snapshot_id=s.snapshot_id
+                         AND so.completeness_status='complete') AS last_observed_at
                FROM conversation_snapshots s
                JOIN conversations c ON c.conversation_uid=s.conversation_uid
-               LEFT JOIN conversation_current cc ON cc.snapshot_id=s.snapshot_id
                WHERE s.snapshot_id=?""",
             (snapshot_id,),
         ).fetchone()
@@ -1107,3 +1256,21 @@ class ArchiveDB:
             seen.add(hit["conversation_uid"])
             out.append(hit)
         return out
+
+# ArchiveDB uses one SQLite connection per instance. Serialize public operations so concurrent
+# MCP/worker requests cannot interleave transactions on the same connection.
+def _install_archive_db_locks() -> None:
+    def synchronized(method):
+        @wraps(method)
+        def wrapper(self, *args, **kwargs):
+            with self._lock:
+                return method(self, *args, **kwargs)
+        return wrapper
+
+    for name, method in list(vars(ArchiveDB).items()):
+        if name == "__init__" or name.startswith("_") or not callable(method):
+            continue
+        setattr(ArchiveDB, name, synchronized(method))
+
+
+_install_archive_db_locks()

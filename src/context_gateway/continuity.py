@@ -329,6 +329,12 @@ def _targeted_context(
     target = request.target
     assert target is not None
     conversation, snapshot = _target_snapshot(db, request) or ({}, {})
+    target_provider = str(conversation.get("provider") or "")
+    target_account = str(conversation.get("account_id") or "")
+    if request.scope.providers and target_provider not in set(request.scope.providers):
+        raise ValueError("target conversation provider is outside request scope")
+    if request.scope.accounts != "all" and target_account not in set(request.scope.accounts):
+        raise ValueError("target conversation account is outside request scope")
     fresh = _is_fresh(snapshot, observation_cutoff=observation_cutoff, source_cutoff=source_cutoff)
 
     if request.freshness.mode == "require_fresh" and not fresh:

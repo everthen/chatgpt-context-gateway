@@ -2,7 +2,7 @@
 
 ## Status
 
-FROZEN FOR EXPERIMENTAL USE.
+FROZEN FOR EXPERIMENTAL USE; live acquisition and worker handoff are implemented as separate hardened layers.
 
 This contract maps a provider-hosted session identity to one canonical `conversation_uid` inside the Universal Context Gateway. It is provider-specific at acquisition time and provider-neutral at the canonical model boundary.
 

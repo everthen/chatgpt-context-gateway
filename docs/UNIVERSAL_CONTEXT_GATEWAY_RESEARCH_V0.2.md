@@ -1,6 +1,6 @@
 # Universal Context Gateway — Research & Architecture Gap Audit v0.2
 
-Status: RESEARCH COMPLETE — NO ARCHITECTURAL CHANGE FROZEN YET
+Status: RESEARCH COMPLETE — HARDENING APPLIED AFTER FALSIFICATION AUDIT
 Date: 2026-10-05
 Observed branch: feature/context-contract-acquisition-v0.2
 Main branch observed: 57e3e8262b0e9885c8898c38f1426ca02236cfd9
@@ -330,3 +330,21 @@ to:
 determine required context -> acquire if needed -> retrieve -> assemble -> continue.
 
 That is the boundary exposed by the latest “Gas bro!” failure.
+
+
+## 16. Post-audit hardening status
+
+The falsification audit exposed and closed these implementation gaps:
+
+- incomplete Camofox observations are retained but cannot advance the current trusted snapshot;
+- browser no-progress is fail-closed as incomplete;
+- observation time is stored separately from source timestamps;
+- concurrent handoff redemption is serialized and remains strictly one-time;
+- exact target provider/account scope is enforced;
+- worker capability scope is allow-listed and aggregate hermes-cli is denied;
+- worker timeouts terminate the worker process group;
+- worker stdout is parsed as Hermes stream-json;
+- worker environment inheritance is sanitized;
+- raw handoff bearer values are never returned to the model;
+- expired handoffs and worker artifacts have bounded cleanup;
+- the raw handoff/redeem path now resolves the same exact pinned reconstruction contract.

@@ -47,7 +47,7 @@ This prevents collisions when two accounts expose the same provider conversation
 - Message-level SQLite FTS5 retrieval with provider/account filters.
 - Continuity/project-context bundles with exact evidence provenance.
 - Localhost-only HTTP retrieval API.
-- Optional read-only MCP Streamable HTTP server.
+- MCP Streamable HTTP facade with host-session binding, exact retrieval, and optional bounded Hermes worker dispatch.
 - External credential isolation and one-time localhost ChatGPT Web connection bridge.
 - OpenAI export bootstrap import with account isolation.
 
@@ -84,7 +84,7 @@ All endpoints are localhost-only by default.
 
 ## MCP tools
 
-Read-only tools:
+Context tools:
 
 - context_search
 - context_get_conversation
@@ -93,6 +93,8 @@ Read-only tools:
 - context_timeline
 - context_continuity
 - context_compare
+
+worker_dispatch is the side-effecting extension of context_request. Worker capabilities are allow-listed; aggregate hermes-cli is denied; deadlines are bounded; timeout terminates the worker group; raw handoff bearer values are never returned to the model.
 
 ## Universal provider direction
 

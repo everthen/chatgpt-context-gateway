@@ -2,7 +2,7 @@ import pytest
 
 mcp = pytest.importorskip("mcp")
 
-from context_gateway.mcp_server import _host_identity_probe, build_mcp
+from context_gateway.mcp_server import _host_identity_probe, _safe_handoff, build_mcp
 
 
 def test_host_identity_probe_hashes_openai_session_without_exposing_it():
@@ -44,7 +44,7 @@ def test_host_identity_probe_absent_session():
     assert result["raw_identity_returned"] is False
 
 
-def test_mcp_read_only_tool_registry(tmp_path):
+def test_mcp_tool_registry(tmp_path):
     server = build_mcp(tmp_path / "mcp.sqlite3")
     names = [tool.name for tool in server._tool_manager.list_tools()]
     assert names == [
@@ -62,3 +62,19 @@ def test_mcp_read_only_tool_registry(tmp_path):
         "context_continuity",
         "context_compare",
     ]
+
+
+def test_safe_handoff_never_returns_bearer_capability():
+    result = _safe_handoff({
+        "handoff_id": "secret-bearer",
+        "provider": "chatgpt",
+        "account_id": "main",
+        "conversation_uid": "conv",
+        "snapshot_id": "snap",
+        "created_at": 1.0,
+        "expires_at": 2.0,
+        "consumer_session_id": "worker",
+    })
+    assert "handoff_id" not in result
+    assert result["raw_capability_returned"] is False
+    assert "secret-bearer" not in str(result)

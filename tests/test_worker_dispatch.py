@@ -15,10 +15,16 @@ class _FakeProcess:
 def test_dispatch_handoff_worker_transfers_capability_safely(tmp_path, monkeypatch):
     calls = []
 
+    observed = {}
+
     def fake_popen(argv, **kwargs):
         calls.append((argv, kwargs))
+        query_path = Path(argv[argv.index("--query-file") + 1])
+        observed["query"] = query_path.read_text()
+        observed["mode"] = query_path.stat().st_mode & 0o777
         return _FakeProcess()
 
+    monkeypatch.setenv("PARENT_SECRET_TOKEN", "should-not-cross")
     monkeypatch.setattr("context_gateway.worker_dispatch.subprocess.Popen", fake_popen)
 
     result = dispatch_handoff_worker(
@@ -38,11 +44,16 @@ def test_dispatch_handoff_worker_transfers_capability_safely(tmp_path, monkeypat
 
     argv, kwargs = calls[0]
     assert argv[:4] == ["/bin/echo", "chat", "-Q", "--query-file"]
-    query_path = Path(argv[4])
-    assert query_path.read_text() == 'Answer exactly "PASS" after using the handed-off evidence.'
-    assert query_path.stat().st_mode & 0o777 == 0o600
+    assert "--format" in argv
+    assert argv[argv.index("--format") + 1] == "stream-json"
+    assert "--toolsets" in argv
+    assert argv[argv.index("--toolsets") + 1] == "context_engine"
+    assert observed["query"] == 'Answer exactly "PASS" after using the handed-off evidence.'
+    assert observed["mode"] == 0o600
+    assert result["toolsets"] == ["context_engine"]
     assert kwargs["env"]["UNIVERSAL_CONTEXT_GATEWAY_HANDOFF_ID"] == "opaque-handoff"
     assert kwargs["env"]["UNIVERSAL_CONTEXT_GATEWAY_HANDOFF_CONSUMER_SESSION_ID"] == "consumer-1"
+    assert "PARENT_SECRET_TOKEN" not in kwargs["env"]
     assert kwargs["start_new_session"] is True
     assert kwargs["stdin"] is not None
 

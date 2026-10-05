@@ -53,6 +53,10 @@ def ingest_conversation_payload(
     acquisition_method: str = "manual",
     db: ArchiveDB,
     raw_dir: Path | None = None,
+    observed_at: float | None = None,
+    snapshot_complete: bool = True,
+    completeness_reason: str | None = None,
+    acquisition_attempt_id: str | None = None,
 ) -> dict[str, Any]:
     if not isinstance(payload, dict):
         raise ValueError("conversation payload must be an object")
@@ -72,11 +76,21 @@ def ingest_conversation_payload(
         source=acquisition_method,
         captured_at=time.time(),
     )
+    observed_at = float(observed_at if observed_at is not None else time.time())
+    record["observed_at"] = observed_at
+    record["ingested_at"] = time.time()
+    record["snapshot_completeness_status"] = "complete" if snapshot_complete else "partial"
+    record["snapshot_completeness_reason"] = completeness_reason
+    record["acquisition_method"] = acquisition_method
+    record["acquisition_attempt_id"] = acquisition_attempt_id
 
     current = db.current_snapshot_for_record(record)
     if current and current["raw_hash"] == record["raw_hash"]:
         record["raw_path"] = current["raw_path"]
-        db.upsert_conversation(record)
+        upserted = db.upsert_conversation(
+            record,
+            promote_current=snapshot_complete,
+        )
     else:
         seq = db.next_snapshot_seq(record)
         project_key = safe_project_name(project_name)
@@ -95,7 +109,10 @@ def ingest_conversation_payload(
             encoding="utf-8",
         )
         record["raw_path"] = str(raw_path)
-        db.upsert_conversation(record)
+        upserted = db.upsert_conversation(
+            record,
+            promote_current=snapshot_complete,
+        )
 
     uid = db._conversation_uid_from_record(record)
     snapshot = db.current_snapshot(uid)
@@ -105,8 +122,8 @@ def ingest_conversation_payload(
         "scope_type": "conversation",
         "scope_id": str(conversation_id),
         "method": acquisition_method,
-        "status": "success",
-        "last_success_at": time.time(),
+        "status": "success" if snapshot_complete else "partial",
+        "last_success_at": time.time() if snapshot_complete else None,
         "last_seen_remote_at": record.get("update_time"),
         "cursor": None,
         "last_error": None,
@@ -114,7 +131,12 @@ def ingest_conversation_payload(
     db.upsert_acquisition_checkpoint(checkpoint)
     return {
         "conversation_uid": uid,
-        "snapshot_id": snapshot["snapshot_id"] if snapshot else None,
+        "snapshot_id": upserted["snapshot_id"],
+        "current_snapshot_id": snapshot["snapshot_id"] if snapshot else None,
+        "promoted_current": bool(upserted.get("promoted_current")),
+        "observation_complete": snapshot_complete,
+        "completeness_status": "complete" if snapshot_complete else "partial",
+        "completeness_reason": completeness_reason,
         "raw_path": record["raw_path"],
         "acquisition": checkpoint,
     }
@@ -143,6 +165,9 @@ def ingest_camofox_observation(
         acquisition_method="camofox-browser",
         db=db,
         raw_dir=raw_dir,
+        observed_at=observation.captured_at,
+        snapshot_complete=observation.complete,
+        completeness_reason=observation.completeness_reason,
     )
 
 
@@ -265,13 +290,22 @@ def run_context_request(
         try:
             result = adapter(request, db)
             bundle = context_request(db, request)
-            bundle["acquisition"] = {
-                **(bundle.get("acquisition") or {}),
-                "status": "acquired_and_retried",
-                "attempt": attempt + 1,
-                "result": result,
-                "next_action": None,
-            }
+            if isinstance(result, dict) and result.get("observation_complete") is False:
+                bundle["acquisition"] = {
+                    **(bundle.get("acquisition") or {}),
+                    "status": "partial_not_promoted",
+                    "attempt": attempt + 1,
+                    "result": result,
+                    "next_action": "acquire_again_or_accept_stale",
+                }
+            else:
+                bundle["acquisition"] = {
+                    **(bundle.get("acquisition") or {}),
+                    "status": "acquired_and_retried",
+                    "attempt": attempt + 1,
+                    "result": result,
+                    "next_action": None,
+                }
             return bundle
         except Exception as exc:  # adapter boundary: failure is data, not a crash
             last_error = str(exc)

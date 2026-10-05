@@ -7,7 +7,7 @@ from typing import Any
 from .acquisition import acquire_current_conversation_via_camofox, ingest_conversation_payload, run_context_request
 from .config import get_db_path, get_raw_dir
 from .contracts import ContextRequest
-from .continuity import compare, context_request, continuity, project_context, timeline
+from .continuity import (compare, context_request, context_request as resolve_context_request, continuity, project_context, timeline)
 from .db import ArchiveDB
 
 

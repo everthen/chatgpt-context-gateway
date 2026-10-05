@@ -2,6 +2,8 @@
 
 ## Current state
 
+Tunnel and native ChatGPT MCP proof are operational; the Gateway MCP listener remains localhost-only and the tunnel remains outbound-only.
+
 The Gateway MCP facade is now a persistent system service:
 
 - Service: `context-gateway-mcp.service`
@@ -39,10 +41,7 @@ No public inbound MCP port is required. OpenAI documents Secure MCP Tunnel speci
 
 ## Required user-owned platform values
 
-The machine currently has none of these values configured:
-
-- `CONTROL_PLANE_TUNNEL_ID`
-- `CONTROL_PLANE_API_KEY`
+The tunnel runtime values are configured in the local secret file. The restricted runtime key is used by the daemon; no admin key is stored there.
 
 OpenAI documents that the tunnel ID comes from Platform Tunnels and the runtime key should have Tunnels Read + Use. An admin key is only needed for tunnel CRUD. citeturn312767search0turn312767search4
 
@@ -70,12 +69,7 @@ The systemd unit is already installed and enabled:
 
 `openai-context-tunnel.service`
 
-It remains inactive until the secret file exists. Once populated, run:
-
-```bash
-systemctl start openai-context-tunnel.service
-tunnel-client doctor --profile <profile> --explain
-```
+The service is enabled and running. The local secret file remains mode 600 and is excluded from version control.
 
 For the environment-variable path, the supported runtime requirements are the tunnel ID, runtime API key, and MCP server URL. citeturn312767search0
 
@@ -83,14 +77,10 @@ For the environment-variable path, the supported runtime requirements are the tu
 
 OpenAI currently documents custom MCP connectivity for Pro in developer mode with read/fetch permissions, while full MCP is currently rolling out for Business and Enterprise/Edu. The documentation does not state that ChatGPT Go has this custom-MCP capability. Therefore the tunnel can be prepared independently, but native ChatGPT Level-1 identity proof is still conditional on the user's actual ChatGPT surface exposing custom MCP developer mode. citeturn434516search1turn434516search2
 
-## Next proof
+## Verified proof
 
-After the tunnel is authenticated and healthy:
+The native ChatGPT custom MCP path has been exercised successfully: host metadata reached the Gateway, the host session was bound to a canonical conversation, exact snapshot retrieval was verified, and the hardened worker handoff completed a golden E2E. Raw host identity and handoff bearer values are not returned to the model.
 
-1. Attach the tunnel to a supported ChatGPT custom app.
-2. Call `context_host_identity_probe` in one ChatGPT thread twice.
-3. Reload the same thread and call again.
-4. Create a second ChatGPT thread and call again.
-5. Compare only the returned fingerprints; the raw host identity must never be exposed.
+## Lifecycle follow-up
 
-Do not create `openai/session -> conversation_uid` binding until this native behavior is observed.
+A second independent thread fingerprint remains a characterization test rather than a prerequisite for the already-proven single-thread binding path. Cross-thread/session lifecycle behavior is tracked separately from the transport proof.

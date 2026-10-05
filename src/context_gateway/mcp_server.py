@@ -67,6 +67,57 @@ def _safe_binding(binding: dict | None) -> dict | None:
     }
 
 
+def _safe_handoff(handoff: dict | None) -> dict | None:
+    if not handoff:
+        return None
+    # The bearer capability is control-plane state. It must never be returned to the model.
+    return {
+        "provider": handoff.get("provider"),
+        "account_id": handoff.get("account_id"),
+        "conversation_uid": handoff.get("conversation_uid"),
+        "snapshot_id": handoff.get("snapshot_id"),
+        "created_at": handoff.get("created_at"),
+        "expires_at": handoff.get("expires_at"),
+        "consumer_session_id": handoff.get("consumer_session_id"),
+        "raw_capability_returned": False,
+    }
+
+
+def _authorize_account_scope(
+    db: ArchiveDB,
+    meta: dict | object | None,
+    *,
+    provider: str,
+    account_id: str | None,
+) -> None:
+    fingerprint = _host_session_fingerprint(meta)
+    if not fingerprint or provider != "chatgpt" or not account_id:
+        return
+    binding = db.get_host_session_binding("chatgpt", fingerprint)
+    if binding and str(binding.get("account_id") or "") != str(account_id):
+        raise ValueError("requested account is outside the current host-session authorization scope")
+
+
+def _effective_host_scope(
+    db: ArchiveDB,
+    meta: dict | object | None,
+    *,
+    provider: str | None,
+    account_id: str | None,
+) -> tuple[str | None, str | None]:
+    fingerprint = _host_session_fingerprint(meta)
+    binding = db.get_host_session_binding("chatgpt", fingerprint) if fingerprint else None
+    if not binding:
+        return provider, account_id
+    bound_provider = str(binding.get("provider") or "chatgpt")
+    bound_account = str(binding.get("account_id") or "") or None
+    if provider and provider != bound_provider:
+        raise ValueError("requested provider is outside the current host-session authorization scope")
+    if account_id and account_id != bound_account:
+        raise ValueError("requested account is outside the current host-session authorization scope")
+    return provider or bound_provider, account_id or bound_account
+
+
 def build_mcp(db_path: str | Path | None = None):
     from mcp.server.fastmcp import FastMCP
 
@@ -122,6 +173,16 @@ def build_mcp(db_path: str | Path | None = None):
             }
 
         context = ContextRequest.from_dict(raw_request)
+        if context.target:
+            target_conversation = db.get(context.target.conversation_uid)
+            if target_conversation:
+                _authorize_account_scope(
+                    db,
+                    ctx.request_context.meta,
+                    provider=str(target_conversation.get("provider") or ""),
+                    account_id=str(target_conversation.get("account_id") or "") or None,
+                )
+
         if context.freshness.allow_live_acquisition and raw_request.get("target"):
             bundle = run_context_request(
                 db,
@@ -139,12 +200,33 @@ def build_mcp(db_path: str | Path | None = None):
                 raise ValueError("worker_dispatch.prompt is required")
             if not fingerprint:
                 raise ValueError("openai/session metadata is required for worker dispatch")
+
+            acquisition_status = str((bundle.get("acquisition") or {}).get("status") or "")
+            completeness_status = str((bundle.get("completeness") or {}).get("status") or "")
+            blocked_acquisition = {
+                "acquisition_required",
+                "acquisition_failed",
+                "acquisition_unavailable",
+                "partial_not_promoted",
+                "stale_pinned_snapshot",
+            }
+            if acquisition_status in blocked_acquisition or completeness_status == "unknown":
+                raise ValueError(
+                    "worker dispatch requires a usable context snapshot; "
+                    f"acquisition={acquisition_status or 'unknown'} completeness={completeness_status or 'unknown'}"
+                )
+
             conversation_uid = (
                 str((bundle.get("target") or {}).get("conversation_uid") or "").strip()
                 or str((binding or {}).get("conversation_uid") or "").strip()
             )
-            if not conversation_uid:
-                raise ValueError("worker dispatch could not resolve a canonical conversation UID")
+            snapshot_id = str(
+                (bundle.get("target") or {}).get("resolved_snapshot_id")
+                or ""
+            ).strip()
+            if not conversation_uid or not snapshot_id:
+                raise ValueError("worker dispatch could not resolve an exact conversation snapshot")
+
             consumer_session_id = str(worker_dispatch.get("consumer_session_id") or "").strip()
             if not consumer_session_id:
                 consumer_session_id = f"ucg-worker-{secrets.token_urlsafe(18)}"
@@ -154,6 +236,7 @@ def build_mcp(db_path: str | Path | None = None):
                 host_session_fingerprint=fingerprint,
                 consumer_session_id=consumer_session_id,
                 conversation_uid=conversation_uid,
+                snapshot_id=snapshot_id,
                 ttl_seconds=ttl_seconds,
             )
             worker = dispatch_handoff_worker(
@@ -161,6 +244,10 @@ def build_mcp(db_path: str | Path | None = None):
                 consumer_session_id=consumer_session_id,
                 prompt=worker_prompt,
                 session_title=str(worker_dispatch.get("session_title") or "").strip() or None,
+                toolsets=worker_dispatch.get("toolsets"),
+                max_turns=int(worker_dispatch.get("max_turns", 60)),
+                run_budget_seconds=float(worker_dispatch.get("run_budget_seconds", worker_dispatch.get("timeout_seconds", 240))),
+                retention_seconds=int(worker_dispatch.get("retention_seconds", 3600)),
             )
             wait_for_result = bool(worker_dispatch.get("wait_for_result", True))
             if wait_for_result:
@@ -168,18 +255,27 @@ def build_mcp(db_path: str | Path | None = None):
                 result = wait_for_handoff_worker(
                     worker,
                     timeout_seconds=result_timeout,
+                    cancel_on_timeout=True,
                 )
             else:
                 result = None
+            if result:
+                dispatch_status = str(result.get("status") or "")
+                result_status = (
+                    "completed" if dispatch_status == "completed"
+                    else "cancelled" if dispatch_status == "cancelled"
+                    else "failed" if dispatch_status == "failed"
+                    else dispatch_status or "dispatched"
+                )
+            else:
+                result_status = "dispatched"
             bundle["worker_dispatch"] = {
-                "status": "completed" if result and result.get("status") == "completed" else (
-                    "timeout" if result and result.get("status") == "timeout" else "dispatched"
-                ),
-                "handoff": handoff,
+                "status": result_status,
+                "handoff": _safe_handoff(handoff),
                 "worker": {
                     key: value
                     for key, value in worker.items()
-                    if key != "query_path"
+                    if key not in {"query_path", "handoff_id"}
                 },
                 "result": result,
             }
@@ -262,11 +358,12 @@ def build_mcp(db_path: str | Path | None = None):
         )
         result = {
             "status": "prepared",
-            "handoff": handoff,
+            "handoff": _safe_handoff(handoff),
             "security": {
                 "raw_host_identity_returned": False,
                 "bearer_capability": True,
                 "one_time_redeem": True,
+                "raw_capability_returned": False,
             },
         }
 
@@ -346,8 +443,15 @@ def build_mcp(db_path: str | Path | None = None):
         provider: str | None = None,
         account_id: str | None = None,
         limit: int = 8,
+        ctx: Context = None,
     ) -> dict:
         "Search archived message-level evidence with provenance."
+        provider, account_id = _effective_host_scope(
+            db,
+            ctx.request_context.meta if ctx else None,
+            provider=provider,
+            account_id=account_id,
+        )
         evidence = db.search_messages(
             query,
             limit=limit,
@@ -366,19 +470,31 @@ def build_mcp(db_path: str | Path | None = None):
         }
 
     @mcp.tool()
-    def context_get_conversation(conversation_id: str) -> dict:
+    def context_get_conversation(conversation_id: str, ctx: Context) -> dict:
         "Get one current conversation record, snapshot and canonical messages."
         item = db.get(conversation_id)
         if not item:
             raise ValueError(f"conversation not found: {conversation_id}")
+        _authorize_account_scope(
+            db,
+            ctx.request_context.meta,
+            provider=str(item.get("provider") or ""),
+            account_id=str(item.get("account_id") or "") or None,
+        )
         return item
 
     @mcp.tool()
-    def context_get_snapshot(snapshot_id: str) -> dict:
+    def context_get_snapshot(snapshot_id: str, ctx: Context) -> dict:
         "Get an exact immutable conversation snapshot."
         item = db.get_snapshot(snapshot_id)
         if not item:
             raise ValueError(f"snapshot not found: {snapshot_id}")
+        _authorize_account_scope(
+            db,
+            ctx.request_context.meta,
+            provider=str(item.get("provider") or ""),
+            account_id=str(item.get("account_id") or "") or None,
+        )
         return item
 
     @mcp.tool()
@@ -388,8 +504,15 @@ def build_mcp(db_path: str | Path | None = None):
         provider: str | None = None,
         account_id: str | None = None,
         limit: int = 8,
+        ctx: Context = None,
     ) -> dict:
         "Build scoped project context from recent timeline plus exact message evidence."
+        provider, account_id = _effective_host_scope(
+            db,
+            ctx.request_context.meta if ctx else None,
+            provider=provider,
+            account_id=account_id,
+        )
         return project_context(
             db,
             project=project,
@@ -405,8 +528,15 @@ def build_mcp(db_path: str | Path | None = None):
         provider: str | None = None,
         account_id: str | None = None,
         limit: int = 10,
+        ctx: Context = None,
     ) -> list[dict]:
         "Return recent archived conversations for a scoped provider/account."
+        provider, account_id = _effective_host_scope(
+            db,
+            ctx.request_context.meta if ctx else None,
+            provider=provider,
+            account_id=account_id,
+        )
         return timeline(
             db,
             project=project,
@@ -422,8 +552,15 @@ def build_mcp(db_path: str | Path | None = None):
         provider: str | None = None,
         account_id: str | None = None,
         limit: int = 8,
+        ctx: Context = None,
     ) -> dict:
         "Assemble a compact context bundle with exact message provenance."
+        provider, account_id = _effective_host_scope(
+            db,
+            ctx.request_context.meta if ctx else None,
+            provider=provider,
+            account_id=account_id,
+        )
         return continuity(
             db,
             query=query,
@@ -434,8 +571,18 @@ def build_mcp(db_path: str | Path | None = None):
         )
 
     @mcp.tool()
-    def context_compare(conversation_ids: list[str]) -> dict:
+    def context_compare(conversation_ids: list[str], ctx: Context) -> dict:
         "Compare two to five archived conversations with current snapshots and messages."
+        for cid in conversation_ids:
+            item = db.get(cid)
+            if not item:
+                raise ValueError(f"conversation not found: {cid}")
+            _authorize_account_scope(
+                db,
+                ctx.request_context.meta,
+                provider=str(item.get("provider") or ""),
+                account_id=str(item.get("account_id") or "") or None,
+            )
         return compare(db, conversation_ids)
 
     return mcp

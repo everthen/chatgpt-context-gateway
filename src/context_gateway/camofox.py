@@ -48,6 +48,7 @@ class CamofoxObservation:
     scroll_rounds: int
     complete: bool
     captured_at: float
+    completeness_reason: str = "unknown"
 
     def to_payload(self) -> dict[str, Any]:
         mapping: dict[str, dict[str, Any]] = {}
@@ -77,8 +78,8 @@ class CamofoxObservation:
         return {
             "id": self.conversation_id,
             "title": self.title or "Untitled",
-            "create_time": self.captured_at,
-            "update_time": self.captured_at,
+            "create_time": None,
+            "update_time": None,
             "mapping": mapping,
             "current_node": previous_node,
             "_gateway_observation": {
@@ -87,7 +88,9 @@ class CamofoxObservation:
                 "captured_at": self.captured_at,
                 "url": self.url,
                 "complete": self.complete,
+                "completeness_reason": self.completeness_reason,
                 "scroll_rounds": self.scroll_rounds,
+                "observed_at": self.captured_at,
                 "turn_count": len(self.turns),
                 "snapshot_hashes": list(self.snapshot_hashes),
                 "raw_snapshots": list(self.raw_snapshots),
@@ -269,6 +272,7 @@ def collect_conversation(
     previous_frontier: tuple[tuple[str, str], ...] | None = None
     no_new_frontier_rounds = 0
     complete = False
+    completeness_reason = "max_scrolls_reached"
     rounds = 0
 
     def turn_signature(turn: BrowserTurn) -> tuple[str, str]:
@@ -307,13 +311,16 @@ def collect_conversation(
         metrics = client.scroll_metrics(user_id, tab_id)
         if float(metrics.get("scrollTop") or 0) <= 0:
             complete = True
+            completeness_reason = "reached_top"
             break
 
         if no_new_frontier_rounds >= 2:
-            complete = True
+            complete = False
+            completeness_reason = "scroll_no_progress"
             break
 
         if round_index >= max_scrolls:
+            completeness_reason = "max_scrolls_reached"
             break
 
         client.scroll_up(user_id, tab_id, amount=scroll_amount)
@@ -335,5 +342,6 @@ def collect_conversation(
         raw_snapshots=tuple(raw_snapshots),
         scroll_rounds=rounds,
         complete=complete,
+        completeness_reason=completeness_reason,
         captured_at=time.time(),
     )

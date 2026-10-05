@@ -24,7 +24,17 @@ def _engine():
     return module.GatewayContextEngine()
 
 
-def test_gateway_context_engine_loads_and_retrieves():
+def test_gateway_context_engine_loads_and_retrieves(monkeypatch):
+    monkeypatch.setenv('UNIVERSAL_CONTEXT_GATEWAY_MODE', 'search')
+    monkeypatch.delenv('UNIVERSAL_CONTEXT_GATEWAY_CONVERSATION_UID', raising=False)
+
+    class _Response:
+        def __enter__(self): return self
+        def __exit__(self, *exc): return False
+        def read(self):
+            return json.dumps({'evidence': [{'provider': 'chatgpt', 'account_id': 'camofox-human-login', 'id': 'conversation-1', 'excerpt': 'historical engineering loop context'}]}).encode()
+
+    monkeypatch.setattr(urllib.request, 'urlopen', lambda *args, **kwargs: _Response())
     engine = _engine()
     message = {
         "role": "user",
@@ -59,7 +69,9 @@ def test_gateway_context_engine_does_not_clobber_hermes_provider():
     assert engine.gateway_account == "camofox-human-login"
 
 
-def test_gateway_context_engine_recovers_continuation_ack():
+def test_gateway_context_engine_recovers_continuation_ack(monkeypatch):
+    monkeypatch.setenv('UNIVERSAL_CONTEXT_GATEWAY_MODE', 'search')
+    monkeypatch.delenv('UNIVERSAL_CONTEXT_GATEWAY_CONVERSATION_UID', raising=False)
     engine = _engine()
     prior = {
         "role": "assistant",

@@ -39,6 +39,57 @@ def test_host_session_binding_roundtrip(tmp_path: Path):
     assert resolved["last_seen_at"] == 200.0
     db.close()
 
+def test_context_handoff_is_pinned_and_one_time(tmp_path: Path):
+    db = ArchiveDB(tmp_path / "handoff.sqlite3")
+    db.upsert_conversation({
+        "id": "conv-handoff",
+        "title": "Handoff",
+        "create_time": 1,
+        "update_time": 2,
+        "raw_path": "/raw/handoff.json",
+        "raw_hash": "hash-handoff",
+        "indexed_text": "handoff content",
+        "raw_json": "{}",
+        "provider": "chatgpt",
+        "account_id": "account-1",
+    })
+    conversation_uid = db.get("conv-handoff")["conversation_uid"]
+    current = db.current_snapshot(conversation_uid)
+    assert current is not None
+    binding = db.bind_host_session(
+        provider="chatgpt",
+        host_session_fingerprint="fp-handoff",
+        account_id="account-1",
+        conversation_uid=conversation_uid,
+        now=100.0,
+    )
+    handoff = db.create_context_handoff(
+        provider="chatgpt",
+        host_session_fingerprint=binding["host_session_fingerprint"],
+        consumer_session_id="hermes-session-1",
+        now=101.0,
+    )
+    assert handoff["conversation_uid"] == conversation_uid
+    assert handoff["snapshot_id"].endswith("snapshot-000001")
+    redeemed = db.redeem_context_handoff(
+        handoff["handoff_id"],
+        consumer_session_id="hermes-session-1",
+        now=102.0,
+    )
+    assert redeemed["conversation_uid"] == conversation_uid
+    assert redeemed["consumed_at"] == 102.0
+    try:
+        db.redeem_context_handoff(
+            handoff["handoff_id"],
+            consumer_session_id="hermes-session-1",
+            now=103.0,
+        )
+    except ValueError as exc:
+        assert "already consumed" in str(exc)
+    else:
+        raise AssertionError("handoff was reusable")
+    db.close()
+
 def test_upsert_project(tmp_path: Path):
     db = ArchiveDB(tmp_path / "test.sqlite3")
     p1 = {

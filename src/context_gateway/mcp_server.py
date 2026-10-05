@@ -163,6 +163,83 @@ def build_mcp(db_path: str | Path | None = None):
         return {"status": "bound", "binding": _safe_binding(binding)}
 
     @mcp.tool()
+    def context_handoff_prepare(
+        ctx: Context,
+        consumer_session_id: str,
+        conversation_uid: str | None = None,
+        ttl_seconds: int = 120,
+    ) -> dict:
+        """Create a short-lived opaque worker handoff from the current ChatGPT host session."""
+        fingerprint = _host_session_fingerprint(ctx.request_context.meta)
+        if not fingerprint:
+            raise ValueError("openai/session metadata is not present")
+        handoff = db.create_context_handoff(
+            provider="chatgpt",
+            host_session_fingerprint=fingerprint,
+            consumer_session_id=consumer_session_id,
+            conversation_uid=conversation_uid,
+            ttl_seconds=ttl_seconds,
+        )
+        return {
+            "status": "prepared",
+            "handoff": handoff,
+            "security": {
+                "raw_host_identity_returned": False,
+                "bearer_capability": True,
+                "one_time_redeem": True,
+            },
+        }
+
+    @mcp.tool()
+    def context_handoff_redeem(
+        handoff_id: str,
+        consumer_session_id: str | None = None,
+        max_messages: int = 30,
+        max_bytes: int = 120000,
+    ) -> dict:
+        """Redeem one short-lived worker handoff into an exact pinned ContextBundle."""
+        row = db.redeem_context_handoff(
+            handoff_id,
+            consumer_session_id=consumer_session_id,
+        )
+        request = ContextRequest.from_dict(
+            {
+                "consumer": "hermes-context-engine",
+                "session_id": row["consumer_session_id"],
+                "query": "",
+                "intent": "retrieve",
+                "target": {
+                    "type": "conversation",
+                    "conversation_uid": row["conversation_uid"],
+                    "snapshot": "explicit",
+                    "snapshot_id": row["snapshot_id"],
+                    "transcript_mode": "active_chain",
+                },
+                "freshness": {
+                    "mode": "accept_stale",
+                    "allow_live_acquisition": False,
+                },
+                "budget": {
+                    "max_messages": max_messages,
+                    "max_bytes": max_bytes,
+                },
+                "trust": "historical_evidence",
+            }
+        )
+        bundle = resolve_context_request(db, request)
+        bundle["handoff"] = {
+            "status": "redeemed",
+            "handoff_id": handoff_id,
+            "consumer_session_id": row["consumer_session_id"],
+            "conversation_uid": row["conversation_uid"],
+            "snapshot_id": row["snapshot_id"],
+            "created_at": row["created_at"],
+            "expires_at": row["expires_at"],
+            "raw_host_identity_returned": False,
+        }
+        return bundle
+
+    @mcp.tool()
     def context_search(
         query: str,
         project: str | None = None,

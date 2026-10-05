@@ -88,6 +88,55 @@ class GatewayRequestHandler(BaseHTTPRequestHandler):
                 self._send_json(200, run_context_request(self.db, request, adapter=adapter, max_attempts=1))
                 return
 
+            if path == "/handoff/redeem":
+                handoff_id = str(body.get("handoff_id") or "").strip()
+                if not handoff_id:
+                    raise ValueError("handoff_id is required")
+                row = self.db.redeem_context_handoff(
+                    handoff_id,
+                    consumer_session_id=(
+                        str(body.get("consumer_session_id")).strip()
+                        if body.get("consumer_session_id") else None
+                    ),
+                )
+                request = ContextRequest.from_dict(
+                    {
+                        "consumer": "hermes-context-engine",
+                        "session_id": row["consumer_session_id"],
+                        "query": "",
+                        "intent": "retrieve",
+                        "target": {
+                            "type": "conversation",
+                            "conversation_uid": row["conversation_uid"],
+                            "snapshot": "explicit",
+                            "snapshot_id": row["snapshot_id"],
+                            "transcript_mode": "active_chain",
+                        },
+                        "freshness": {
+                            "mode": "accept_stale",
+                            "allow_live_acquisition": False,
+                        },
+                        "budget": {
+                            "max_messages": int(body.get("max_messages") or 30),
+                            "max_bytes": int(body.get("max_bytes") or 120000),
+                        },
+                        "trust": "historical_evidence",
+                    }
+                )
+                bundle = resolve_context_request(self.db, request)
+                bundle["handoff"] = {
+                    "status": "redeemed",
+                    "handoff_id": handoff_id,
+                    "consumer_session_id": row["consumer_session_id"],
+                    "conversation_uid": row["conversation_uid"],
+                    "snapshot_id": row["snapshot_id"],
+                    "created_at": row["created_at"],
+                    "expires_at": row["expires_at"],
+                    "raw_host_identity_returned": False,
+                }
+                self._send_json(200, bundle)
+                return
+
             if path == "/acquisition/ingest":
                 payload = body.get("payload")
                 if not isinstance(payload, dict):

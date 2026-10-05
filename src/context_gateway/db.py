@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import secrets
 import sqlite3
 import time
 from pathlib import Path
@@ -10,7 +11,7 @@ from typing import Any
 from .normalize import extract_messages, make_record, messages_from_indexed_text, stable_hash
 
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 
 SCHEMA = """
 PRAGMA journal_mode=WAL;
@@ -109,6 +110,22 @@ CREATE TABLE IF NOT EXISTS host_session_bindings(
 
 CREATE INDEX IF NOT EXISTS idx_host_session_binding_conversation
     ON host_session_bindings(conversation_uid);
+
+CREATE TABLE IF NOT EXISTS context_handoffs(
+    handoff_id TEXT PRIMARY KEY,
+    provider TEXT NOT NULL,
+    account_id TEXT NOT NULL,
+    conversation_uid TEXT NOT NULL,
+    snapshot_id TEXT NOT NULL,
+    host_session_fingerprint TEXT NOT NULL,
+    consumer_session_id TEXT NOT NULL,
+    created_at REAL NOT NULL,
+    expires_at REAL NOT NULL,
+    consumed_at REAL
+);
+
+CREATE INDEX IF NOT EXISTS idx_context_handoffs_expiry
+    ON context_handoffs(expires_at);
 
 CREATE TABLE IF NOT EXISTS messages(
     message_uid TEXT PRIMARY KEY,
@@ -494,6 +511,124 @@ class ArchiveDB:
                 (provider, host_session_fingerprint),
             ).fetchone()
         return dict(row) if row else None
+
+    def create_context_handoff(
+        self,
+        *,
+        provider: str,
+        host_session_fingerprint: str,
+        consumer_session_id: str,
+        conversation_uid: str | None = None,
+        ttl_seconds: int = 120,
+        now: float | None = None,
+    ) -> dict[str, Any]:
+        if not host_session_fingerprint.strip():
+            raise ValueError("host_session_fingerprint is required")
+        if not consumer_session_id.strip():
+            raise ValueError("consumer_session_id is required")
+        ttl = max(5, min(int(ttl_seconds), 900))
+        created_at = float(now if now is not None else time.time())
+        binding = self.get_host_session_binding(
+            provider,
+            host_session_fingerprint,
+            touch=True,
+            now=created_at,
+        )
+        if conversation_uid:
+            if binding and binding["conversation_uid"] != conversation_uid:
+                raise ValueError(
+                    "handoff conversation does not match the current host-session binding"
+                )
+        elif binding:
+            conversation_uid = str(binding["conversation_uid"])
+        else:
+            raise ValueError("current host session is not bound to a conversation")
+
+        conversation = self.get(str(conversation_uid))
+        if not conversation:
+            raise ValueError(f"conversation not found: {conversation_uid}")
+        if str(conversation.get("provider") or "") != provider:
+            raise ValueError("handoff provider does not match conversation provider")
+        if binding and str(binding.get("account_id") or "") != str(conversation.get("account_id") or ""):
+            raise ValueError("handoff account does not match conversation account")
+
+        snapshot = self.current_snapshot(str(conversation_uid))
+        if not snapshot:
+            raise ValueError(f"current snapshot not found: {conversation_uid}")
+
+        handoff_id = secrets.token_urlsafe(32)
+        expires_at = created_at + ttl
+        account_id = str(conversation.get("account_id") or "")
+        self.conn.execute(
+            """DELETE FROM context_handoffs WHERE expires_at < ? AND consumed_at IS NOT NULL""",
+            (created_at,),
+        )
+        self.conn.execute(
+            """INSERT INTO context_handoffs
+               (handoff_id, provider, account_id, conversation_uid, snapshot_id,
+                host_session_fingerprint, consumer_session_id, created_at, expires_at, consumed_at)
+               VALUES(?,?,?,?,?,?,?,?,?,NULL)""",
+            (
+                handoff_id,
+                provider,
+                account_id,
+                str(conversation_uid),
+                str(snapshot["snapshot_id"]),
+                host_session_fingerprint,
+                consumer_session_id,
+                created_at,
+                expires_at,
+            ),
+        )
+        self.conn.commit()
+        return {
+            "handoff_id": handoff_id,
+            "provider": provider,
+            "account_id": account_id,
+            "conversation_uid": str(conversation_uid),
+            "snapshot_id": str(snapshot["snapshot_id"]),
+            "created_at": created_at,
+            "expires_at": expires_at,
+            "consumer_session_id": consumer_session_id,
+        }
+
+    def redeem_context_handoff(
+        self,
+        handoff_id: str,
+        *,
+        consumer_session_id: str | None = None,
+        now: float | None = None,
+    ) -> dict[str, Any]:
+        if not handoff_id.strip():
+            raise ValueError("handoff_id is required")
+        observed_at = float(now if now is not None else time.time())
+        row = self.conn.execute(
+            """SELECT * FROM context_handoffs WHERE handoff_id=?""",
+            (handoff_id,),
+        ).fetchone()
+        if not row:
+            raise ValueError("handoff not found")
+        if row["consumed_at"] is not None:
+            raise ValueError("handoff already consumed")
+        if observed_at >= float(row["expires_at"]):
+            raise ValueError("handoff expired")
+        if consumer_session_id and str(row["consumer_session_id"]) != consumer_session_id:
+            raise ValueError("handoff consumer session does not match")
+        cur = self.conn.execute(
+            """UPDATE context_handoffs
+               SET consumed_at=?
+               WHERE handoff_id=? AND consumed_at IS NULL""",
+            (observed_at, handoff_id),
+        )
+        if cur.rowcount != 1:
+            self.conn.rollback()
+            raise ValueError("handoff already consumed")
+        self.conn.commit()
+        consumed = self.conn.execute(
+            "SELECT * FROM context_handoffs WHERE handoff_id=?",
+            (handoff_id,),
+        ).fetchone()
+        return dict(consumed) if consumed else dict(row)
 
     def close(self):
         self.conn.close()

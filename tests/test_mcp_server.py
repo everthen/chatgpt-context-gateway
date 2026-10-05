@@ -52,6 +52,8 @@ def test_mcp_read_only_tool_registry(tmp_path):
         "context_host_identity_probe",
         "context_host_session_bind",
         "context_host_session_resolve",
+        "context_handoff_prepare",
+        "context_handoff_redeem",
         "context_search",
         "context_get_conversation",
         "context_get_snapshot",

@@ -71,10 +71,11 @@ def test_client_methods_with_mock_request():
                     }
                 ]
             }
-        elif path == "projects/proj-xyz/conversations":
+        elif path in ("projects/proj-xyz/conversations", "gizmos/proj-xyz/conversations"):
             return {
                 "items": [{"id": "conv-001", "title": "First Conv"}],
                 "total": 1,
+                "cursor": None,
             }
         elif path == "conversation/conv-001":
             return {

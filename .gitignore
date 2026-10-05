@@ -1,0 +1,28 @@
+# Data and local storage
+data/raw/
+data/*.sqlite3*
+*.sqlite3
+*.sqlite3-*
+*.sqlite
+*.db
+
+# Secrets, environment, and auth tokens
+.env
+.env.*
+*.token
+*.tokens
+*.cookie
+*.cookies
+auth/
+*auth*.json
+*token*.json
+*cookie*.json
+*secret*
+*credential*
+
+# Python & caching
+*.pyc
+__pycache__/
+.pytest_cache/
+.venv/
+venv/

@@ -19,11 +19,16 @@ CREATE VIRTUAL TABLE IF NOT EXISTS conversation_fts USING fts5(
 """
 
 class ArchiveDB:
-    def __init__(self, path: Path):
+    def __init__(self, path: Path, check_same_thread: bool = False):
         path.parent.mkdir(parents=True, exist_ok=True)
-        self.conn = sqlite3.connect(path)
+        self.path = Path(path)
+        self.conn = sqlite3.connect(self.path, check_same_thread=check_same_thread)
         self.conn.row_factory = sqlite3.Row
         self.conn.executescript(SCHEMA)
+
+    def close(self):
+        if self.conn:
+            self.conn.close()
 
     def upsert_project(self, p: dict[str,Any]):
         self.conn.execute(
@@ -60,8 +65,16 @@ class ArchiveDB:
         return dict(r) if r else None
 
     def search(self, q, limit=20):
-        return [dict(r) for r in self.conn.execute(
-            """SELECT c.id,c.project_name,c.title,c.update_time
-               FROM conversation_fts f JOIN conversations c ON c.id=f.conversation_id
-               WHERE conversation_fts MATCH ? ORDER BY bm25(conversation_fts) LIMIT ?""",(q,limit)
-        )]
+        try:
+            return [dict(r) for r in self.conn.execute(
+                """SELECT c.id,c.project_name,c.title,c.update_time
+                   FROM conversation_fts f JOIN conversations c ON c.id=f.conversation_id
+                   WHERE conversation_fts MATCH ? ORDER BY bm25(conversation_fts) LIMIT ?""",(q,limit)
+            )]
+        except sqlite3.OperationalError:
+            safe_q = '"' + q.replace('"', '""') + '"'
+            return [dict(r) for r in self.conn.execute(
+                """SELECT c.id,c.project_name,c.title,c.update_time
+                   FROM conversation_fts f JOIN conversations c ON c.id=f.conversation_id
+                   WHERE conversation_fts MATCH ? ORDER BY bm25(conversation_fts) LIMIT ?""",(safe_q,limit)
+            )]

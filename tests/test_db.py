@@ -10,6 +10,35 @@ def test_db_init_and_tables(tmp_path: Path):
     assert db.conversations() == []
     db.close()
 
+def test_host_session_binding_roundtrip(tmp_path: Path):
+    db = ArchiveDB(tmp_path / "bindings.sqlite3")
+    db.upsert_conversation({
+        "id": "conv-1",
+        "title": "Bound conversation",
+        "create_time": 1,
+        "update_time": 2,
+        "raw_path": "/raw/conv-1.json",
+        "raw_hash": "hash-bound",
+        "indexed_text": "bound content",
+        "raw_json": "{}",
+        "provider": "chatgpt",
+        "account_id": "account-1",
+    })
+    conversation_uid = db.get("conv-1")["conversation_uid"]
+    binding = db.bind_host_session(
+        provider="chatgpt",
+        host_session_fingerprint="fp-1",
+        account_id="account-1",
+        conversation_uid=conversation_uid,
+        now=100.0,
+    )
+    assert binding["conversation_uid"] == conversation_uid
+    assert binding["bound_at"] == 100.0
+    resolved = db.get_host_session_binding("chatgpt", "fp-1", now=200.0)
+    assert resolved["conversation_uid"] == conversation_uid
+    assert resolved["last_seen_at"] == 200.0
+    db.close()
+
 def test_upsert_project(tmp_path: Path):
     db = ArchiveDB(tmp_path / "test.sqlite3")
     p1 = {

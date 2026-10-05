@@ -10,7 +10,7 @@ from typing import Any
 from .normalize import extract_messages, make_record, messages_from_indexed_text, stable_hash
 
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 
 SCHEMA = """
 PRAGMA journal_mode=WAL;
@@ -95,6 +95,20 @@ CREATE TABLE IF NOT EXISTS acquisition_checkpoints(
 
 CREATE INDEX IF NOT EXISTS idx_acquisition_checkpoints_scope
     ON acquisition_checkpoints(provider, account_id, scope_type, scope_id);
+
+CREATE TABLE IF NOT EXISTS host_session_bindings(
+    provider TEXT NOT NULL,
+    host_session_fingerprint TEXT NOT NULL,
+    account_id TEXT NOT NULL,
+    conversation_uid TEXT NOT NULL,
+    bound_at REAL NOT NULL,
+    last_seen_at REAL NOT NULL,
+    source TEXT NOT NULL,
+    PRIMARY KEY(provider, host_session_fingerprint)
+);
+
+CREATE INDEX IF NOT EXISTS idx_host_session_binding_conversation
+    ON host_session_bindings(conversation_uid);
 
 CREATE TABLE IF NOT EXISTS messages(
     message_uid TEXT PRIMARY KEY,
@@ -381,6 +395,105 @@ class ArchiveDB:
                     text,
                 ),
             )
+
+    def bind_host_session(
+        self,
+        *,
+        provider: str,
+        host_session_fingerprint: str,
+        account_id: str,
+        conversation_uid: str,
+        source: str = "explicit",
+        now: float | None = None,
+    ) -> dict[str, Any]:
+        if not host_session_fingerprint.strip():
+            raise ValueError("host_session_fingerprint is required")
+        if not account_id.strip():
+            raise ValueError("account_id is required")
+        if not conversation_uid.strip():
+            raise ValueError("conversation_uid is required")
+
+        conversation = self.get(conversation_uid)
+        if not conversation:
+            raise ValueError(f"conversation not found: {conversation_uid}")
+        if str(conversation.get("provider") or "") != provider:
+            raise ValueError("binding provider does not match conversation provider")
+        if str(conversation.get("account_id") or "") != account_id:
+            raise ValueError("binding account does not match conversation account")
+
+        observed_at = float(now if now is not None else time.time())
+        existing = self.conn.execute(
+            """SELECT * FROM host_session_bindings
+               WHERE provider=? AND host_session_fingerprint=?""",
+            (provider, host_session_fingerprint),
+        ).fetchone()
+        if existing and str(existing["conversation_uid"]) != conversation_uid:
+            raise ValueError(
+                "host session is already bound to a different conversation; explicit rebinding is required"
+            )
+
+        bound_at = float(existing["bound_at"]) if existing else observed_at
+        self.conn.execute(
+            """INSERT INTO host_session_bindings
+               (provider, host_session_fingerprint, account_id, conversation_uid,
+                bound_at, last_seen_at, source)
+               VALUES(?,?,?,?,?,?,?)
+               ON CONFLICT(provider, host_session_fingerprint) DO UPDATE SET
+                 account_id=excluded.account_id,
+                 conversation_uid=excluded.conversation_uid,
+                 last_seen_at=excluded.last_seen_at,
+                 source=excluded.source""",
+            (
+                provider,
+                host_session_fingerprint,
+                account_id,
+                conversation_uid,
+                bound_at,
+                observed_at,
+                source,
+            ),
+        )
+        self.conn.commit()
+        return self.get_host_session_binding(
+            provider,
+            host_session_fingerprint,
+            touch=False,
+        ) or {}
+
+    def get_host_session_binding(
+        self,
+        provider: str,
+        host_session_fingerprint: str,
+        *,
+        touch: bool = True,
+        now: float | None = None,
+    ) -> dict[str, Any] | None:
+        row = self.conn.execute(
+            """SELECT provider, host_session_fingerprint, account_id,
+                      conversation_uid, bound_at, last_seen_at, source
+               FROM host_session_bindings
+               WHERE provider=? AND host_session_fingerprint=?""",
+            (provider, host_session_fingerprint),
+        ).fetchone()
+        if not row:
+            return None
+        if touch:
+            observed_at = float(now if now is not None else time.time())
+            self.conn.execute(
+                """UPDATE host_session_bindings
+                   SET last_seen_at=?
+                   WHERE provider=? AND host_session_fingerprint=?""",
+                (observed_at, provider, host_session_fingerprint),
+            )
+            self.conn.commit()
+            row = self.conn.execute(
+                """SELECT provider, host_session_fingerprint, account_id,
+                          conversation_uid, bound_at, last_seen_at, source
+                   FROM host_session_bindings
+                   WHERE provider=? AND host_session_fingerprint=?""",
+                (provider, host_session_fingerprint),
+            ).fetchone()
+        return dict(row) if row else None
 
     def close(self):
         self.conn.close()

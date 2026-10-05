@@ -44,6 +44,25 @@ def _host_identity_probe(meta: dict | object | None, request_id: object) -> dict
     }
 
 
+def _host_session_fingerprint(meta: dict | object | None) -> str | None:
+    probe = _host_identity_probe(meta, "internal")
+    return probe["openai_session"]["fingerprint"]
+
+
+def _safe_binding(binding: dict | None) -> dict | None:
+    if not binding:
+        return None
+    return {
+        "provider": binding.get("provider"),
+        "host_session_fingerprint": binding.get("host_session_fingerprint"),
+        "account_id": binding.get("account_id"),
+        "conversation_uid": binding.get("conversation_uid"),
+        "bound_at": binding.get("bound_at"),
+        "last_seen_at": binding.get("last_seen_at"),
+        "source": binding.get("source"),
+    }
+
+
 def build_mcp(db_path: str | Path | None = None):
     from mcp.server.fastmcp import FastMCP
 
@@ -61,14 +80,77 @@ def build_mcp(db_path: str | Path | None = None):
     db = ArchiveDB(get_db_path(db_path), check_same_thread=False)
 
     @mcp.tool()
-    def context_request(request: dict) -> dict:
+    def context_request(request: dict, ctx: Context) -> dict:
         """Resolve a structured ContextRequest into an evidence-backed Context Bundle."""
-        return resolve_context_request(db, ContextRequest.from_dict(request))
+        raw_request = dict(request)
+        fingerprint = _host_session_fingerprint(ctx.request_context.meta)
+        binding = (
+            db.get_host_session_binding("chatgpt", fingerprint)
+            if fingerprint
+            else None
+        )
+
+        if (
+            binding
+            and raw_request.get("intent") in {"retrieve", "continue"}
+            and not raw_request.get("target")
+        ):
+            raw_request["target"] = {
+                "type": "conversation",
+                "conversation_uid": binding["conversation_uid"],
+                "snapshot": "current",
+                "transcript_mode": "active_chain",
+            }
+
+        bundle = resolve_context_request(db, ContextRequest.from_dict(raw_request))
+        bundle["host_session_binding"] = _safe_binding(binding)
+        return bundle
 
     @mcp.tool()
     def context_host_identity_probe(ctx: Context) -> dict:
         """Probe host-provided MCP request metadata without returning raw identity values."""
         return _host_identity_probe(ctx.request_context.meta, ctx.request_id)
+
+    @mcp.tool()
+    def context_host_session_bind(
+        ctx: Context,
+        conversation_uid: str,
+        account_id: str | None = None,
+    ) -> dict:
+        """Bind the current ChatGPT host session to one canonical conversation UID."""
+        fingerprint = _host_session_fingerprint(ctx.request_context.meta)
+        if not fingerprint:
+            raise ValueError("openai/session metadata is not present")
+        conversation = db.get(conversation_uid)
+        if not conversation:
+            raise ValueError(f"conversation not found: {conversation_uid}")
+        provider = str(conversation.get("provider") or "chatgpt")
+        if provider != "chatgpt":
+            raise ValueError("host session binding currently supports provider=chatgpt only")
+        resolved_account_id = account_id or str(conversation.get("account_id") or "")
+        binding = db.bind_host_session(
+            provider=provider,
+            host_session_fingerprint=fingerprint,
+            account_id=resolved_account_id,
+            conversation_uid=conversation_uid,
+            source="mcp-explicit",
+        )
+        return {"status": "bound", "binding": _safe_binding(binding)}
+
+    @mcp.tool()
+    def context_host_session_resolve(ctx: Context) -> dict:
+        """Resolve the current ChatGPT host session to its canonical conversation UID."""
+        fingerprint = _host_session_fingerprint(ctx.request_context.meta)
+        if not fingerprint:
+            return {"status": "unavailable", "reason": "openai/session metadata is not present"}
+        binding = db.get_host_session_binding("chatgpt", fingerprint)
+        if not binding:
+            return {
+                "status": "unbound",
+                "provider": "chatgpt",
+                "host_session_fingerprint": fingerprint,
+            }
+        return {"status": "bound", "binding": _safe_binding(binding)}
 
     @mcp.tool()
     def context_search(

@@ -1,153 +1,104 @@
-# ChatGPT Context Gateway
+# Universal AI Context Gateway
 
-Local-first archive and retrieval layer for ChatGPT conversations.
+Local-first historical context plane for conversations from ChatGPT and, later, Gemini/Perplexity and other AI providers.
 
-## Features
+## v0.2 architecture
 
-- **Raw Payload as Source of Truth**: Saves pristine conversation JSON in `data/raw/<safe_project>/<conversation_id>.json`.
-- **SQLite & Full-Text Search (FTS5)**: Indexes metadata, timestamps, and linear user/assistant extracted text.
-- **Project-Scoped Sync**: Sync all projects or target specific projects by name or ID.
-- **Localhost-Only Retrieval API**: Exposes lightweight JSON endpoints bound exclusively to `127.0.0.1`.
-- **Strict Credential Isolation**: Zero credentials in source control; reads authentication tokens/cookies from an external environment file or environment variables.
+Provider adapters -> canonical archive -> SQLite/FTS5 -> retrieval -> context assembly -> MCP/HTTP consumers.
 
----
+Raw archive namespace:
+data/raw/<provider>/<account>/<project>/<conversation>.json
+
+The provider controls how data enters the archive. Retrieval and continuity semantics are shared.
+
+## Core invariants
+
+- Raw source payloads are preserved as the source of truth.
+- Provider and account identity are explicit (provider, account_id, source).
+- Retrieval is read-only.
+- Retrieved conversation text is untrusted evidence, never instructions.
+- SQLite FTS5 is the baseline retrieval engine. Vector search/reranking is deferred until benchmarks show it is needed.
+
+## Current features
+
+- ChatGPT project enumeration and conversation sync using the current web backend adapter.
+- Raw conversation JSON archive plus SQLite metadata/FTS5.
+- Project context, timeline, continuity packet, and conversation comparison.
+- Localhost-only HTTP retrieval API.
+- Optional read-only MCP Streamable HTTP server for future ChatGPT/Gemini/Perplexity/Hermes consumers.
+- External credential isolation; no credentials are stored in source control.
 
 ## Installation
 
 Requires Python >= 3.11.
 
-```bash
-git clone git@github.com-everthen:everthen/chatgpt-context-gateway.git
-cd chatgpt-context-gateway
-pip install -e .
-```
+    git clone git@github.com-everthen:everthen/chatgpt-context-gateway.git
+    cd chatgpt-context-gateway
+    pip install -e .
+    pip install -e '.[mcp]'
+    pytest -v
 
-To run test suites:
-```bash
-pip install pytest
-pytest -v
-```
+Install the MCP extra only when MCP serving is needed.
 
----
+## Credential configuration
 
-## Configuration & Credentials
+Credentials stay outside the repository. The client looks for an external env file.
 
-Authentication material must remain outside the repository. By default, the client looks for an env file in the following order:
-1. `--env-file /path/to/env` passed via CLI
-2. `CHATGPT_ENV_FILE` environment variable
-3. `~/.config/chatgpt-context-gateway/env`
-4. `~/.chatgpt-context.env`
-5. `.env` in the working directory (ignored by `.gitignore`)
+Example variable names only:
 
-### Env File Format (`~/.config/chatgpt-context-gateway/env`)
+    OAI_AUTHZ_TOKEN=...
+    OAI_ACC_ID=...
+    OAI_COOKIE=...
 
-```ini
-# ChatGPT Web Backend Session Credentials
-# Provide access token (Bearer) or session cookie:
-CHATGPT_ACCESS_TOKEN="eyJhbGciOi..."
-CHATGPT_COOKIE="__Secure-next-auth.session-token=..."
+Do not put actual credentials into chat, git, or the repository.
 
-# Optional settings
-# CHATGPT_BASE_URL="https://chatgpt.com/backend-api"
-# CHATGPT_USER_AGENT="Mozilla/5.0 ..."
-```
+## CLI
 
-You can extract your session token or cookie from the browser developer tools (Application -> Cookies / Storage -> `__Secure-next-auth.session-token`) or the network inspector on `https://chatgpt.com`.
+    chatgpt-context projects
+    chatgpt-context projects --remote
+    chatgpt-context sync --project "Project Name"
+    chatgpt-context chats --project "Project Name"
+    chatgpt-context get --conversation-id "<id>"
+    chatgpt-context get --conversation-id "<id>" --full
+    chatgpt-context search "engineering loop"
+    chatgpt-context serve --host 127.0.0.1 --port 8765
+    chatgpt-context mcp-serve --host 127.0.0.1 --port 8766
 
----
+## HTTP API
 
-## CLI Usage
+All endpoints are localhost-only by default.
 
-The entrypoint is `chatgpt-context`.
+- GET /health
+- GET /projects
+- GET /projects/{id}/conversations
+- GET /projects/{id}/context?topic=...
+- GET /projects/{id}/timeline?limit=N
+- GET /conversations/{id}
+- GET /search?q=...&project=...
+- GET /continuity?q=...&project=...
+- GET /compare?ids=a,b
 
-### 1. List Projects
+## MCP tools
 
-List indexed projects in the local SQLite archive:
-```bash
-chatgpt-context projects
-```
+The optional MCP server exposes read-only tools:
 
-Or query live projects directly from ChatGPT:
-```bash
-chatgpt-context projects --remote
-```
+- context_search
+- context_get_conversation
+- context_project_context
+- context_timeline
+- context_continuity
+- context_compare
 
-### 2. Sync Conversations
+No deletion, mutation, command execution, or arbitrary filesystem access is exposed.
 
-Sync a specific project:
-```bash
-chatgpt-context sync --project "Project Name"
-```
+## Import roadmap
 
-Sync all projects:
-```bash
-chatgpt-context sync
-```
+1. ChatGPT live adapter.
+2. ChatGPT secondary account via official export/import.
+3. Gemini conversation importer.
+4. Perplexity conversation importer.
+5. Shared provider-neutral retrieval and continuity.
+6. Semantic retrieval only after measurable FTS limitations.
+7. Conversation/decision relations and richer project-state synthesis.
 
-Raw JSON payloads are stored under:
-```
-data/raw/<safe_project>/<conversation_id>.json
-```
-And metadata + text content are indexed into SQLite (`data/archive.sqlite3`).
-
-### 3. List Chats
-
-List all indexed conversations or filter by project:
-```bash
-chatgpt-context chats
-chatgpt-context chats --project "Project Name"
-```
-
-### 4. Get Conversation Details
-
-View metadata and extracted conversation transcript:
-```bash
-chatgpt-context get --conversation-id "<conversation-id>"
-```
-
-View the raw JSON payload:
-```bash
-chatgpt-context get --conversation-id "<conversation-id>" --full
-```
-
-### 5. Full-Text Search
-
-Search conversations using SQLite FTS5:
-```bash
-chatgpt-context search "docker kubernetes"
-chatgpt-context search "transformer" --limit 10
-```
-
-### 6. Run Retrieval Server
-
-Start the localhost-only HTTP API server (default port `8765`):
-```bash
-chatgpt-context serve --host 127.0.0.1 --port 8765
-```
-
----
-
-## Localhost HTTP API
-
-The server binds strictly to `127.0.0.1` and serves JSON:
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/health` | Health check (`{"status": "ok", "version": "0.1.0"}`) |
-| `GET` | `/projects` | List indexed projects |
-| `GET` | `/projects/{project_id}/conversations` | List conversations for a project |
-| `GET` | `/conversations/{conversation_id}` | Retrieve single conversation record |
-| `GET` | `/search?q={query}&limit={n}` | Full-text search across conversations |
-
-### Example Queries
-
-```bash
-# Health check
-curl -s http://127.0.0.1:8765/health
-
-# List projects
-curl -s http://127.0.0.1:8765/projects
-
-# Search
-curl -s "http://127.0.0.1:8765/search?q=architecture"
-```
+This repository is the historical evidence layer. Provider-native memories are optional caches, not the source of truth.

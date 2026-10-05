@@ -54,7 +54,7 @@ def test_sync_project_offline(tmp_path: Path):
     # Check safe folder name in data/raw
     # "Deep Learning / AI" -> safe project name e.g. "Deep_Learning_AI"
     safe_folder = "Deep_Learning_AI"
-    raw_file = raw_dir / safe_folder / "conv-a.json"
+    raw_file = raw_dir / "chatgpt" / "default" / safe_folder / "conv-a.json"
     assert raw_file.exists()
 
     payload_on_disk = json.loads(raw_file.read_text(encoding="utf-8"))
@@ -126,8 +126,8 @@ def test_sync_projects_offline(tmp_path: Path):
     summary = sync_projects(client=mock_client, db=db, raw_dir=raw_dir)
     assert summary == {"Project One": 1, "Project Two": 1}
 
-    assert (raw_dir / "Project_One" / "c1.json").exists()
-    assert (raw_dir / "Project_Two" / "c2.json").exists()
+    assert (raw_dir / "chatgpt" / "default" / "Project_One" / "c1.json").exists()
+    assert (raw_dir / "chatgpt" / "default" / "Project_Two" / "c2.json").exists()
 
     assert len(db.conversations()) == 2
     db.close()

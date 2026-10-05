@@ -18,7 +18,7 @@ def sync_project(
 
     1. Resolves project from ChatGPT or local DB.
     2. Fetches full conversation payloads.
-    3. Saves raw JSON files to data/raw/<safe_project>/<conversation_id>.json.
+    3. Saves raw JSON files to data/raw/<provider>/<account>/<safe_project>/<conversation_id>.json.
     4. Indexes metadata and extracted text into SQLite.
     """
     if client is None:
@@ -55,8 +55,12 @@ def sync_project(
     project_id = target_project["id"]
     canonical_name = target_project.get("name") or project_name
 
+    provider = "chatgpt"
+    account_id = getattr(client, "account_id", None) or "default"
+    safe_provider = safe_project_name(provider)
+    safe_account = safe_project_name(account_id)
     safe_proj = safe_project_name(canonical_name)
-    proj_raw_dir = raw_dir / safe_proj
+    proj_raw_dir = raw_dir / safe_provider / safe_account / safe_proj
     proj_raw_dir.mkdir(parents=True, exist_ok=True)
 
     offset = 0
@@ -87,6 +91,9 @@ def sync_project(
                 project_id=project_id,
                 project_name=canonical_name,
                 raw_path=str(raw_file_path),
+                provider=provider,
+                account_id=account_id,
+                source=provider,
             )
             db.upsert_conversation(record)
             synced_records.append(record)

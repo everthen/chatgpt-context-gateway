@@ -9,6 +9,7 @@ from .client import AuthenticationError, ChatGPTClient, ChatGPTClientError
 from .config import get_db_path, get_raw_dir
 from .db import ArchiveDB
 from .server import run_server
+from .mcp_server import run_mcp
 from .sync import sync_project, sync_projects
 
 def format_timestamp(ts: float | int | str | None) -> str:
@@ -169,6 +170,10 @@ def cmd_serve(args: argparse.Namespace) -> int:
     run_server(host=args.host, port=args.port, db_path=get_db_path(args.db))
     return 0
 
+def cmd_mcp_serve(args: argparse.Namespace) -> int:
+    run_mcp(db_path=get_db_path(args.db), host=args.host, port=args.port)
+    return 0
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="chatgpt-context",
@@ -212,6 +217,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_serve.add_argument("--host", default="127.0.0.1", help="Host address to bind (default: 127.0.0.1)")
     p_serve.add_argument("--port", type=int, default=8765, help="Port to bind (default: 8765)")
     p_serve.set_defaults(func=cmd_serve)
+
+    p_mcp = subparsers.add_parser("mcp-serve", help="Run read-only MCP Streamable HTTP server")
+    p_mcp.add_argument("--host", default="127.0.0.1", help="Host address to bind")
+    p_mcp.add_argument("--port", type=int, default=8766, help="Port to bind")
+    p_mcp.set_defaults(func=cmd_mcp_serve)
 
     return parser
 

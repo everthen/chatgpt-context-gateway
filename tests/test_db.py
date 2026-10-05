@@ -96,3 +96,46 @@ def test_upsert_conversation_and_search(tmp_path: Path):
     assert res_punct[0]["id"] == "conv-1"
 
     db.close()
+
+
+def test_legacy_schema_migrates(tmp_path: Path):
+    import sqlite3
+    db_file = tmp_path / "legacy.sqlite3"
+    con = sqlite3.connect(db_file)
+    con.executescript(
+        """
+        CREATE TABLE projects(
+            id TEXT PRIMARY KEY, name TEXT NOT NULL, created_at TEXT, updated_at TEXT, raw_json TEXT NOT NULL
+        );
+        CREATE TABLE conversations(
+            id TEXT PRIMARY KEY, project_id TEXT, project_name TEXT, title TEXT,
+            create_time REAL, update_time REAL, raw_path TEXT NOT NULL, raw_hash TEXT NOT NULL,
+            indexed_text TEXT NOT NULL, raw_json TEXT NOT NULL
+        );
+        CREATE INDEX idx_conv_project ON conversations(project_id);
+        CREATE VIRTUAL TABLE conversation_fts USING fts5(
+            conversation_id UNINDEXED, title, project_name, content
+        );
+        """
+    )
+    con.close()
+
+    db = ArchiveDB(db_file)
+    columns = {row["name"] for row in db.conn.execute("PRAGMA table_info(conversations)")}
+    assert {"provider", "account_id", "source"} <= columns
+    db.upsert_conversation({
+        "id": "legacy-c1",
+        "project_id": "legacy-p",
+        "project_name": "Legacy",
+        "title": "Legacy conversation",
+        "create_time": 1,
+        "update_time": 2,
+        "raw_path": "/legacy/c1.json",
+        "raw_hash": "hash",
+        "indexed_text": "legacy content",
+        "raw_json": "{}",
+    })
+    record = db.get("legacy-c1")
+    assert record["provider"] == "chatgpt"
+    assert record["account_id"] == "default"
+    assert record["source"] == "chatgpt"

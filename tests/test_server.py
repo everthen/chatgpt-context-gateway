@@ -13,7 +13,7 @@ def test_server(tmp_path: Path):
     db_file = tmp_path / "server_test.sqlite3"
     db = ArchiveDB(db_file, check_same_thread=False)
 
-    p1 = {"id": "proj-abc", "name": "API Testing", "created_at": "2024-01-01", "updated_at": "2024-01-02"}
+    p1 = {"id": "proj-abc", "name": "API Testing", "created_at": "2024-01-01", "updated_at": "2024-01-02", "provider": "chatgpt", "account_id": "main", "source": "chatgpt"}
     db.upsert_project(p1)
 
     c1 = {
@@ -27,6 +27,9 @@ def test_server(tmp_path: Path):
         "raw_hash": "hash123",
         "indexed_text": "user:\nWhat are the tradeoffs between FastAPI and Flask?\n\nassistant:\nFastAPI is async-first.",
         "raw_json": '{"id": "conv-xyz", "title": "FastAPI vs Flask"}',
+        "provider": "chatgpt",
+        "account_id": "main",
+        "source": "chatgpt",
     }
     db.upsert_conversation(c1)
 
@@ -53,7 +56,7 @@ def _get_json(url: str):
 def test_server_health(test_server: str):
     data = _get_json(f"{test_server}/health")
     assert data["status"] == "ok"
-    assert data["version"] == "0.1.0"
+    assert data["version"] == "0.2.0"
 
 def test_server_projects(test_server: str):
     projects = _get_json(f"{test_server}/projects")
@@ -94,3 +97,29 @@ def test_server_not_found_endpoint(test_server: str):
     with pytest.raises(urllib.error.HTTPError) as exc_info:
         urllib.request.urlopen(f"{test_server}/unknown/endpoint")
     assert exc_info.value.code == 404
+
+
+def test_server_project_context(test_server: str):
+    data = _get_json(f"{test_server}/projects/proj-abc/context?topic=tradeoffs")
+    assert data["project"]["id"] == "proj-abc"
+    assert data["evidence"][0]["id"] == "conv-xyz"
+    assert "untrusted evidence" in data["packet"]
+
+def test_server_continuity(test_server: str):
+    data = _get_json(f"{test_server}/continuity?q=tradeoffs&project=proj-abc")
+    assert data["query"] == "tradeoffs"
+    assert data["evidence"][0]["id"] == "conv-xyz"
+
+def test_server_timeline(test_server: str):
+    data = _get_json(f"{test_server}/projects/proj-abc/timeline?limit=1")
+    assert len(data) == 1
+    assert data[0]["provider"] == "chatgpt"
+
+def test_server_compare(test_server: str):
+    data = _get_json(f"{test_server}/compare?ids=conv-xyz,conv-xyz")
+    assert data["count"] == 2
+
+def test_server_bad_limit(test_server: str):
+    with pytest.raises(urllib.error.HTTPError) as exc_info:
+        urllib.request.urlopen(f"{test_server}/search?q=tradeoffs&limit=0")
+    assert exc_info.value.code == 400

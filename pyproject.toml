@@ -1,9 +1,12 @@
 [project]
 name = "chatgpt-context-gateway"
-version = "0.1.0"
-description = "Local-first archive and retrieval gateway for ChatGPT conversations"
+version = "0.2.0"
+description = "Local-first universal AI context archive and retrieval gateway"
 requires-python = ">=3.11"
 dependencies = ["requests>=2.32"]
+
+[project.optional-dependencies]
+mcp = ["mcp>=1.29"]
 
 [project.scripts]
 chatgpt-context = "context_gateway.cli:main"

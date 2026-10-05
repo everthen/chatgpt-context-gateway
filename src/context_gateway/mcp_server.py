@@ -1,11 +1,47 @@
 from __future__ import annotations
 
+from hashlib import sha256
 from pathlib import Path
 
 from .config import get_db_path
 from .contracts import ContextRequest
 from .continuity import compare, context_request as resolve_context_request, continuity, project_context, timeline
 from .db import ArchiveDB
+
+try:
+    from mcp.server.fastmcp import Context
+except ImportError:  # pragma: no cover - optional MCP dependency
+    Context = object  # type: ignore[misc,assignment]
+
+
+def _host_identity_probe(meta: dict | object | None, request_id: object) -> dict:
+    """Return safe diagnostic metadata without exposing raw host session identifiers."""
+    if meta is None:
+        normalized_meta: dict = {}
+    elif isinstance(meta, dict):
+        normalized_meta = meta
+    elif hasattr(meta, "model_dump"):
+        normalized_meta = meta.model_dump(by_alias=True)
+    else:
+        normalized_meta = dict(meta) if hasattr(meta, "__iter__") else {}
+
+    raw_openai_session = normalized_meta.get("openai/session")
+    session_text = str(raw_openai_session) if raw_openai_session is not None else None
+
+    return {
+        "request_id": str(request_id),
+        "meta_keys": sorted(str(key) for key in normalized_meta),
+        "openai_session": {
+            "present": session_text is not None,
+            "fingerprint": (
+                sha256(session_text.encode("utf-8")).hexdigest()[:16]
+                if session_text is not None
+                else None
+            ),
+            "length": len(session_text) if session_text is not None else None,
+        },
+        "raw_identity_returned": False,
+    }
 
 
 def build_mcp(db_path: str | Path | None = None):
@@ -28,6 +64,11 @@ def build_mcp(db_path: str | Path | None = None):
     def context_request(request: dict) -> dict:
         """Resolve a structured ContextRequest into an evidence-backed Context Bundle."""
         return resolve_context_request(db, ContextRequest.from_dict(request))
+
+    @mcp.tool()
+    def context_host_identity_probe(ctx: Context) -> dict:
+        """Probe host-provided MCP request metadata without returning raw identity values."""
+        return _host_identity_probe(ctx.request_context.meta, ctx.request_id)
 
     @mcp.tool()
     def context_search(

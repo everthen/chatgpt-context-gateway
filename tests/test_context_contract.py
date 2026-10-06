@@ -657,3 +657,43 @@ def test_camofox_preserves_duplicate_message_occurrences():
         ("user", "\"same\""),
         ("assistant", "\"reply 2\""),
     ]
+
+
+def test_hot_capture_opens_target_when_profile_has_no_matching_tab(tmp_path: Path):
+    db = ArchiveDB(tmp_path / "db.sqlite3")
+    row = _record(tmp_path, "hot-open", "old question")
+    db.upsert_conversation(row)
+    uid = db._conversation_uid_from_record(row)
+
+    class AutoOpenClient(HotFakeCamofoxClient):
+        def __init__(self):
+            super().__init__("hot-open")
+            self.tabs_state = []
+
+        def list_tabs(self, user_id):
+            return list(self.tabs_state)
+
+        def create_tab(self, user_id, session_key, url=None):
+            tab = {"tabId": "auto-tab", "url": url or "https://chatgpt.com/", "title": "Hot Capture"}
+            self.tabs_state.append(tab)
+            return tab
+
+        def get_tab(self, user_id, tab_id):
+            return next(tab for tab in self.tabs_state if tab["tabId"] == tab_id)
+
+    result = acquire_hot_tail_via_camofox(
+        ContextRequest(
+            consumer="hermes",
+            session_id="auto-open",
+            query="",
+            intent="retrieve",
+            target=ContextTarget(type="conversation", conversation_uid=uid),
+            freshness=FreshnessPolicy(mode="accept_stale", allow_live_acquisition=True),
+            acquisition=AcquisitionPolicy(mode="hot"),
+        ),
+        db,
+        client=AutoOpenClient(),
+        user_id="profile",
+    )
+    assert result["status"] == "hot_captured"
+    assert result["tab_id"] == "auto-tab"

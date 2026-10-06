@@ -3,7 +3,7 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from .camofox import CamofoxClient
+from .camofox import CamofoxClient, ensure_chatgpt_tab, is_chatgpt_authenticated_url
 from .config import get_camofox_profile_id
 from .db import ArchiveDB
 
@@ -16,10 +16,7 @@ def _chatgpt_tabs(client: CamofoxClient, profile_id: str) -> list[dict[str, Any]
 
 
 def _is_chatgpt_authenticated(tab: dict[str, Any]) -> bool:
-    url = str(tab.get("url") or "")
-    if not url.startswith("https://chatgpt.com/"):
-        return False
-    return "/auth/" not in url and "/login" not in url and "/signup" not in url
+    return is_chatgpt_authenticated_url(str(tab.get("url") or ""))
 
 
 def account_status(
@@ -33,7 +30,13 @@ def account_status(
     if not profile:
         return {"status": "unconfigured", "provider": provider, "account_id": account_id}
     client = client or CamofoxClient()
-    tabs = _chatgpt_tabs(client, profile["profile_id"]) if provider == "chatgpt" else []
+    if provider == "chatgpt":
+        probe = ensure_chatgpt_tab(client, user_id=profile["profile_id"])
+        tabs = _chatgpt_tabs(client, profile["profile_id"])
+        if probe and not any(tab.get("tabId") == probe.get("tabId") for tab in tabs):
+            tabs.append(probe)
+    else:
+        tabs = []
     authenticated_tabs = [tab for tab in tabs if _is_chatgpt_authenticated(tab)]
     status = "ready" if authenticated_tabs else "auth_required"
     now = time.time()
@@ -43,7 +46,11 @@ def account_status(
             "status": "ready",
             "last_verified_at": now,
             "last_seen_at": now,
-            "metadata": {**(profile.get("metadata") or {}), "authenticated_tab_count": len(authenticated_tabs)},
+            "metadata": {
+                **(profile.get("metadata") or {}),
+                "authenticated_tab_count": len(authenticated_tabs),
+                "tab_id": (authenticated_tabs[0].get("tabId") if authenticated_tabs else None),
+            },
         })
     return {
         "status": status,

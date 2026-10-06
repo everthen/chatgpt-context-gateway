@@ -11,6 +11,7 @@ from .camofox import (
     CamofoxObservation,
     capture_latest_view,
     collect_conversation,
+    ensure_chatgpt_tab,
 )
 from .config import get_camofox_profile_id, get_raw_dir, safe_project_name
 from .contracts import ContextRequest
@@ -221,19 +222,21 @@ def acquire_current_conversation_via_camofox(
     profile_id = get_camofox_profile_id(user_id)
     client = client or CamofoxClient()
 
-    tabs = client.list_tabs(profile_id)
-    matching = [
-        tab
-        for tab in tabs
-        if conversation_id in str(tab.get("url") or "")
-    ]
-    if not matching:
+    tab = ensure_chatgpt_tab(
+        client,
+        user_id=profile_id,
+        conversation_id=conversation_id,
+    )
+    tab_url = str(tab.get("url") or "")
+    if "/auth/" in tab_url or "/login" in tab_url or "/signup" in tab_url:
         raise ValueError(
-            f"no authenticated Camofox tab found for conversation '{conversation_id}' "
-            f"under acquisition profile '{profile_id}'"
+            f"ChatGPT authentication is required for acquisition profile '{profile_id}'"
+        )
+    if conversation_id not in tab_url:
+        raise ValueError(
+            f"could not open conversation '{conversation_id}' under acquisition profile '{profile_id}'"
         )
 
-    tab = matching[0]
     tab_id = str(tab.get("tabId") or "")
     if not tab_id:
         raise ValueError("matching Camofox tab has no tabId")
@@ -296,14 +299,21 @@ def acquire_hot_tail_via_camofox(
     conversation_id, _project_id, _project_name, account_id = _conversation_context(request, db)
     profile_id = get_camofox_profile_id(user_id)
     client = client or CamofoxClient()
-    tabs = client.list_tabs(profile_id)
-    matching = [tab for tab in tabs if conversation_id in str(tab.get("url") or "")]
-    if not matching:
+    tab = ensure_chatgpt_tab(
+        client,
+        user_id=profile_id,
+        conversation_id=conversation_id,
+    )
+    tab_url = str(tab.get("url") or "")
+    if "/auth/" in tab_url or "/login" in tab_url or "/signup" in tab_url:
         raise ValueError(
-            f"no authenticated Camofox tab found for conversation '{conversation_id}' "
-            f"under acquisition profile '{profile_id}'"
+            f"ChatGPT authentication is required for acquisition profile '{profile_id}'"
         )
-    tab_id = str(matching[0].get("tabId") or "")
+    if conversation_id not in tab_url:
+        raise ValueError(
+            f"could not open conversation '{conversation_id}' under acquisition profile '{profile_id}'"
+        )
+    tab_id = str(tab.get("tabId") or "")
     if not tab_id:
         raise ValueError("matching Camofox tab has no tabId")
 

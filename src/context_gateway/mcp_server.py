@@ -415,9 +415,23 @@ def build_mcp(db_path: str | Path | None = None):
     def context_account_login(
         account_id: str = "camofox-human-login",
         profile_id: str | None = None,
+        wait: bool = False,
+        timeout_seconds: int = 180,
     ) -> dict:
-        """Start one-time interactive ChatGPT login in the configured Camofox browser profile."""
-        return begin_chatgpt_login(db, account_id=account_id, profile_id=profile_id)
+        """Start interactive ChatGPT login and optionally wait until the persistent profile is authenticated."""
+        started = begin_chatgpt_login(db, account_id=account_id, profile_id=profile_id)
+        if not wait or started.get("status") == "ready":
+            return started
+        result = wait_for_chatgpt_login(
+            db,
+            account_id=account_id,
+            timeout_seconds=timeout_seconds,
+        )
+        return {
+            **started,
+            "login_result": result,
+            "status": result.get("status", started.get("status")),
+        }
 
     @mcp.tool()
     def context_account_status(account_id: str = "camofox-human-login") -> dict:

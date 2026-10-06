@@ -214,6 +214,72 @@ def conversation_id_from_url(url: str) -> str:
     return match.group(1)
 
 
+def is_chatgpt_authenticated_url(url: str) -> bool:
+    value = str(url or "")
+    if not value.startswith("https://chatgpt.com/"):
+        return False
+    return "/auth/" not in value and "/login" not in value and "/signup" not in value
+
+
+def ensure_chatgpt_tab(
+    client: CamofoxClient,
+    *,
+    user_id: str,
+    conversation_id: str | None = None,
+    timeout_seconds: float = 6.0,
+) -> dict[str, Any]:
+    """Return a warm ChatGPT tab, creating one when the persistent profile has none.
+
+    This is deliberately profile-scoped: the browser profile is the authentication
+    boundary, while the returned tab is merely the acquisition transport.
+    """
+    tabs = client.list_tabs(user_id)
+    if conversation_id:
+        matching = [
+            tab for tab in tabs
+            if conversation_id in str(tab.get("url") or "")
+        ]
+        if matching:
+            return matching[0]
+    else:
+        authenticated = [
+            tab for tab in tabs
+            if is_chatgpt_authenticated_url(str(tab.get("url") or ""))
+        ]
+        if authenticated:
+            return authenticated[0]
+
+    target_url = (
+        f"https://chatgpt.com/c/{conversation_id}"
+        if conversation_id
+        else "https://chatgpt.com/"
+    )
+    tab = client.create_tab(
+        user_id=user_id,
+        session_key=f"ucg-warm-{user_id}",
+        url=target_url,
+    )
+    tab_id = str(tab.get("tabId") or "")
+    if not tab_id:
+        return tab
+
+    deadline = time.time() + max(0.5, float(timeout_seconds))
+    current = tab
+    while time.time() < deadline:
+        try:
+            current = client.get_tab(user_id, tab_id)
+        except Exception:
+            return current
+        url = str(current.get("url") or "")
+        if conversation_id:
+            if conversation_id in url or "/auth/" in url or "/login" in url:
+                return current
+        elif is_chatgpt_authenticated_url(url) or "/auth/" in url or "/login" in url:
+            return current
+        time.sleep(0.2)
+    return current
+
+
 def _strip_heading_metadata(value: str) -> str:
     match = re.match(r'^"([^"]*)"', value.strip())
     return match.group(1) if match else value.strip()

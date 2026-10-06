@@ -13,7 +13,7 @@ from typing import Any
 from .normalize import extract_messages, make_record, messages_from_indexed_text, stable_hash
 
 
-SCHEMA_VERSION = 6
+SCHEMA_VERSION = 7
 
 SCHEMA = """
 PRAGMA journal_mode=WAL;
@@ -119,6 +119,42 @@ CREATE TABLE IF NOT EXISTS acquisition_checkpoints(
 
 CREATE INDEX IF NOT EXISTS idx_acquisition_checkpoints_scope
     ON acquisition_checkpoints(provider, account_id, scope_type, scope_id);
+
+CREATE TABLE IF NOT EXISTS hot_observations(
+    observation_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    provider TEXT NOT NULL,
+    account_id TEXT NOT NULL,
+    conversation_uid TEXT NOT NULL,
+    conversation_id TEXT NOT NULL,
+    method TEXT NOT NULL,
+    observed_at REAL NOT NULL,
+    title TEXT,
+    url TEXT,
+    content_hash TEXT NOT NULL,
+    turns_json TEXT NOT NULL,
+    completeness_status TEXT NOT NULL DEFAULT 'partial',
+    completeness_reason TEXT,
+    UNIQUE(provider, account_id, conversation_uid, method)
+);
+
+CREATE INDEX IF NOT EXISTS idx_hot_observations_conversation
+    ON hot_observations(provider, account_id, conversation_uid, observed_at);
+
+CREATE TABLE IF NOT EXISTS account_profiles(
+    provider TEXT NOT NULL,
+    account_id TEXT NOT NULL,
+    profile_id TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    created_at REAL NOT NULL,
+    last_verified_at REAL,
+    last_seen_at REAL,
+    metadata_json TEXT NOT NULL DEFAULT '{}',
+    PRIMARY KEY(provider, account_id),
+    UNIQUE(provider, profile_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_account_profiles_status
+    ON account_profiles(provider, status);
 
 CREATE TABLE IF NOT EXISTS host_session_bindings(
     provider TEXT NOT NULL,
@@ -1001,6 +1037,132 @@ class ArchiveDB:
             (provider, account_id, scope_type, scope_id, method),
         ).fetchone()
         return dict(row) if row else None
+
+    def upsert_hot_observation(self, observation: dict[str, Any]) -> dict[str, Any]:
+        now = float(observation.get("observed_at") or time.time())
+        turns_json = json.dumps(observation.get("turns") or [], ensure_ascii=False, separators=(",", ":"))
+        self.conn.execute(
+            """INSERT INTO hot_observations(
+                   provider,account_id,conversation_uid,conversation_id,method,
+                   observed_at,title,url,content_hash,turns_json,completeness_status,completeness_reason
+               ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
+               ON CONFLICT(provider,account_id,conversation_uid,method) DO UPDATE SET
+                   conversation_id=excluded.conversation_id,
+                   observed_at=excluded.observed_at,
+                   title=excluded.title,
+                   url=excluded.url,
+                   content_hash=excluded.content_hash,
+                   turns_json=excluded.turns_json,
+                   completeness_status=excluded.completeness_status,
+                   completeness_reason=excluded.completeness_reason""",
+            (
+                observation["provider"],
+                observation.get("account_id", "default"),
+                observation["conversation_uid"],
+                observation["conversation_id"],
+                observation.get("method", "camofox-hot"),
+                now,
+                observation.get("title"),
+                observation.get("url"),
+                observation["content_hash"],
+                turns_json,
+                observation.get("completeness_status", "partial"),
+                observation.get("completeness_reason"),
+            ),
+        )
+        self.conn.commit()
+        return self.get_hot_observation(
+            observation["provider"],
+            observation.get("account_id", "default"),
+            observation["conversation_uid"],
+            observation.get("method", "camofox-hot"),
+        ) or {}
+
+    def get_hot_observation(
+        self,
+        provider: str,
+        account_id: str,
+        conversation_uid: str,
+        method: str = "camofox-hot",
+    ) -> dict[str, Any] | None:
+        row = self.conn.execute(
+            """SELECT observation_id,provider,account_id,conversation_uid,conversation_id,method,
+                      observed_at,title,url,content_hash,turns_json,completeness_status,completeness_reason
+               FROM hot_observations
+               WHERE provider=? AND account_id=? AND conversation_uid=? AND method=?""",
+            (provider, account_id, conversation_uid, method),
+        ).fetchone()
+        if not row:
+            return None
+        item = dict(row)
+        try:
+            item["turns"] = json.loads(item.pop("turns_json"))
+        except (TypeError, ValueError):
+            item["turns"] = []
+        return item
+
+    def upsert_account_profile(self, profile: dict[str, Any]) -> dict[str, Any]:
+        now = float(profile.get("created_at") or time.time())
+        self.conn.execute(
+            """INSERT INTO account_profiles(
+                   provider,account_id,profile_id,status,created_at,last_verified_at,last_seen_at,metadata_json
+               ) VALUES(?,?,?,?,?,?,?,?)
+               ON CONFLICT(provider,account_id) DO UPDATE SET
+                   profile_id=excluded.profile_id,
+                   status=excluded.status,
+                   last_verified_at=excluded.last_verified_at,
+                   last_seen_at=excluded.last_seen_at,
+                   metadata_json=excluded.metadata_json""",
+            (
+                profile["provider"],
+                profile["account_id"],
+                profile["profile_id"],
+                profile.get("status", "pending"),
+                now,
+                profile.get("last_verified_at"),
+                profile.get("last_seen_at") or now,
+                json.dumps(profile.get("metadata") or {}, ensure_ascii=False, separators=(",", ":")),
+            ),
+        )
+        self.conn.commit()
+        return self.get_account_profile(profile["provider"], profile["account_id"]) or {}
+
+    def get_account_profile(self, provider: str, account_id: str) -> dict[str, Any] | None:
+        row = self.conn.execute(
+            """SELECT provider,account_id,profile_id,status,created_at,last_verified_at,last_seen_at,metadata_json
+               FROM account_profiles WHERE provider=? AND account_id=?""",
+            (provider, account_id),
+        ).fetchone()
+        if not row:
+            return None
+        item = dict(row)
+        try:
+            item["metadata"] = json.loads(item.pop("metadata_json"))
+        except (TypeError, ValueError):
+            item["metadata"] = {}
+        return item
+
+    def list_account_profiles(self, provider: str | None = None) -> list[dict[str, Any]]:
+        if provider:
+            rows = self.conn.execute(
+                """SELECT provider,account_id,profile_id,status,created_at,last_verified_at,last_seen_at,metadata_json
+                   FROM account_profiles WHERE provider=? ORDER BY account_id""",
+                (provider,),
+            )
+        else:
+            rows = self.conn.execute(
+                """SELECT provider,account_id,profile_id,status,created_at,last_verified_at,last_seen_at,metadata_json
+                   FROM account_profiles ORDER BY provider,account_id"""
+            )
+        result = []
+        for row in rows:
+            item = dict(row)
+            try:
+                item["metadata"] = json.loads(item.pop("metadata_json"))
+            except (TypeError, ValueError):
+                item["metadata"] = {}
+            result.append(item)
+        return result
 
     def projects(self):
         return [

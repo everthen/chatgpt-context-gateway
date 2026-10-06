@@ -123,6 +123,29 @@ class CamofoxClient:
             raise ValueError("Camofox response must be an object")
         return data
 
+    def create_tab(
+        self,
+        user_id: str,
+        session_key: str,
+        url: str | None = None,
+    ) -> dict[str, Any]:
+        payload: dict[str, Any] = {"userId": user_id, "sessionKey": session_key}
+        if url:
+            payload["url"] = url
+        return self._request("POST", "/tabs", json=payload)
+
+    def navigate(
+        self,
+        user_id: str,
+        tab_id: str,
+        url: str,
+    ) -> dict[str, Any]:
+        return self._request(
+            "POST",
+            f"/tabs/{tab_id}/navigate",
+            json={"userId": user_id, "url": url, "sessionKey": user_id},
+        )
+
     def list_tabs(self, user_id: str) -> list[dict[str, Any]]:
         data = self._request("GET", "/tabs", params={"userId": user_id})
         tabs = data.get("tabs") or []
@@ -249,6 +272,41 @@ def parse_visible_turns(snapshot: str) -> list[BrowserTurn]:
 
 def _turn_key(turn: BrowserTurn) -> str:
     return stable_hash({"role": turn.role, "text": turn.text})
+
+
+def capture_latest_view(
+    client: CamofoxClient,
+    *,
+    user_id: str,
+    tab_id: str,
+    account_id: str,
+) -> CamofoxObservation:
+    """Capture only the currently rendered viewport without scrolling.
+
+    This is a hot-path observation. It is intentionally incomplete because it
+    does not claim that the whole conversation was traversed.
+    """
+    tab = client.get_tab(user_id, tab_id)
+    url = str(tab.get("url") or "")
+    conversation_id = conversation_id_from_url(url)
+    title = str(tab.get("title") or "Untitled")
+    snapshot = client.snapshot(user_id, tab_id)
+    text = str(snapshot.get("snapshot") or "")
+    turns = parse_visible_turns(text)
+    return CamofoxObservation(
+        provider="chatgpt",
+        account_id=account_id,
+        conversation_id=conversation_id,
+        title=title,
+        url=url,
+        turns=tuple(turns),
+        snapshot_hashes=(stable_hash(text),),
+        raw_snapshots=(text,),
+        scroll_rounds=0,
+        complete=False,
+        completeness_reason="viewport_only",
+        captured_at=time.time(),
+    )
 
 
 def collect_conversation(

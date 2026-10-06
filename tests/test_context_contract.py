@@ -2,7 +2,12 @@ from pathlib import Path
 
 import pytest
 
-from context_gateway.acquisition import ingest_camofox_observation, ingest_conversation_payload
+from context_gateway.acquisition import (
+    acquire_hot_tail_via_camofox,
+    ingest_camofox_observation,
+    ingest_conversation_payload,
+    run_hot_context_request,
+)
 from context_gateway.camofox import BrowserTurn, CamofoxObservation
 from context_gateway.contracts import (
     ContextBudget,
@@ -12,6 +17,7 @@ from context_gateway.contracts import (
     ContextTarget,
     CurrentSessionContext,
     FreshnessPolicy,
+    AcquisitionPolicy,
 )
 from context_gateway.continuity import context_request
 from context_gateway.db import ArchiveDB
@@ -66,6 +72,22 @@ def _record(tmp_path: Path, cid: str, text: str, update: float = 1700000000):
     )
 
 
+class HotFakeCamofoxClient:
+    def __init__(self, conversation_id="hot-1"):
+        self.conversation_id = conversation_id
+
+    def list_tabs(self, user_id):
+        return [{"tabId": "tab-1", "url": f"https://chatgpt.com/c/{self.conversation_id}", "title": "Hot Capture"}]
+
+    def get_tab(self, user_id, tab_id):
+        return {"tabId": tab_id, "url": f"https://chatgpt.com/c/{self.conversation_id}", "title": "Hot Capture"}
+
+    def snapshot(self, user_id, tab_id):
+        return {
+            "snapshot": """- heading \"You said:\" [level=4]\n  - text: old question\n- heading \"ChatGPT said:\" [level=4]\n  - text: reply to old question\n- heading \"You said:\" [level=4]\n  - text: new question\n- heading \"ChatGPT said:\" [level=4]\n  - text: new answer\n"""
+        }
+
+
 def test_context_request_contract_round_trip():
     request = ContextRequest.from_dict(
         {
@@ -93,6 +115,77 @@ def test_context_request_contract_round_trip():
     assert restored.scope.providers == ("openai", "google")
     assert restored.scope.accounts == ("main",)
     assert restored.budget.max_messages == 12
+    assert restored.acquisition.mode == "auto"
+    assert restored.acquisition.hot_max_age_seconds == 15
+
+
+def test_hot_capture_stores_delta_without_promoting_snapshot(tmp_path: Path):
+    db = ArchiveDB(tmp_path / "db.sqlite3")
+    payload = _payload("hot-1", "old question")
+    db.upsert_conversation(
+        make_record(
+            payload,
+            project_id="project-1",
+            project_name="Engineering",
+            raw_path=str(tmp_path / "old.json"),
+            provider="chatgpt",
+            account_id="main",
+            source="export",
+            captured_at=1700000000,
+        )
+    )
+    uid = db._conversation_uid_from_record(db.get("hot-1"))
+    request = ContextRequest(
+        consumer="hermes",
+        session_id="s-hot",
+        query="",
+        intent="retrieve",
+        target=ContextTarget(type="conversation", conversation_uid=uid),
+        freshness=FreshnessPolicy(
+            mode="require_fresh",
+            max_observation_age_seconds=60,
+            allow_live_acquisition=True,
+        ),
+        acquisition=AcquisitionPolicy(mode="hot"),
+    )
+
+    before = db.current_snapshot(uid)["snapshot_id"]
+    result = acquire_hot_tail_via_camofox(request, db, client=HotFakeCamofoxClient(), user_id="profile")
+
+    assert result["status"] == "hot_captured"
+    assert result["delta"]["anchored"] is True
+    assert [item["text"] for item in result["delta"]["messages"]] == ["new question", "new answer"]
+    assert result["raw_promoted"] is False
+    assert db.current_snapshot(uid)["snapshot_id"] == before
+    hot = db.get_hot_observation("chatgpt", "main", uid)
+    assert hot is not None
+    assert hot["completeness_reason"] == "viewport_only"
+
+
+def test_run_hot_context_request_exposes_unsealed_live_tail(tmp_path: Path, monkeypatch):
+    db = ArchiveDB(tmp_path / "db.sqlite3")
+    row = _record(tmp_path, "hot-run", "old question")
+    db.upsert_conversation(row)
+    monkeypatch.setattr("context_gateway.acquisition.CamofoxClient", lambda: HotFakeCamofoxClient("hot-run"))
+    uid = db._conversation_uid_from_record(row)
+    request = ContextRequest(
+        consumer="hermes",
+        session_id="s-hot-run",
+        query="",
+        intent="retrieve",
+        target=ContextTarget(type="conversation", conversation_uid=uid),
+        freshness=FreshnessPolicy(
+            mode="require_fresh",
+            max_observation_age_seconds=60,
+            allow_live_acquisition=True,
+        ),
+        acquisition=AcquisitionPolicy(mode="hot"),
+    )
+    result = run_hot_context_request(db, request)
+    assert result["acquisition"]["status"] == "hot_captured"
+    assert result["live_tail"]["delta"]["anchored"] is True
+    assert result["live_tail"]["delta"]["messages"][0]["text"] == "new question"
+    assert "LIVE OBSERVATION — UNSEALED" in result["packet"]
 
 
 @pytest.mark.parametrize(
@@ -515,7 +608,7 @@ def test_camofox_profile_id_is_separate_from_account_id(monkeypatch):
     from context_gateway.config import get_camofox_profile_id
 
     monkeypatch.delenv("CAMOFOX_PROFILE_ID", raising=False)
-    assert get_camofox_profile_id() == "camofox-human-login"
+    assert get_camofox_profile_id() == "chatgpt_human_login"
 
     monkeypatch.setenv("CAMOFOX_PROFILE_ID", "chatgpt_human_login")
     assert get_camofox_profile_id() == "chatgpt_human_login"

@@ -7,6 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Sequence
 
+from .account import account_status, begin_chatgpt_login, wait_for_chatgpt_login
 from .client import AuthenticationError, ChatGPTClient, ChatGPTClientError
 from .config import get_db_path, get_raw_dir
 from .connect import DEFAULT_ENV_PATH, run_connect
@@ -25,6 +26,64 @@ def format_timestamp(ts: float | int | str | None) -> str:
         return datetime.fromtimestamp(float(ts)).strftime("%Y-%m-%d %H:%M:%S")
     except Exception:
         return str(ts)
+
+
+def cmd_account_list(args: argparse.Namespace) -> int:
+    db = ArchiveDB(get_db_path(args.db))
+    try:
+        rows = db.list_account_profiles(provider=args.provider)
+    finally:
+        db.close()
+    if args.json:
+        print(json.dumps(rows, ensure_ascii=False, indent=2))
+        return 0
+    if not rows:
+        print("No account profiles configured.")
+        return 0
+    print(f"{'PROVIDER':<12} {'ACCOUNT':<24} {'PROFILE':<28} {'STATUS':<16} {'LAST VERIFIED'}")
+    print("-" * 100)
+    for row in rows:
+        print(
+            f"{row['provider']:<12} "
+            f"{row['account_id']:<24} "
+            f"{row['profile_id']:<28} "
+            f"{row['status']:<16} "
+            f"{format_timestamp(row.get('last_verified_at'))}"
+        )
+    return 0
+
+
+def cmd_account_login(args: argparse.Namespace) -> int:
+    db = ArchiveDB(get_db_path(args.db))
+    try:
+        started = begin_chatgpt_login(
+            db,
+            account_id=args.account_id,
+            profile_id=args.profile_id,
+        )
+        print(json.dumps(started, ensure_ascii=False, indent=2))
+        if not args.wait:
+            return 0
+        print("Complete the login in the opened ChatGPT browser session; polling for authentication...")
+        result = wait_for_chatgpt_login(
+            db,
+            account_id=args.account_id,
+            timeout_seconds=args.timeout,
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0 if result.get("status") == "ready" else 1
+    finally:
+        db.close()
+
+
+def cmd_account_status(args: argparse.Namespace) -> int:
+    db = ArchiveDB(get_db_path(args.db))
+    try:
+        result = account_status(db, account_id=args.account_id)
+    finally:
+        db.close()
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result.get("status") == "ready" else 1
 
 
 def cmd_projects(args: argparse.Namespace) -> int:
@@ -246,6 +305,25 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--raw-dir", default=None)
     parser.add_argument("--env-file", default=None)
     subparsers = parser.add_subparsers(dest="command", required=True)
+
+    account_parser = subparsers.add_parser("account")
+    account_sub = account_parser.add_subparsers(dest="account_command", required=True)
+
+    p = account_sub.add_parser("list")
+    p.add_argument("--provider", default="chatgpt")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(func=cmd_account_list)
+
+    p = account_sub.add_parser("login")
+    p.add_argument("--account-id", default="camofox-human-login")
+    p.add_argument("--profile-id", default=None)
+    p.add_argument("--wait", action="store_true")
+    p.add_argument("--timeout", type=int, default=180)
+    p.set_defaults(func=cmd_account_login)
+
+    p = account_sub.add_parser("status")
+    p.add_argument("--account-id", default="camofox-human-login")
+    p.set_defaults(func=cmd_account_status)
 
     p = subparsers.add_parser("projects")
     p.add_argument("--remote", action="store_true")

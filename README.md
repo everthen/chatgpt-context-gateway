@@ -51,8 +51,23 @@ This prevents collisions when two accounts expose the same provider conversation
 - External credential isolation and one-time localhost ChatGPT Web connection bridge.
 - OpenAI export bootstrap import with account isolation.
 
+## Session Recovery & Capture Accelerator v0.4 candidate
+
+This development branch adds a fast capture path above the frozen UCG core:
+
+- `acquisition.mode`: `auto`, `hot`, or `deep`;
+- hot viewport observations are stored separately and never promoted as immutable snapshots;
+- anchored hot deltas are exposed immediately, with deep acquisition used when the observation cannot be reconciled safely;
+- ChatGPT account/profile registry with interactive browser-login bootstrap and auth status checks;
+- consumer-side Session Recovery protocol: Discovery -> Falsification -> Evaluation -> Continuation.
+
+The v0.3.0 core remains frozen; these changes live on the dedicated v0.4 development branch.
+
 ## CLI
 
+    chatgpt-context account list
+    chatgpt-context account login
+    chatgpt-context account status
     chatgpt-context projects
     chatgpt-context projects --remote
     chatgpt-context sync --project "Project Name"

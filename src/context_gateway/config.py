@@ -5,7 +5,7 @@ from pathlib import Path
 DEFAULT_DATA_DIR = Path("data")
 DEFAULT_DB_PATH = DEFAULT_DATA_DIR / "archive.sqlite3"
 DEFAULT_RAW_DIR = DEFAULT_DATA_DIR / "raw"
-DEFAULT_CAMOFOX_PROFILE_ID = "camofox-human-login"
+DEFAULT_CAMOFOX_PROFILE_ID = "chatgpt_human_login"
 
 def get_camofox_profile_id(override: str | None = None) -> str:
     if override:

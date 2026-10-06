@@ -6,12 +6,17 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
 
-from .camofox import CamofoxClient, CamofoxObservation, collect_conversation
+from .camofox import (
+    CamofoxClient,
+    CamofoxObservation,
+    capture_latest_view,
+    collect_conversation,
+)
 from .config import get_camofox_profile_id, get_raw_dir, safe_project_name
 from .contracts import ContextRequest
 from .continuity import context_request
 from .db import ArchiveDB
-from .normalize import make_record
+from .normalize import make_record, stable_hash
 
 
 AcquisitionAdapter = Callable[[ContextRequest, ArchiveDB], dict[str, Any]]
@@ -257,6 +262,190 @@ def acquire_current_conversation_via_camofox(
         "snapshot_id": ingested.get("snapshot_id"),
         "conversation_uid": ingested.get("conversation_uid"),
     }
+
+
+def _live_tail_delta(
+    current_messages: list[dict[str, Any]],
+    observed_turns: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], bool, int]:
+    """Return newly observed turns anchored to the current snapshot tail."""
+    base = [(str(item.get("role") or ""), str(item.get("text") or "")) for item in current_messages]
+    live = [(str(item.get("role") or ""), str(item.get("text") or "")) for item in observed_turns]
+    if not live:
+        return [], True, 0
+    max_overlap = min(len(base), len(live))
+    for overlap in range(max_overlap, 0, -1):
+        if base[-overlap:] == live[:overlap]:
+            delta = observed_turns[overlap:]
+            return delta, True, overlap
+    return observed_turns, False, 0
+
+
+def acquire_hot_tail_via_camofox(
+    request: ContextRequest,
+    db: ArchiveDB,
+    *,
+    client: CamofoxClient | None = None,
+    user_id: str | None = None,
+) -> dict[str, Any]:
+    """Capture the currently rendered ChatGPT tail without scrolling.
+
+    Hot capture is deliberately not promoted to the immutable current snapshot.
+    It is a low-latency observation/cache layer used to catch recent turns.
+    """
+    conversation_id, _project_id, _project_name, account_id = _conversation_context(request, db)
+    profile_id = get_camofox_profile_id(user_id)
+    client = client or CamofoxClient()
+    tabs = client.list_tabs(profile_id)
+    matching = [tab for tab in tabs if conversation_id in str(tab.get("url") or "")]
+    if not matching:
+        raise ValueError(
+            f"no authenticated Camofox tab found for conversation '{conversation_id}' "
+            f"under acquisition profile '{profile_id}'"
+        )
+    tab_id = str(matching[0].get("tabId") or "")
+    if not tab_id:
+        raise ValueError("matching Camofox tab has no tabId")
+
+    observation = capture_latest_view(
+        client,
+        user_id=profile_id,
+        tab_id=tab_id,
+        account_id=account_id,
+    )
+    turns = [
+        {"role": turn.role, "text": turn.text, "observation_index": turn.observation_index}
+        for turn in observation.turns
+    ]
+    record = db.get(conversation_id)
+    if not record:
+        raise ValueError(f"conversation '{conversation_id}' is not present in the local archive")
+    conversation_uid = db._conversation_uid_from_record(record)
+    hot = db.upsert_hot_observation(
+        {
+            "provider": observation.provider,
+            "account_id": observation.account_id,
+            "conversation_uid": conversation_uid,
+            "conversation_id": observation.conversation_id,
+            "method": "camofox-hot",
+            "observed_at": observation.captured_at,
+            "title": observation.title,
+            "url": observation.url,
+            "content_hash": stable_hash(turns),
+            "turns": turns,
+            "completeness_status": "partial",
+            "completeness_reason": observation.completeness_reason,
+        }
+    )
+    current = db.current_snapshot_for_record(record)
+    current_messages = list((db.get_snapshot(current["snapshot_id"]) if current else {}).get("messages") or [])
+    delta, anchored, overlap = _live_tail_delta(current_messages, turns)
+
+    checkpoint = db.upsert_acquisition_checkpoint(
+        {
+            "provider": observation.provider,
+            "account_id": observation.account_id,
+            "scope_type": "conversation",
+            "scope_id": observation.conversation_id,
+            "method": "camofox-hot",
+            "status": "observed",
+            "cursor": hot.get("content_hash"),
+            "last_success_at": observation.captured_at,
+            "last_seen_remote_at": None,
+            "last_error": None,
+        }
+    )
+    return {
+        "status": "hot_captured",
+        "method": "camofox-hot",
+        "conversation_id": conversation_id,
+        "conversation_uid": conversation_uid,
+        "tab_id": tab_id,
+        "observation": {
+            "observation_id": hot.get("observation_id"),
+            "observed_at": observation.captured_at,
+            "content_hash": hot.get("content_hash"),
+            "turn_count": len(turns),
+            "completeness_status": "partial",
+            "completeness_reason": observation.completeness_reason,
+        },
+        "delta": {
+            "anchored": anchored,
+            "overlap_messages": overlap,
+            "messages": delta,
+        },
+        "current_snapshot_id": current.get("snapshot_id") if current else None,
+        "checkpoint": checkpoint,
+        "raw_promoted": False,
+    }
+
+
+def run_hot_context_request(
+    db: ArchiveDB,
+    request: ContextRequest,
+) -> dict[str, Any]:
+    """Resolve current context and attach an unsealed hot viewport observation."""
+    bundle = context_request(db, request)
+    acquisition = bundle.get("acquisition") or {}
+    if not request.freshness.allow_live_acquisition:
+        return bundle
+    if not request.target or request.target.snapshot != "current":
+        bundle["acquisition"] = {
+            **acquisition,
+            "status": "hot_not_applicable",
+            "reason": "hot capture requires a current conversation target",
+            "next_action": "use_deep_acquisition",
+        }
+        return bundle
+
+    try:
+        result = acquire_hot_tail_via_camofox(request, db)
+    except Exception as exc:
+        bundle["acquisition"] = {
+            **acquisition,
+            "status": "hot_capture_failed",
+            "reason": str(exc),
+            "next_action": "use_deep_acquisition",
+        }
+        return bundle
+
+    bundle["live_tail"] = result
+    bundle["acquisition"] = {
+        **acquisition,
+        "status": "hot_captured",
+        "reason": "latest rendered viewport observed without mutating the immutable snapshot",
+        "next_action": "use_deep_acquisition_for_sealed_snapshot" if result["delta"]["anchored"] else "deep_acquisition_for_reconciliation",
+    }
+    if bundle.get("continuation") is not None:
+        continuation = dict(bundle["continuation"])
+        continuation["live_observation"] = True
+        continuation["live_delta_anchored"] = bool(result["delta"]["anchored"])
+        continuation["live_delta_count"] = len(result["delta"]["messages"])
+        continuation["status"] = "resolved_live_observation"
+        bundle["continuation"] = continuation
+    bundle["packet"] = bundle.get("packet", "") + _live_observation_packet(result)
+    return bundle
+
+
+def _live_observation_packet(result: dict[str, Any]) -> str:
+    delta = result.get("delta") or {}
+    lines = [
+        "",
+        "LIVE OBSERVATION — UNSEALED",
+        "This is a recent browser observation, not an immutable promoted snapshot.",
+        f"observation_id={((result.get('observation') or {}).get('observation_id'))}",
+        f"observed_at={((result.get('observation') or {}).get('observed_at'))}",
+        f"anchored_to_current={bool(delta.get('anchored'))}",
+        f"overlap_messages={delta.get('overlap_messages', 0)}",
+    ]
+    for item in delta.get("messages") or []:
+        lines += [
+            f"--- live observation {item.get('observation_index')} ---",
+            f"role={item.get('role')}",
+            item.get("text", ""),
+            "--- END LIVE OBSERVATION ---",
+        ]
+    return "\n".join(lines) + "\n"
 
 
 def run_context_request(

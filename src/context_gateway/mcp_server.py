@@ -5,7 +5,12 @@ from pathlib import Path
 import secrets
 
 
-from .acquisition import acquire_current_conversation_via_camofox, run_context_request
+from .account import account_status, begin_chatgpt_login
+from .acquisition import (
+    acquire_current_conversation_via_camofox,
+    run_context_request,
+    run_hot_context_request,
+)
 from .config import get_db_path
 from .contracts import ContextRequest
 from .continuity import compare, context_request as resolve_context_request, continuity, project_context, timeline
@@ -184,12 +189,49 @@ def build_mcp(db_path: str | Path | None = None):
                 )
 
         if context.freshness.allow_live_acquisition and raw_request.get("target"):
-            bundle = run_context_request(
-                db,
-                context,
-                adapter=acquire_current_conversation_via_camofox,
-                max_attempts=1,
-            )
+            if worker_dispatch is not None or context.acquisition.mode == "deep":
+                bundle = run_context_request(
+                    db,
+                    context,
+                    adapter=acquire_current_conversation_via_camofox,
+                    max_attempts=1,
+                )
+            else:
+                bundle = run_hot_context_request(db, context)
+                hot_status = str((bundle.get("acquisition") or {}).get("status") or "")
+                live_delta = (bundle.get("live_tail") or {}).get("delta") or {}
+                hot_unanchored = hot_status == "hot_captured" and not bool(live_delta.get("anchored"))
+                if (
+                    hot_status in {"hot_capture_failed", "hot_not_applicable"}
+                    and context.acquisition.fallback_to_deep
+                ):
+                    bundle = run_context_request(
+                        db,
+                        context,
+                        adapter=acquire_current_conversation_via_camofox,
+                        max_attempts=1,
+                    )
+                elif (
+                    hot_unanchored
+                    and context.acquisition.mode == "auto"
+                    and context.acquisition.fallback_to_deep
+                ):
+                    bundle = run_context_request(
+                        db,
+                        context,
+                        adapter=acquire_current_conversation_via_camofox,
+                        max_attempts=1,
+                    )
+                elif (
+                    context.freshness.mode == "require_fresh"
+                    and context.acquisition.fallback_to_deep
+                ):
+                    bundle = run_context_request(
+                        db,
+                        context,
+                        adapter=acquire_current_conversation_via_camofox,
+                        max_attempts=1,
+                    )
         else:
             bundle = resolve_context_request(db, context)
         bundle["host_session_binding"] = _safe_binding(binding)
@@ -326,6 +368,61 @@ def build_mcp(db_path: str | Path | None = None):
                 "host_session_fingerprint": fingerprint,
             }
         return {"status": "bound", "binding": _safe_binding(binding)}
+
+    @mcp.tool()
+    def context_capture_hot(
+        conversation_uid: str | None = None,
+        ctx: Context | None = None,
+    ) -> dict:
+        """Capture the currently rendered latest ChatGPT viewport without deep scrolling."""
+        fingerprint = _host_session_fingerprint(ctx.request_context.meta) if ctx else None
+        binding = db.get_host_session_binding("chatgpt", fingerprint) if fingerprint else None
+        uid = conversation_uid or str((binding or {}).get("conversation_uid") or "").strip()
+        if not uid:
+            raise ValueError("conversation_uid is required unless the current host session is bound")
+        item = db.get(uid)
+        if not item:
+            raise ValueError(f"conversation not found: {uid}")
+        if ctx:
+            _authorize_account_scope(
+                db,
+                ctx.request_context.meta,
+                provider=str(item.get("provider") or ""),
+                account_id=str(item.get("account_id") or "") or None,
+            )
+        request = ContextRequest.from_dict(
+            {
+                "consumer": "context-recovery",
+                "session_id": f"hot-capture-{secrets.token_urlsafe(12)}",
+                "query": "",
+                "intent": "retrieve",
+                "target": {
+                    "type": "conversation",
+                    "conversation_uid": uid,
+                    "snapshot": "current",
+                    "transcript_mode": "active_chain",
+                },
+                "freshness": {
+                    "mode": "accept_stale",
+                    "allow_live_acquisition": True,
+                },
+                "acquisition": {"mode": "hot", "fallback_to_deep": False},
+            }
+        )
+        return run_hot_context_request(db, request)
+
+    @mcp.tool()
+    def context_account_login(
+        account_id: str = "camofox-human-login",
+        profile_id: str | None = None,
+    ) -> dict:
+        """Start one-time interactive ChatGPT login in the configured Camofox browser profile."""
+        return begin_chatgpt_login(db, account_id=account_id, profile_id=profile_id)
+
+    @mcp.tool()
+    def context_account_status(account_id: str = "camofox-human-login") -> dict:
+        """Check whether a configured ChatGPT Camofox profile is authenticated."""
+        return account_status(db, account_id=account_id)
 
     @mcp.tool()
     def context_handoff_prepare(

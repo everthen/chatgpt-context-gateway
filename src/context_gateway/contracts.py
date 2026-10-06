@@ -9,7 +9,37 @@ class ContextContractError(ValueError):
 
 
 FreshnessMode = Literal["accept_stale", "prefer_fresh", "require_fresh"]
+CaptureMode = Literal["auto", "hot", "deep"]
 ContextIntent = Literal["search", "retrieve", "continue"]
+
+
+@dataclass(frozen=True)
+class AcquisitionPolicy:
+    mode: CaptureMode = "auto"
+    hot_max_age_seconds: int = 15
+    fallback_to_deep: bool = True
+
+    def __post_init__(self) -> None:
+        if self.mode not in {"auto", "hot", "deep"}:
+            raise ContextContractError("acquisition.mode is invalid")
+        if self.hot_max_age_seconds < 0:
+            raise ContextContractError("acquisition.hot_max_age_seconds must be >= 0")
+
+    @classmethod
+    def from_dict(cls, value: dict[str, Any] | None) -> "AcquisitionPolicy":
+        value = value or {}
+        return cls(
+            mode=str(value.get("mode", "auto")),
+            hot_max_age_seconds=int(value.get("hot_max_age_seconds", 15)),
+            fallback_to_deep=bool(value.get("fallback_to_deep", True)),
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "mode": self.mode,
+            "hot_max_age_seconds": self.hot_max_age_seconds,
+            "fallback_to_deep": self.fallback_to_deep,
+        }
 TargetType = Literal["conversation"]
 SnapshotSelector = Literal["current", "explicit"]
 TranscriptMode = Literal["active_chain"]
@@ -289,6 +319,7 @@ class ContextRequest:
     intent: ContextIntent = "search"
     scope: ContextScope = field(default_factory=ContextScope)
     freshness: FreshnessPolicy = field(default_factory=FreshnessPolicy)
+    acquisition: AcquisitionPolicy = field(default_factory=AcquisitionPolicy)
     budget: ContextBudget = field(default_factory=ContextBudget)
     trust: str = "historical_evidence"
     exclude_conversation_uids: tuple[str, ...] = ()
@@ -336,6 +367,7 @@ class ContextRequest:
             intent=str(value.get("intent", "search")),
             scope=ContextScope.from_dict(value.get("scope")),
             freshness=FreshnessPolicy.from_dict(value.get("freshness")),
+            acquisition=AcquisitionPolicy.from_dict(value.get("acquisition")),
             budget=ContextBudget.from_dict(value.get("budget")),
             trust=str(value.get("trust", "historical_evidence")),
             exclude_conversation_uids=tuple(
@@ -364,6 +396,7 @@ class ContextRequest:
             "intent": self.intent,
             "scope": self.scope.to_dict(),
             "freshness": self.freshness.to_dict(),
+            "acquisition": self.acquisition.to_dict(),
             "budget": self.budget.to_dict(),
             "trust": self.trust,
             "exclude_conversation_uids": excluded,

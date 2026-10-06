@@ -13,9 +13,15 @@ from .config import (
     get_raw_dir,
     safe_project_name,
 )
-from .acquisition import ingest_camofox_observation, ingest_conversation_payload
-from .camofox import CamofoxClient, CamofoxObservation, BrowserTurn, collect_conversation, parse_visible_turns
-from .contracts import AcquisitionCheckpoint, ContextBudget, ContextRequest, ContextScope, FreshnessPolicy
+from .account import account_status, begin_chatgpt_login, wait_for_chatgpt_login
+from .acquisition import (
+    acquire_hot_tail_via_camofox,
+    ingest_camofox_observation,
+    ingest_conversation_payload,
+    run_hot_context_request,
+)
+from .camofox import CamofoxClient, CamofoxObservation, BrowserTurn, capture_latest_view, collect_conversation, parse_visible_turns
+from .contracts import AcquisitionCheckpoint, AcquisitionPolicy, ContextBudget, ContextRequest, ContextScope, FreshnessPolicy
 from .db import ArchiveDB
 from .normalize import extract_messages, extract_text, make_record, messages_from_indexed_text, stable_hash
 from .server import create_server, run_server
@@ -35,6 +41,7 @@ __all__ = [
     "ArchiveDB",
     "ContextRequest",
     "ContextScope",
+    "AcquisitionPolicy",
     "ContextBudget",
     "FreshnessPolicy",
     "AcquisitionCheckpoint",
@@ -42,9 +49,15 @@ __all__ = [
     "CamofoxClient",
     "CamofoxObservation",
     "collect_conversation",
+    "capture_latest_view",
     "parse_visible_turns",
     "ingest_conversation_payload",
     "ingest_camofox_observation",
+    "acquire_hot_tail_via_camofox",
+    "run_hot_context_request",
+    "account_status",
+    "begin_chatgpt_login",
+    "wait_for_chatgpt_login",
     "extract_messages",
     "extract_text",
     "messages_from_indexed_text",

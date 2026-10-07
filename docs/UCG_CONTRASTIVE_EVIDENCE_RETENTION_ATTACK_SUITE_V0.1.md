@@ -98,3 +98,28 @@ The next integration step is to feed real ContextBundle candidate/admission outp
 **NOT CORE GATE.**
 
 This branch establishes the falsification and attribution contract for the next UCG selection seam.
+
+
+## Reference selector result
+
+The deterministic reference selector now consumes the explicit semantic selection signals in the fixture:
+
+- coverage_mode=best for winner-takes-best claims;
+- coverage_mode=all for complementary evidence groups;
+- required epistemic relations for contrast/boundary closure;
+- optional-noise markers for rejection.
+
+Against the four-case synthetic suite, the reference selector achieved:
+
+| Metric | Result |
+|---|---:|
+| Pass rate | **1.00** |
+| Required recall | **1.00** |
+| Contrastive retention | **1.00** |
+| Distractor rejection | **1.00** |
+
+The same branch passes 18 automated tests covering the attack suite, observed Sonnet regressions, and selector semantics.
+
+This is a **reference-policy result**, not a claim that the production UCG selector is already correct. The production integration seam remains:
+
+retrieval -> semantic assessment/admission -> reference selector -> ContextBundle -> downstream answer evaluation.

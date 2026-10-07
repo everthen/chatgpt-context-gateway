@@ -1,0 +1,258 @@
+{
+  "schema_version": "ucg-semantic-gold-audit.v0.1",
+  "audit_id": "AUDIT-EXP-2E-4CASES",
+  "dataset_version": "seed_v0.1",
+  "dataset_hash": "977d081d4b0221d89c04bcd6ebe513c23304bbb2e94973b4fb9dbf25c5c34141",
+  "annotation_method": "oracle_manual_single_annotator",
+  "independence": "not_independent_human_review",
+  "note": "This is a manual/oracle audit against the frozen synthetic corpus. It is intentionally conservative and is not presented as an independent human inter-rater study.",
+  "role_taxonomy": {
+    "direct_support": "Directly answers the query's target claim.",
+    "supporting": "Supplies a necessary sub-claim or distributed support.",
+    "contradiction": "Materially conflicts with another relevant claim and may matter for conflict-aware context.",
+    "contextual": "Relevant background, rationale, or historical context that does not itself answer the target claim.",
+    "none": "No material task value for the requested query."
+  },
+  "admission_taxonomy": {
+    "admit": "Useful in normal current-context assembly.",
+    "admit_conflict": "Useful because the unresolved conflict itself is material; downstream model must see the disagreement.",
+    "reject": "Not needed for the query mode or should be excluded because it is obsolete/nonessential."
+  },
+  "sufficiency_taxonomy": {
+    "required": "Needed for the minimal sufficient answer.",
+    "complementary": "Needed to complete a distributed or conflict-aware answer, but not alone.",
+    "optional": "May help explain but is not required.",
+    "not_needed": "Should not be necessary for the minimal answer."
+  },
+  "cases": [
+    {
+      "case_id": "LS-02",
+      "query_mode": "current_fact",
+      "labels": [
+        {
+          "evidence_key": "ls02.anchor",
+          "task_fit": "contextual",
+          "worthiness_role": "contextual",
+          "temporal_state": "unknown",
+          "admission": "reject",
+          "sufficiency_role": "optional",
+          "claim_ids": [
+            "pipeline-revisited"
+          ],
+          "rationale": "Provides thread context but does not establish the retention value."
+        },
+        {
+          "evidence_key": "ls02.gold",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "admission": "admit",
+          "sufficiency_role": "required",
+          "claim_ids": [
+            "retention-policy-30-days"
+          ],
+          "rationale": "Directly states the final event-stream retention policy."
+        },
+        {
+          "evidence_key": "ls02.note",
+          "task_fit": "contextual",
+          "worthiness_role": "contextual",
+          "temporal_state": "unknown",
+          "admission": "reject",
+          "sufficiency_role": "optional",
+          "claim_ids": [
+            "cold-archival-separate-scope"
+          ],
+          "rationale": "Useful boundary context, but not needed to answer retention."
+        },
+        {
+          "evidence_key": "ls02.dist",
+          "task_fit": "contextual",
+          "worthiness_role": "contradiction",
+          "temporal_state": "obsolete",
+          "admission": "reject",
+          "sufficiency_role": "not_needed",
+          "claim_ids": [
+            "retention-policy-90-days"
+          ],
+          "conflict_group": "retention-policy",
+          "rationale": "Historical proposal conflicts with the final 30-day policy but is explicitly earlier."
+        }
+      ],
+      "minimal_sufficient_set": [
+        "ls02.gold"
+      ],
+      "conflict_complete_set": [
+        "ls02.gold",
+        "ls02.dist"
+      ],
+      "audit_rationale": "The answer is a single current fact. Historical proposals are useful only under a history/conflict mode, not the default current-fact mode."
+    },
+    {
+      "case_id": "NS-04",
+      "query_mode": "current_goal_with_conflict_awareness",
+      "labels": [
+        {
+          "evidence_key": "ns04.gold",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "admission": "admit",
+          "sufficiency_role": "required",
+          "claim_ids": [
+            "north-star-recall-less-noise"
+          ],
+          "rationale": "Directly states the benchmark north star."
+        },
+        {
+          "evidence_key": "ns04.dist1",
+          "task_fit": "contextual",
+          "worthiness_role": "contradiction",
+          "temporal_state": "unknown",
+          "admission": "admit_conflict",
+          "sufficiency_role": "complementary",
+          "claim_ids": [
+            "goal-maximize-volume-noisy"
+          ],
+          "conflict_group": "goal-framing",
+          "rationale": "Materially conflicts with the north-star framing and therefore matters to a conflict-aware interpretation."
+        },
+        {
+          "evidence_key": "ns04.dist2",
+          "task_fit": "contextual",
+          "worthiness_role": "contradiction",
+          "temporal_state": "unknown",
+          "admission": "admit_conflict",
+          "sufficiency_role": "complementary",
+          "claim_ids": [
+            "goal-billing-not-recall"
+          ],
+          "conflict_group": "goal-framing",
+          "rationale": "States a competing immediate goal. It does not replace the north star, but it explains scope tension."
+        }
+      ],
+      "minimal_sufficient_set": [
+        "ns04.gold"
+      ],
+      "conflict_complete_set": [
+        "ns04.gold",
+        "ns04.dist1",
+        "ns04.dist2"
+      ],
+      "audit_rationale": "The minimal answer needs only C1. A conflict-aware context bundle should preserve C2 and C3 because both materially qualify the framing rather than being random distractors."
+    },
+    {
+      "case_id": "XP-01",
+      "query_mode": "cross_provider_design_requirement",
+      "labels": [
+        {
+          "evidence_key": "xp01.openai",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "unknown",
+          "admission": "admit",
+          "sufficiency_role": "required",
+          "claim_ids": [
+            "exact-message-provenance-required"
+          ],
+          "rationale": "States the requirement to preserve exact message identity."
+        },
+        {
+          "evidence_key": "xp01.google",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "unknown",
+          "admission": "admit",
+          "sufficiency_role": "required",
+          "claim_ids": [
+            "provider-account-exact-message-provenance"
+          ],
+          "rationale": "Adds provider and account identity to the exact-message provenance requirement."
+        },
+        {
+          "evidence_key": "xp01.dist",
+          "task_fit": "contextual",
+          "worthiness_role": "contradiction",
+          "temporal_state": "proposed",
+          "admission": "admit_conflict",
+          "sufficiency_role": "complementary",
+          "claim_ids": [
+            "draft-lacks-exact-message-provenance"
+          ],
+          "conflict_group": "provenance-design",
+          "rationale": "Identifies a draft-state gap that conflicts with the intended design; useful for explaining the transition or unresolved implementation seam."
+        }
+      ],
+      "minimal_sufficient_set": [
+        "xp01.openai",
+        "xp01.google"
+      ],
+      "conflict_complete_set": [
+        "xp01.openai",
+        "xp01.google",
+        "xp01.dist"
+      ],
+      "audit_rationale": "The positive design claim is distributed across two providers, so both positive items are required. The draft-gap item is not required to state the design but is valuable conflict/history context."
+    },
+    {
+      "case_id": "TU-04",
+      "query_mode": "latest_current_decision",
+      "labels": [
+        {
+          "evidence_key": "tu04.gold",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "admission": "admit",
+          "sufficiency_role": "required",
+          "claim_ids": [
+            "automatic-recall-remains-hypothesis"
+          ],
+          "rationale": "Directly states the latest current position: automatic recall remains unproven pending benchmarking."
+        },
+        {
+          "evidence_key": "tu04.dist1",
+          "task_fit": "contextual",
+          "worthiness_role": "contradiction",
+          "temporal_state": "obsolete",
+          "admission": "reject",
+          "sufficiency_role": "not_needed",
+          "claim_ids": [
+            "automatic-recall-default-proposal"
+          ],
+          "conflict_group": "automatic-recall-decision",
+          "rationale": "Older proposal conflicts with the current position and is explicitly obsolete."
+        },
+        {
+          "evidence_key": "tu04.dist2",
+          "task_fit": "contextual",
+          "worthiness_role": "contradiction",
+          "temporal_state": "obsolete",
+          "admission": "reject",
+          "sufficiency_role": "not_needed",
+          "claim_ids": [
+            "automatic-recall-already-decided"
+          ],
+          "conflict_group": "automatic-recall-decision",
+          "rationale": "Obsolete assertion of a settled decision; should not be admitted into the current decision context."
+        }
+      ],
+      "minimal_sufficient_set": [
+        "tu04.gold"
+      ],
+      "conflict_complete_set": [
+        "tu04.gold",
+        "tu04.dist1",
+        "tu04.dist2"
+      ],
+      "audit_rationale": "The current decision is deliberately conservative. Obsolete proposals are relevant only for historical reconstruction, not the latest-decision query."
+    }
+  ],
+  "quality_checks": {
+    "single_current_fact_minimality": true,
+    "distributed_positive_claims_preserved": true,
+    "unresolved_conflicts_preserved_when_material": true,
+    "obsolete_current_mode_rejected": true,
+    "contextual_not_equated_with_admit": true
+  }
+}

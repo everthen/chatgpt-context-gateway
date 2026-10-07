@@ -31,3 +31,7 @@ def main() -> None:
         "runnable_arms": result["runnable_arms"],
         "aggregate": result["aggregate"],
     }, indent=2))
+
+
+if __name__ == "__main__":
+    main()

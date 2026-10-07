@@ -167,6 +167,29 @@ def test_real_shape_xp02_materializes_answer_contrast():
     assert [x["key"] for x in bundle["bundle"]["control_context"]] == ["xp02.dist"]
 
 
+def test_complementary_relation_preserves_answer_support():
+    case = _case("XP-02")
+    semantic = {
+        "assessments": [
+            {"candidate_id": "C1", "worthiness_role": "direct_support"},
+            {"candidate_id": "C2", "worthiness_role": "direct_support"},
+            {"candidate_id": "C3", "worthiness_role": "contradiction"},
+        ]
+    }
+    selection = {
+        "selected_candidate_ids": ["C1", "C2", "C3"],
+        "relations": [{"source": "C1", "target": "C2", "type": "complementary", "when_selected": True}],
+        "coverage_groups": [],
+        "excluded_candidate_ids": [],
+        "confidence": 0.9,
+    }
+
+    bundle = materialize_selection_assessment(case, semantic, selection)
+    assert [x["key"] for x in bundle["bundle"]["answer_context"][:2]] == [
+        "xp02.openai", "xp02.claude"
+    ]
+
+
 def test_xp04_boundary_relation_forces_control_lane():
     case = _case("XP-04")
     semantic = {

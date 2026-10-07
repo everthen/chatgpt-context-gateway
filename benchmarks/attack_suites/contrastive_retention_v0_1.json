@@ -20,26 +20,69 @@
           "role": "supporting",
           "semantic_score": 0.96,
           "admission": "required",
-          "provenance": {"provider": "chatgpt", "account": "primary", "temporal": "current"}
+          "provenance": {
+            "provider": "chatgpt",
+            "account": "primary",
+            "temporal": "current"
+          },
+          "selection": {
+            "primary": true,
+            "claim_ids": [
+              "ns-04"
+            ],
+            "optional_noise": false,
+            "relations": [
+              {
+                "target": "ns04.conflict",
+                "type": "required_contrast",
+                "when_selected": true
+              }
+            ]
+          }
         },
         {
           "key": "ns04.conflict",
           "role": "contrastive",
           "semantic_score": 0.42,
           "admission": "required",
-          "provenance": {"provider": "chatgpt", "account": "primary", "temporal": "earlier"},
-          "contrastive_purpose": "make the competing goal explicit so the answer can reject or reconcile it"
+          "provenance": {
+            "provider": "chatgpt",
+            "account": "primary",
+            "temporal": "earlier"
+          },
+          "contrastive_purpose": "make the competing goal explicit so the answer can reject or reconcile it",
+          "selection": {
+            "primary": false,
+            "claim_ids": [],
+            "optional_noise": false,
+            "relations": []
+          }
         },
         {
           "key": "ns04.unrelated",
           "role": "distractor",
           "semantic_score": 0.76,
           "admission": "optional",
-          "provenance": {"provider": "chatgpt", "account": "primary", "temporal": "nearby"}
+          "provenance": {
+            "provider": "chatgpt",
+            "account": "primary",
+            "temporal": "nearby"
+          },
+          "selection": {
+            "primary": false,
+            "claim_ids": [],
+            "optional_noise": true,
+            "relations": []
+          }
         }
       ],
-      "minimal_sufficient_keys": ["ns04.gold", "ns04.conflict"],
-      "must_drop_keys": ["ns04.unrelated"]
+      "minimal_sufficient_keys": [
+        "ns04.gold",
+        "ns04.conflict"
+      ],
+      "must_drop_keys": [
+        "ns04.unrelated"
+      ]
     },
     {
       "case_id": "XP-02",
@@ -52,33 +95,91 @@
           "role": "supporting",
           "semantic_score": 0.93,
           "admission": "required",
-          "provenance": {"provider": "openai", "account": "primary"}
+          "provenance": {
+            "provider": "openai",
+            "account": "primary"
+          },
+          "selection": {
+            "primary": true,
+            "claim_ids": [
+              "xp-02"
+            ],
+            "optional_noise": false,
+            "relations": [
+              {
+                "target": "xp02.dist",
+                "type": "required_contrast",
+                "when_selected": true
+              }
+            ]
+          }
         },
         {
           "key": "xp02.claude",
           "role": "supporting",
           "semantic_score": 0.91,
           "admission": "required",
-          "provenance": {"provider": "anthropic", "account": "primary"}
+          "provenance": {
+            "provider": "anthropic",
+            "account": "primary"
+          },
+          "selection": {
+            "primary": true,
+            "claim_ids": [
+              "xp-02"
+            ],
+            "optional_noise": false,
+            "relations": [
+              {
+                "target": "xp02.dist",
+                "type": "required_contrast",
+                "when_selected": true
+              }
+            ]
+          }
         },
         {
           "key": "xp02.dist",
           "role": "contrastive",
           "semantic_score": 0.38,
           "admission": "required",
-          "provenance": {"provider": "cross-provider", "account": "primary"},
-          "contrastive_purpose": "expose the rejected provider assumption needed to justify the final choice"
+          "provenance": {
+            "provider": "cross-provider",
+            "account": "primary"
+          },
+          "contrastive_purpose": "expose the rejected provider assumption needed to justify the final choice",
+          "selection": {
+            "primary": false,
+            "claim_ids": [],
+            "optional_noise": false,
+            "relations": []
+          }
         },
         {
           "key": "xp02.unrelated",
           "role": "distractor",
           "semantic_score": 0.72,
           "admission": "optional",
-          "provenance": {"provider": "chatgpt", "account": "primary"}
+          "provenance": {
+            "provider": "chatgpt",
+            "account": "primary"
+          },
+          "selection": {
+            "primary": false,
+            "claim_ids": [],
+            "optional_noise": true,
+            "relations": []
+          }
         }
       ],
-      "minimal_sufficient_keys": ["xp02.openai", "xp02.claude", "xp02.dist"],
-      "must_drop_keys": ["xp02.unrelated"]
+      "minimal_sufficient_keys": [
+        "xp02.openai",
+        "xp02.claude",
+        "xp02.dist"
+      ],
+      "must_drop_keys": [
+        "xp02.unrelated"
+      ]
     },
     {
       "case_id": "XP-04",
@@ -91,26 +192,66 @@
           "role": "supporting",
           "semantic_score": 0.95,
           "admission": "required",
-          "provenance": {"provider": "chatgpt", "account": "account-A"}
+          "provenance": {
+            "provider": "chatgpt",
+            "account": "account-A"
+          },
+          "selection": {
+            "primary": true,
+            "claim_ids": [
+              "xp-04"
+            ],
+            "optional_noise": false,
+            "relations": [
+              {
+                "target": "xp04.dist",
+                "type": "required_boundary_contrast",
+                "when_selected": true
+              }
+            ]
+          }
         },
         {
           "key": "xp04.dist",
           "role": "contrastive",
           "semantic_score": 0.44,
           "admission": "required",
-          "provenance": {"provider": "chatgpt", "account": "account-B"},
-          "contrastive_purpose": "demonstrate why same-topic evidence from another account must be rejected rather than silently ignored"
+          "provenance": {
+            "provider": "chatgpt",
+            "account": "account-B"
+          },
+          "contrastive_purpose": "demonstrate why same-topic evidence from another account must be rejected rather than silently ignored",
+          "selection": {
+            "primary": false,
+            "claim_ids": [],
+            "optional_noise": false,
+            "relations": []
+          }
         },
         {
           "key": "xp04.unrelated",
           "role": "distractor",
-          "semantic_score": 0.70,
+          "semantic_score": 0.7,
           "admission": "optional",
-          "provenance": {"provider": "chatgpt", "account": "account-A"}
+          "provenance": {
+            "provider": "chatgpt",
+            "account": "account-A"
+          },
+          "selection": {
+            "primary": false,
+            "claim_ids": [],
+            "optional_noise": true,
+            "relations": []
+          }
         }
       ],
-      "minimal_sufficient_keys": ["xp04.gold", "xp04.dist"],
-      "must_drop_keys": ["xp04.unrelated"]
+      "minimal_sufficient_keys": [
+        "xp04.gold",
+        "xp04.dist"
+      ],
+      "must_drop_keys": [
+        "xp04.unrelated"
+      ]
     },
     {
       "case_id": "TU-04",
@@ -123,30 +264,66 @@
           "role": "supporting",
           "semantic_score": 0.97,
           "admission": "required",
-          "provenance": {"provider": "chatgpt", "account": "primary", "temporal": "latest"}
+          "provenance": {
+            "provider": "chatgpt",
+            "account": "primary",
+            "temporal": "latest"
+          },
+          "selection": {
+            "primary": true,
+            "claim_ids": [
+              "tu-04"
+            ],
+            "optional_noise": false,
+            "relations": []
+          }
         },
         {
           "key": "tu04.dist1",
           "role": "contrastive",
           "semantic_score": 0.61,
           "admission": "optional",
-          "provenance": {"provider": "chatgpt", "account": "primary", "temporal": "older"},
-          "contrastive_purpose": "show the superseded state"
+          "provenance": {
+            "provider": "chatgpt",
+            "account": "primary",
+            "temporal": "older"
+          },
+          "contrastive_purpose": "show the superseded state",
+          "selection": {
+            "primary": false,
+            "claim_ids": [],
+            "optional_noise": false,
+            "relations": []
+          }
         },
         {
           "key": "tu04.dist2",
           "role": "contrastive",
           "semantic_score": 0.54,
           "admission": "optional",
-          "provenance": {"provider": "chatgpt", "account": "primary", "temporal": "older"},
-          "contrastive_purpose": "show another prior state that must not override the latest evidence"
+          "provenance": {
+            "provider": "chatgpt",
+            "account": "primary",
+            "temporal": "older"
+          },
+          "contrastive_purpose": "show another prior state that must not override the latest evidence",
+          "selection": {
+            "primary": false,
+            "claim_ids": [],
+            "optional_noise": false,
+            "relations": []
+          }
         }
       ],
-      "minimal_sufficient_keys": ["tu04.gold"],
+      "minimal_sufficient_keys": [
+        "tu04.gold"
+      ],
       "must_drop_keys": [],
       "admission_attack": {
         "empty_admission_expected_status": "UPSTREAM_ADMISSION_FAILURE",
-        "required_admission_keys": ["tu04.gold"]
+        "required_admission_keys": [
+          "tu04.gold"
+        ]
       }
     }
   ],

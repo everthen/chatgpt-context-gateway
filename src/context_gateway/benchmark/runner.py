@@ -133,6 +133,83 @@ def _returned_with_keys(
 
 
 
+
+_DECOMPOSE_STOPWORDS = {
+    "a", "an", "and", "are", "as", "at", "by", "for", "from", "in",
+    "is", "of", "on", "or", "the", "to", "who", "what", "when", "why",
+    "with", "after", "before", "current", "latest", "preferred",
+}
+
+
+def lexical_decompose_query(query: str, max_subqueries: int = 3) -> tuple[str, ...]:
+    """Cheap deterministic decomposition control; not semantic query planning."""
+    tokens = [token.strip(".,:;!?()[]{}").lower() for token in query.split()]
+    content = [token for token in tokens if token and token not in _DECOMPOSE_STOPWORDS]
+    candidates = [query.strip()]
+    if len(content) >= 2:
+        candidates.append(" ".join(content[:2]))
+        candidates.append(" ".join(content[-2:]))
+    elif content:
+        candidates.append(content[0])
+    seen: set[str] = set()
+    output: list[str] = []
+    for item in candidates:
+        item = item.strip()
+        if item and item not in seen:
+            seen.add(item)
+            output.append(item)
+        if len(output) >= max_subqueries:
+            break
+    return tuple(output)
+
+
+def _automatic_multi_query_returned(
+    db: ArchiveDB,
+    case: BenchmarkCase,
+    limit: int,
+) -> tuple[list[dict[str, Any]], float]:
+    started = time.perf_counter()
+    by_evidence: dict[str, dict[str, Any]] = {}
+    subqueries = lexical_decompose_query(case.query)
+    for query_index, subquery in enumerate(subqueries):
+        hits = db.search_detailed(subquery, limit=limit)
+        for rank, hit in enumerate(hits, start=1):
+            key = (
+                f"{hit['provider']}|{hit['account_id']}|"
+                f"{hit['id']}|{hit['message_id']}"
+            )
+            item = dict(hit)
+            item["_query_index"] = query_index
+            item["_rank"] = rank
+            item["_fusion_score"] = query_index + (rank / (limit + 1))
+            current = by_evidence.get(key)
+            if current is None or item["_fusion_score"] < current["_fusion_score"]:
+                by_evidence[key] = item
+    ranked = sorted(
+        by_evidence.values(),
+        key=lambda item: (item["_fusion_score"], item.get("score", 0)),
+    )[:limit]
+    return _returned_with_keys(ranked, case), (time.perf_counter() - started) * 1000
+
+
+def run_ucg_auto_assembly_case(
+    db: ArchiveDB, case: BenchmarkCase, limit: int = 8
+) -> CaseResult:
+    returned, latency_ms = _automatic_multi_query_returned(db, case, limit)
+    gold = {ref.evidence_key for ref in case.gold_evidence}
+    allowed = gold | {ref.evidence_key for ref in case.supporting_evidence}
+    return CaseResult(
+        case_id=case.case_id,
+        task_family=case.task_family,
+        difficulty=case.difficulty,
+        arm="ucg_auto_assembly",
+        query=case.query,
+        returned=returned,
+        retrieval=score_retrieval(returned, gold, k=limit),
+        context=score_context_quality(returned, allowed_keys=allowed),
+        latency_ms=latency_ms,
+    )
+
 def _multi_query_returned(
     db: ArchiveDB,
     case: BenchmarkCase,
@@ -237,6 +314,24 @@ def run_ucg_retrieval_benchmark(
             seed_case_db(db, case)
             assembly_results.append(run_ucg_assembly_case(db, case, limit=limit))
         db.close()
+
+
+    auto_results: list[CaseResult] = []
+    with TemporaryDirectory(prefix="ucg-auto-assembly-") as tmp:
+        db = ArchiveDB(Path(tmp) / "benchmark.sqlite3")
+        for case in cases:
+            seed_case_db(db, case)
+            auto_results.append(run_ucg_auto_assembly_case(db, case, limit=limit))
+        db.close()
+
+    result_payload["auto_assembly"] = {
+        "arm": "ucg_auto_assembly",
+        "case_results": [result.as_dict() for result in auto_results],
+        "aggregate": aggregate([
+            {**result.retrieval, **result.context, "latency_ms": result.latency_ms}
+            for result in auto_results
+        ]),
+    }
 
     result_payload["assembly"] = {
         "arm": "ucg_assembly",

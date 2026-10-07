@@ -132,6 +132,54 @@ def _returned_with_keys(
     return output
 
 
+
+def _multi_query_returned(
+    db: ArchiveDB,
+    case: BenchmarkCase,
+    limit: int,
+) -> tuple[list[dict[str, Any]], float]:
+    """Retrieve per sub-query, then union/dedupe while preserving best rank."""
+    started = time.perf_counter()
+    by_evidence: dict[str, dict[str, Any]] = {}
+
+    for query_index, subquery in enumerate(case.retrieval_queries):
+        hits = db.search_detailed(subquery, limit=limit)
+        for rank, hit in enumerate(hits, start=1):
+            key = (
+                f"{hit['provider']}|{hit['account_id']}|"
+                f"{hit['id']}|{hit['message_id']}"
+            )
+            item = dict(hit)
+            item["_query_index"] = query_index
+            item["_rank"] = rank
+            item["_fusion_score"] = query_index + (rank / (limit + 1))
+            current = by_evidence.get(key)
+            if current is None or item["_fusion_score"] < current["_fusion_score"]:
+                by_evidence[key] = item
+
+    ranked = sorted(
+        by_evidence.values(),
+        key=lambda item: (item["_fusion_score"], item.get("score", 0)),
+    )[:limit]
+    return _returned_with_keys(ranked, case), (time.perf_counter() - started) * 1000
+
+
+def run_ucg_assembly_case(db: ArchiveDB, case: BenchmarkCase, limit: int = 8) -> CaseResult:
+    returned, latency_ms = _multi_query_returned(db, case, limit)
+    gold = {ref.evidence_key for ref in case.gold_evidence}
+    allowed = gold | {ref.evidence_key for ref in case.supporting_evidence}
+    return CaseResult(
+        case_id=case.case_id,
+        task_family=case.task_family,
+        difficulty=case.difficulty,
+        arm="ucg_assembly",
+        query=case.query,
+        returned=returned,
+        retrieval=score_retrieval(returned, gold, k=limit),
+        context=score_context_quality(returned, allowed_keys=allowed),
+        latency_ms=latency_ms,
+    )
+
 def run_ucg_case(db: ArchiveDB, case: BenchmarkCase, limit: int = 8) -> CaseResult:
     started = time.perf_counter()
     bundle = continuity(db, case.query, limit=limit)
@@ -201,5 +249,26 @@ def run_ucg_retrieval_benchmark(
             json.dumps(result_payload, indent=2),
             encoding="utf-8",
         )
+
+
+    assembly_results: list[CaseResult] = []
+    with TemporaryDirectory(prefix="ucg-assembly-") as tmp:
+        db = ArchiveDB(Path(tmp) / "benchmark.sqlite3")
+        for case in cases:
+            seed_case_db(db, case)
+            assembly_results.append(run_ucg_assembly_case(db, case, limit=limit))
+        db.close()
+
+    result_payload["assembly"] = {
+        "arm": "ucg_assembly",
+        "subquery_counts": aggregate(
+            [{"count": float(len(case.retrieval_queries))} for case in cases]
+        ),
+        "case_results": [result.as_dict() for result in assembly_results],
+        "aggregate": aggregate([
+            {**result.retrieval, **result.context, "latency_ms": result.latency_ms}
+            for result in assembly_results
+        ]),
+    }
 
     return result_payload

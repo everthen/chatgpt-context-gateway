@@ -212,15 +212,25 @@ def admit_temporal_conflicts(
             continue
 
         if current:
-            selected.extend(
-                _annotate(
-                    x,
-                    temporal_resolution="current_unresolved",
-                    conflict_status="unresolved",
-                    conflict_group=group_id,
+            if len(current) == 1 and obsolete:
+                selected.append(
+                    _annotate(
+                        current[0],
+                        temporal_resolution="current_over_obsolete",
+                        conflict_status="resolved_by_temporal_state",
+                        conflict_group=group_id,
+                    )
                 )
-                for x in sorted(current, key=_rank_key)
-            )
+            else:
+                selected.extend(
+                    _annotate(
+                        x,
+                        temporal_resolution="current_unresolved",
+                        conflict_status="unresolved",
+                        conflict_group=group_id,
+                    )
+                    for x in sorted(current, key=_rank_key)
+                )
             continue
 
         if unknown:

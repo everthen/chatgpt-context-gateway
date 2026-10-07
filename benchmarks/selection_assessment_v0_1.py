@@ -38,6 +38,9 @@ def normalize_selection_assessment(
     relation types remain hard errors rather than being silently dropped.
     """
 
+    if "selected_candidate_ids" not in raw or not isinstance(raw.get("selected_candidate_ids"), list):
+        raise ValueError("selected_candidate_ids is required and must be an array")
+
     selected = list(dict.fromkeys(raw.get("selected_candidate_ids") or []))
     excluded = list(dict.fromkeys(raw.get("excluded_candidate_ids") or []))
 

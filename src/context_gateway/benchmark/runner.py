@@ -170,6 +170,7 @@ def _automatic_multi_query_returned(
 ) -> tuple[list[dict[str, Any]], float]:
     started = time.perf_counter()
     by_evidence: dict[str, dict[str, Any]] = {}
+    rrf_scores: dict[str, float] = {}
     subqueries = lexical_decompose_query(case.query)
     for query_index, subquery in enumerate(subqueries):
         hits = db.search_detailed(subquery, limit=limit)
@@ -178,16 +179,13 @@ def _automatic_multi_query_returned(
                 f"{hit['provider']}|{hit['account_id']}|"
                 f"{hit['id']}|{hit['message_id']}"
             )
-            item = dict(hit)
-            item["_query_index"] = query_index
-            item["_rank"] = rank
-            item["_fusion_score"] = query_index + (rank / (limit + 1))
-            current = by_evidence.get(key)
-            if current is None or item["_fusion_score"] < current["_fusion_score"]:
-                by_evidence[key] = item
+            by_evidence.setdefault(key, dict(hit))
+            rrf_scores[key] = rrf_scores.get(key, 0.0) + (1.0 / (60 + rank))
     ranked = sorted(
         by_evidence.values(),
-        key=lambda item: (item["_fusion_score"], item.get("score", 0)),
+        key=lambda item: (-rrf_scores[
+            f"{item['provider']}|{item['account_id']}|{item['id']}|{item['message_id']}"
+        ], item.get("score", 0)),
     )[:limit]
     return _returned_with_keys(ranked, case), (time.perf_counter() - started) * 1000
 
@@ -218,6 +216,7 @@ def _multi_query_returned(
     """Retrieve per sub-query, then union/dedupe while preserving best rank."""
     started = time.perf_counter()
     by_evidence: dict[str, dict[str, Any]] = {}
+    rrf_scores: dict[str, float] = {}
 
     for query_index, subquery in enumerate(case.retrieval_queries):
         hits = db.search_detailed(subquery, limit=limit)
@@ -226,17 +225,14 @@ def _multi_query_returned(
                 f"{hit['provider']}|{hit['account_id']}|"
                 f"{hit['id']}|{hit['message_id']}"
             )
-            item = dict(hit)
-            item["_query_index"] = query_index
-            item["_rank"] = rank
-            item["_fusion_score"] = query_index + (rank / (limit + 1))
-            current = by_evidence.get(key)
-            if current is None or item["_fusion_score"] < current["_fusion_score"]:
-                by_evidence[key] = item
+            by_evidence.setdefault(key, dict(hit))
+            rrf_scores[key] = rrf_scores.get(key, 0.0) + (1.0 / (60 + rank))
 
     ranked = sorted(
         by_evidence.values(),
-        key=lambda item: (item["_fusion_score"], item.get("score", 0)),
+        key=lambda item: (-rrf_scores[
+            f"{item['provider']}|{item['account_id']}|{item['id']}|{item['message_id']}"
+        ], item.get("score", 0)),
     )[:limit]
     return _returned_with_keys(ranked, case), (time.perf_counter() - started) * 1000
 

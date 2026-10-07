@@ -1,0 +1,1374 @@
+{
+  "schema_version": "ucg-answer-quality-result.v0.1",
+  "experiment_id": "UCG-EVAL-AQ-20261007-v0.1",
+  "dataset_hash": "977d081d4b0221d89c04bcd6ebe513c23304bbb2e94973b4fb9dbf25c5c34141",
+  "answer_model": "ag/gemini-3.8-flash",
+  "judge_model": "ag/claude-sonnet-4-6",
+  "generation_config": {
+    "temperature": 0,
+    "max_tokens": 256,
+    "same_answer_model_across_arms": true,
+    "native_only_definition": "no UCG evidence injected"
+  },
+  "scoring": {
+    "claim_coverage": "judge",
+    "factual_correctness": "judge",
+    "groundedness": "judge",
+    "abstention_correctness": "deterministic(minimal_sufficient_set, answer_abstention_detector)",
+    "citation_validity": "deterministic_key_membership",
+    "answer_quality_formula": "0.25*claim_coverage + 0.40*factual_correctness + 0.25*groundedness + 0.10*deterministic_abstention_correctness"
+  },
+  "summary": {
+    "native_only": {
+      "n": 16,
+      "successful_answers": 16,
+      "judge_scorable": 16,
+      "answer_quality_mean": 0.2875,
+      "claim_coverage_mean": 0.0,
+      "factual_correctness_mean": 0.0,
+      "groundedness_mean": 1.0,
+      "abstention_correctness_mean": 0.375,
+      "citation_valid_rate": 1.0,
+      "mean_latency_seconds": 5.3704,
+      "mean_prompt_tokens": 2204.0625,
+      "mean_completion_tokens": 15.3125
+    },
+    "oracle": {
+      "n": 16,
+      "successful_answers": 16,
+      "judge_scorable": 16,
+      "answer_quality_mean": 0.9797,
+      "claim_coverage_mean": 0.9688,
+      "factual_correctness_mean": 0.9688,
+      "groundedness_mean": 1.0,
+      "abstention_correctness_mean": 1.0,
+      "citation_valid_rate": 1.0,
+      "mean_latency_seconds": 5.8876,
+      "mean_prompt_tokens": 2272.375,
+      "mean_completion_tokens": 33.625
+    },
+    "ucg_gemini": {
+      "n": 16,
+      "successful_answers": 16,
+      "judge_scorable": 16,
+      "answer_quality_mean": 0.9797,
+      "claim_coverage_mean": 0.9688,
+      "factual_correctness_mean": 0.9688,
+      "groundedness_mean": 1.0,
+      "abstention_correctness_mean": 1.0,
+      "citation_valid_rate": 1.0,
+      "mean_latency_seconds": 5.8872,
+      "mean_prompt_tokens": 2282.5625,
+      "mean_completion_tokens": 31.9375
+    },
+    "ucg_opus": {
+      "n": 16,
+      "successful_answers": 16,
+      "judge_scorable": 16,
+      "answer_quality_mean": 0.9797,
+      "claim_coverage_mean": 0.9688,
+      "factual_correctness_mean": 0.9688,
+      "groundedness_mean": 1.0,
+      "abstention_correctness_mean": 1.0,
+      "citation_valid_rate": 1.0,
+      "mean_latency_seconds": 5.241,
+      "mean_prompt_tokens": 2322.375,
+      "mean_completion_tokens": 32.4375
+    },
+    "ucg_sonnet": {
+      "n": 16,
+      "successful_answers": 16,
+      "judge_scorable": 16,
+      "answer_quality_mean": 0.925,
+      "claim_coverage_mean": 0.875,
+      "factual_correctness_mean": 0.9062,
+      "groundedness_mean": 1.0,
+      "abstention_correctness_mean": 0.9375,
+      "citation_valid_rate": 1.0,
+      "mean_latency_seconds": 5.7643,
+      "mean_prompt_tokens": 2305.1875,
+      "mean_completion_tokens": 33.0625
+    }
+  },
+  "delta_vs_native_only": {
+    "native_only": 0.0,
+    "oracle": 0.6922,
+    "ucg_gemini": 0.6922,
+    "ucg_opus": 0.6922,
+    "ucg_sonnet": 0.6375
+  },
+  "family_summary": {
+    "native_only": {
+      "long_session": 0.3,
+      "new_session": 0.25,
+      "cross_provider": 0.275,
+      "temporal_update": 0.325
+    },
+    "oracle": {
+      "long_session": 1.0,
+      "new_session": 1.0,
+      "cross_provider": 0.9187,
+      "temporal_update": 1.0
+    },
+    "ucg_gemini": {
+      "long_session": 1.0,
+      "new_session": 1.0,
+      "cross_provider": 0.9187,
+      "temporal_update": 1.0
+    },
+    "ucg_opus": {
+      "long_session": 1.0,
+      "new_session": 1.0,
+      "cross_provider": 0.9187,
+      "temporal_update": 1.0
+    },
+    "ucg_sonnet": {
+      "long_session": 1.0,
+      "new_session": 1.0,
+      "cross_provider": 0.8875,
+      "temporal_update": 0.8125
+    }
+  },
+  "bundle_mean_sizes": {
+    "oracle": 1.6875,
+    "ucg_gemini": 1.625,
+    "ucg_sonnet": 1.9333333333,
+    "ucg_opus": 2.0625
+  },
+  "per_case": [
+    {
+      "case_id": "LS-01",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "answer_quality_score": 0.35,
+      "claim_coverage": 0.0,
+      "factual_correctness": 0.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The supplied evidence is insufficient to answer the question, as no evidence was provided.",
+      "notes": "No evidence provided, so abstention is appropriate and well-justified."
+    },
+    {
+      "case_id": "LS-01",
+      "arm": "oracle",
+      "bundle_keys": [
+        "ls01.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The preferred deployment region is Singapore for the first production rollout [ls01.gold].",
+      "notes": "Directly answers with Singapore, fully supported by evidence."
+    },
+    {
+      "case_id": "LS-01",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "ls01.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The preferred deployment region is Singapore for the first production rollout [ls01.gold].",
+      "notes": "Directly answers with Singapore, fully supported by evidence."
+    },
+    {
+      "case_id": "LS-01",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "ls01.anchor",
+        "ls01.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The preferred deployment region is Singapore for the first production rollout [ls01.gold].",
+      "notes": "Directly answers with Singapore, fully supported by evidence."
+    },
+    {
+      "case_id": "LS-01",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "ls01.anchor",
+        "ls01.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The preferred deployment region is Singapore for the first production rollout [ls01.gold].",
+      "notes": "Directly answers with Singapore, fully supported by evidence."
+    },
+    {
+      "case_id": "LS-02",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "answer_quality_score": 0.25,
+      "claim_coverage": 0.0,
+      "factual_correctness": 0.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 0.0,
+      "citation_valid": true,
+      "answer": "The supplied evidence is insufficient to provide information about event stream retention.",
+      "notes": "No evidence provided, so abstention is reasonable, but the answer fails to cover the expected claim."
+    },
+    {
+      "case_id": "LS-02",
+      "arm": "oracle",
+      "bundle_keys": [
+        "ls02.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The final event stream retention policy is 30 days [ls02.gold].",
+      "notes": "Directly answers with the correct 30-day retention policy, fully grounded in evidence."
+    },
+    {
+      "case_id": "LS-02",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "ls02.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The event stream retention policy is 30 days [ls02.gold].",
+      "notes": "Correctly states 30-day retention policy, fully grounded in evidence."
+    },
+    {
+      "case_id": "LS-02",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "ls02.gold",
+        "ls02.note"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The final event stream retention policy is 30 days [ls02.gold]. Cold archival is considered a separate concern [ls02.note].",
+      "notes": "Correctly states 30-day retention and adds grounded note about cold archival being separate, both supported by evidence."
+    },
+    {
+      "case_id": "LS-02",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "ls02.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The final event stream retention policy is 30 days [ls02.gold].",
+      "notes": "Correctly states the 30-day retention policy, fully grounded in evidence."
+    },
+    {
+      "case_id": "LS-03",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "answer_quality_score": 0.35,
+      "claim_coverage": 0.0,
+      "factual_correctness": 0.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The supplied evidence is insufficient to answer who the approval owner for the mobile release is, as no evidence was provided.",
+      "notes": "No evidence provided, so abstention is justified and grounded. However, it does not cover the expected claim."
+    },
+    {
+      "case_id": "LS-03",
+      "arm": "oracle",
+      "bundle_keys": [
+        "ls03.support",
+        "ls03.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "Mira is the final approval owner for the mobile release [ls03.gold].",
+      "notes": "Correctly identifies Mira as the final approval owner for the mobile release, fully supported by ls03.gold evidence."
+    },
+    {
+      "case_id": "LS-03",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "ls03.gold",
+        "ls03.support"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "Mira is the final approval owner for the mobile release [ls03.gold].",
+      "notes": "Correctly identifies Mira as the final approval owner for the mobile release, fully supported by ls03.gold evidence."
+    },
+    {
+      "case_id": "LS-03",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "ls03.gold",
+        "ls03.support"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "Mira is the final approval owner for the mobile release [ls03.gold].",
+      "notes": "Correctly identifies Mira as the final approval owner for the mobile release, fully supported by ls03.gold evidence."
+    },
+    {
+      "case_id": "LS-03",      "arm": "ucg_opus",
+      "bundle_keys": [
+        "ls03.gold",
+        "ls03.support"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The approval owner for the mobile release is Mira [ls03.gold].",
+      "notes": "Correctly identifies Mira as the approval owner for the mobile release, fully supported by ls03.gold evidence."
+    },
+    {
+      "case_id": "LS-04",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "answer_quality_score": 0.25,
+      "claim_coverage": 0.0,
+      "factual_correctness": 0.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 0.0,
+      "citation_valid": true,
+      "answer": "The supplied evidence is insufficient to answer the question, as no external evidence was provided.",
+      "notes": "No evidence provided, so abstention is reasonable, but the expected claim is not covered."
+    },
+    {
+      "case_id": "LS-04",
+      "arm": "oracle",
+      "bundle_keys": [
+        "ls04.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "After the failover test, the fallback database is CockroachDB [ls04.gold].",
+      "notes": "Directly answers with CockroachDB, fully supported by gold evidence."
+    },
+    {
+      "case_id": "LS-04",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "ls04.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "After the failover test, the fallback database is CockroachDB [ls04.gold].",
+      "notes": "Directly answers with CockroachDB, fully supported by gold evidence."
+    },
+    {
+      "case_id": "LS-04",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "ls04.dist1",
+        "ls04.dist2",
+        "ls04.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "After the failover test, the fallback database is CockroachDB [ls04.gold].",
+      "notes": "Directly answers with CockroachDB, fully supported by gold evidence."
+    },
+    {
+      "case_id": "LS-04",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "ls04.dist1",
+        "ls04.dist2",
+        "ls04.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "After the failover test, the fallback database is CockroachDB [ls04.gold]. (PostgreSQL was proposed prior to the test [ls04.dist1]).",
+      "notes": "Correctly identifies CockroachDB as the fallback database after failover test, supported by gold evidence. Also mentions PostgreSQL was proposed before the test, which is grounded in dist1 evidence."
+    },
+    {
+      "case_id": "NS-01",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "answer_quality_score": 0.25,
+      "claim_coverage": 0.0,
+      "factual_correctness": 0.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 0.0,
+      "citation_valid": true,
+      "answer": "The provided evidence is insufficient to answer this question, as no relevant information was supplied.",
+      "notes": "No evidence provided, so abstention is justified. However, the expected claim is not covered."
+    },
+    {
+      "case_id": "NS-01",
+      "arm": "oracle",
+      "bundle_keys": [
+        "ns01.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The research notebook export format is JSONL [ns01.gold].",
+      "notes": "Correctly states JSONL format with evidence citation."
+    },
+    {
+      "case_id": "NS-01",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "ns01.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The research notebook export format is JSONL [ns01.gold].",
+      "notes": "Correctly states JSONL format with evidence citation."
+    },
+    {
+      "case_id": "NS-01",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "ns01.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The research notebook export format is JSONL [ns01.gold].",
+      "notes": "Correctly states JSONL format with evidence citation."
+    },
+    {
+      "case_id": "NS-01",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "ns01.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The research notebook export format is JSONL [ns01.gold].",
+      "notes": "Correctly states JSONL format with evidence citation."
+    },
+    {
+      "case_id": "NS-02",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "answer_quality_score": 0.25,
+      "claim_coverage": 0.0,
+      "factual_correctness": 0.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 0.0,
+      "citation_valid": true,
+      "answer": "The supplied evidence is insufficient to answer the question.",
+      "notes": "Abstained despite evidence being available in other arms; however, this arm had no evidence, so abstention is appropriate given its evidence set. But since the answer is incorrect in covering the claim, claim_coverage=0."
+    },
+    {
+      "case_id": "NS-02",
+      "arm": "oracle",
+      "bundle_keys": [
+        "ns02.gold",
+        "ns02.support"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The evaluation split is frozen after the harness is stable and metric artifacts are validated [ns02.gold]. Meanwhile, the train and dev splits remain mutable during harness development [ns02.support].",
+      "notes": "Accurately covers the expected claim with direct evidence support. Adds relevant context about train/dev splits."
+    },
+    {
+      "case_id": "NS-02",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "ns02.gold",
+        "ns02.support"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The evaluation split is frozen after the harness is stable and metric artifacts are validated [ns02.gold]. During harness development, the train and dev splits remain mutable [ns02.support].",
+      "notes": "Accurately covers the expected claim with direct evidence. Nearly identical to oracle answer."
+    },
+    {
+      "case_id": "NS-02",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "ns02.dist",
+        "ns02.gold",
+        "ns02.support"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The evaluation split is frozen after the harness is stable and metric artifacts are validated [ns02.gold], superseding an early draft that suggested freezing it immediately [ns02.dist]. Additionally, train and dev splits remain mutable during harness development [ns02.support].",
+      "notes": "Covers the expected claim accurately. Correctly frames the early draft as superseded and highlights the current policy."
+    },
+    {
+      "case_id": "NS-02",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "ns02.dist",
+        "ns02.gold",
+        "ns02.support"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "While an early draft proposed freezing the evaluation split immediately [ns02.dist], the current policy is to freeze the evaluation split once the harness is stable and metric artifacts are validated [ns02.gold]. During harness development, train and dev splits remain mutable [ns02.support].",
+      "notes": "Covers the expected claim accurately. Correctly notes the early draft as a superseded policy and focuses on the current policy."
+    },
+    {
+      "case_id": "NS-03",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "answer_quality_score": 0.25,
+      "claim_coverage": 0.0,
+      "factual_correctness": 0.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 0.0,
+      "citation_valid": true,
+      "answer": "Based on the supplied evidence, there is no information available to determine who owns context evaluation.",
+      "notes": "No evidence provided, so abstention is reasonable but the question has a clear answer available in other arms. Groundedness is perfect as no unsupported claims made."
+    },
+    {
+      "case_id": "NS-03",
+      "arm": "oracle",
+      "bundle_keys": [
+        "ns03.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "Raka owns context evaluation [ns03.gold].",
+      "notes": "Correctly identifies Raka as the owner of context evaluation, fully supported by evidence."
+    },
+    {
+      "case_id": "NS-03",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "ns03.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "Raka owns context evaluation [ns03.gold].",
+      "notes": "Correctly identifies Raka as the owner of context evaluation, fully supported by evidence."
+    },
+    {
+      "case_id": "NS-03",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "ns03.dist",
+        "ns03.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "Raka owns context evaluation [ns03.gold].",
+      "notes": "Correctly identifies Raka as the owner of context evaluation, fully supported by gold evidence despite distractor evidence present."
+    },
+    {
+      "case_id": "NS-03",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "ns03.dist",
+        "ns03.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "Raka owns context evaluation [ns03.gold].",
+      "notes": "Correctly identifies Raka as the owner of context evaluation, fully supported by gold evidence despite distractor evidence present."
+    },
+    {
+      "case_id": "NS-04",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "answer_quality_score": 0.25,
+      "claim_coverage": 0.0,
+      "factual_correctness": 0.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 0.0,
+      "citation_valid": true,
+      "answer": "The supplied evidence is insufficient to answer the question, as no external evidence was provided.",
+      "notes": "No evidence provided, justified abstention but fails to cover the claim."
+    },
+    {
+      "case_id": "NS-04",
+      "arm": "oracle",
+      "bundle_keys": [
+        "ns04.gold",
+        "ns04.dist1",
+        "ns04.dist2"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The north star is whether UCG improves recall of relevant context with less noise than native context alone [ns04.gold].",
+      "notes": "Correctly cites gold evidence and covers the expected claim fully."
+    },
+    {
+      "case_id": "NS-04",      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "ns04.dist1",
+        "ns04.dist2",
+        "ns04.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The north star is whether UCG improves recall of relevant context with less noise than native context alone [ns04.gold].",
+      "notes": "Correctly cites gold evidence and covers the expected claim fully, ignoring distractor evidence."
+    },
+    {
+      "case_id": "NS-04",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "ns04.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The north star is whether UCG improves recall of relevant context with less noise than native context alone [ns04.gold].",
+      "notes": "Correctly cites gold evidence and covers the expected claim fully."
+    },
+    {
+      "case_id": "NS-04",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "ns04.dist1",
+        "ns04.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The north star is whether UCG improves recall of relevant context with less noise than native context alone [ns04.gold].",
+      "notes": "Correctly cites gold evidence and covers the expected claim fully."
+    },
+    {
+      "case_id": "XP-01",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "answer_quality_score": 0.25,
+      "claim_coverage": 0.0,
+      "factual_correctness": 0.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 0.0,
+      "citation_valid": true,
+      "answer": "The supplied evidence is insufficient to answer the question, as no external evidence was provided.",
+      "notes": "No evidence provided; answer correctly abstains. Does not cover the expected claim."
+    },
+    {
+      "case_id": "XP-01",
+      "arm": "oracle",
+      "bundle_keys": [
+        "xp01.openai",
+        "xp01.google",
+        "xp01.dist"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "Regarding exact message provenance in the context bundle:\n\n* An exact message identifier must remain in the provenance chain [xp01.openai].\n* The context bundle also carries the provider and account for the exact message [xp01.google].\n* In one draft, exact message provenance is not captured, even though source titles are useful [xp01.dist].",
+      "notes": "Covers all evidence sources including the design requirement that exact message provenance must be preserved (xp01.openai, xp01.google), and notes the gap in xp01.dist. Fully grounded and covers the expected claim."
+    },
+    {
+      "case_id": "XP-01",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "xp01.dist",
+        "xp01.google",
+        "xp01.openai"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "Based on the provided evidence:\n\n* The context bundle carries the provider and account for the exact message [xp01.google].\n* An exact message identifier must remain in the provenance chain [xp01.openai].\n* However, exact message provenance is not captured in the draft referenced in [xp01.dist].",
+      "notes": "Covers all three evidence points correctly. The expected claim (context bundles should preserve exact message provenance across providers) is supported by xp01.openai and xp01.google. Fully grounded."
+    },
+    {
+      "case_id": "XP-01",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "xp01.dist",
+        "xp01.google",
+        "xp01.openai"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "Based on the provided evidence:\n\n* The context bundle carries the provider and account for the exact message [xp01.google].\n* An exact message identifier must remain in the provenance chain [xp01.openai].\n* In one draft, exact message provenance is not captured (although source titles are useful) [xp01.dist].",
+      "notes": "Covers all three evidence points with correct attribution. Supports the expected claim. Fully grounded and accurate."
+    },
+    {
+      "case_id": "XP-01",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "xp01.dist",
+        "xp01.google",
+        "xp01.openai"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "Based on the provided evidence:\n\n* The context bundle carries the provider and account for the exact message [xp01.google].\n* An exact message identifier must remain in the provenance chain [xp01.openai].\n* In one draft, exact message provenance is not captured [xp01.dist].",
+      "notes": "Covers all three evidence points correctly and supports the expected claim. Fully grounded, concise and accurate."
+    },
+    {
+      "case_id": "XP-02",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "answer_quality_score": 0.25,
+      "claim_coverage": 0.0,
+      "factual_correctness": 0.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 0.0,
+      "citation_valid": true,
+      "answer": "The supplied evidence is insufficient to answer the question, as no external evidence was provided.",
+      "notes": "No evidence provided, so abstention is justified. However, evidence was available in other arms, making this a missed opportunity rather than a true no-evidence situation."
+    },
+    {
+      "case_id": "XP-02",
+      "arm": "oracle",
+      "bundle_keys": [
+        "xp02.openai",
+        "xp02.claude",
+        "xp02.dist"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "UCG is intended to serve as a provider-neutral context layer for OpenAI and other models [xp02.openai], allowing the same context to be portable into an Anthropic session without altering the source evidence [xp02.claude]. However, the account also includes a separate implementation optimized only for a single OpenAI workflow [xp02.dist].",
+      "notes": "Fully covers the expected claim with citations, and also notes the contrasting xp02.dist evidence about a separate single-provider implementation. All claims grounded in evidence."
+    },
+    {
+      "case_id": "XP-02",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "xp02.claude",
+        "xp02.openai"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "UCG should act as a provider-neutral context layer for OpenAI and other models [xp02.openai], allowing the same context to be portable into an Anthropic session without altering the source evidence [xp02.claude].",
+      "notes": "Fully covers the expected claim with both supporting citations. Concise and accurate. Did not have xp02.dist in evidence so omission is not penalized."
+    },
+    {
+      "case_id": "XP-02",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "xp02.claude",
+        "xp02.dist",
+        "xp02.openai"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "UCG should act as a provider-neutral context layer for OpenAI and other models [xp02.openai], allowing the same context to be portable into an Anthropic session without changing the source evidence [xp02.claude].",
+      "notes": "Fully covers the expected claim with both supporting citations. Well-grounded and accurate."
+    },
+    {
+      "case_id": "XP-02",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "xp02.claude",
+        "xp02.dist",
+        "xp02.openai"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "UCG should act as a provider-neutral context layer for OpenAI and other models [xp02.openai].",
+      "notes": "Covers the core expected claim with citation. Brief but accurate. Did not include the portable context detail from xp02.claude, but the main claim is satisfied."
+    },
+    {
+      "case_id": "XP-03",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "answer_quality_score": 0.35,
+      "claim_coverage": 0.0,
+      "factual_correctness": 0.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "Insufficient evidence was provided to answer the question.",
+      "notes": "Correctly abstains given no evidence, but evidence was available in other arms. Since this arm had no evidence, abstention is grounded, but the expected claim is not covered. Abstention is appropriate given the arm's evidence, so abstention_correctness=1 only if evidence was truly insufficient; here the arm received no evidence so abstention is correct for this arm."
+    },
+    {
+      "case_id": "XP-03",
+      "arm": "oracle",
+      "bundle_keys": [
+        "xp03.gemini",
+        "xp03.chatgpt",
+        "xp03.dist"
+      ],
+      "answer_quality_score": 0.675,
+      "claim_coverage": 0.5,
+      "factual_correctness": 0.5,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The provided evidence presents conflicting views on final judgment:\n\n* Under one approach, native model memory and UCG coexist, with UCG supplying evidence and context rather than replacing judgment [xp03.gemini], leaving the LLM responsible for the final interpretation and decision [xp03.chatgpt].\n* Alternatively, another view states that the gateway itself should make the final decision and return a verdict to the model [xp03.dist].",
+      "notes": "Covers the coexistence claim and the model retaining final judgment, but introduces conflicting view from xp03.dist about the gateway making the final decision, which partially undermines the expected claim. Grounded in evidence. Does not fully assert the expected claim."
+    },
+    {
+      "case_id": "XP-03",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "xp03.chatgpt",
+        "xp03.dist",
+        "xp03.gemini"
+      ],
+      "answer_quality_score": 0.675,
+      "claim_coverage": 0.5,
+      "factual_correctness": 0.5,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "Native model memory and UCG can coexist, with UCG supplying evidence and context rather than replacing judgment [xp03.gemini]. \n\nRegarding the final decision, the evidence presents conflicting views:\n* The LLM remains responsible for the final interpretation and decision [xp03.chatgpt].\n* Alternatively, the gateway should make the final decision itself and return a verdict to the model [xp03.dist].",
+      "notes": "Clearly states coexistence and UCG not replacing judgment. Flags conflict on final judgment from xp03.dist. Partially covers expected claim but does not fully assert model retains final judgment due to noted conflict."
+    },
+    {
+      "case_id": "XP-03",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "xp03.chatgpt",
+        "xp03.dist",
+        "xp03.gemini"
+      ],
+      "answer_quality_score": 0.675,
+      "claim_coverage": 0.5,
+      "factual_correctness": 0.5,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "Regarding native model memory and UCG:\n\n* Native model memory and UCG can coexist, with UCG supplying evidence and context rather than replacing judgment [xp03.gemini].\n* The evidence presents conflicting views on final judgment:\n  * One position states that the LLM remains responsible for the final interpretation and decision [xp03.chatgpt].\n  * Another position states that the gateway should make the final decision itself and return a verdict to the model [xp03.dist].",
+      "notes": "Clearly states coexistence and UCG supplying context without replacing judgment, then notes conflicting views on final judgment. Grounded in evidence. Partial coverage due to unresolved conflict."
+    },
+    {
+      "case_id": "XP-03",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "xp03.chatgpt",
+        "xp03.dist",
+        "xp03.gemini"
+      ],
+      "answer_quality_score": 0.675,
+      "claim_coverage": 0.5,
+      "factual_correctness": 0.5,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "Regarding final judgment when native model memory and UCG coexist:\n\n* Native model memory and UCG can coexist, where UCG supplies evidence and context rather than replacing judgment [xp03.gemini], leaving the LLM responsible for the final interpretation and decision [xp03.chatgpt].\n* Conversely, another view states that the gateway should make the final decision itself and return a verdict to the model [xp03.dist].",
+      "notes": "Similar to ucg_gemini; presents coexistence and LLM responsibility for final decision but also presents conflicting gateway-decides view. Grounded. Partial coverage of expected claim."
+    },
+    {
+      "case_id": "XP-04",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "answer_quality_score": 0.25,
+      "claim_coverage": 0.0,
+      "factual_correctness": 0.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 0.0,
+      "citation_valid": true,
+      "answer": "The supplied evidence is insufficient to answer this question.",
+      "notes": "No evidence provided; abstention is reasonable but the expected claim could not be addressed. Abstention is partially correct given truly no evidence, but the account isolation context means this arm failed to retrieve relevant evidence."
+    },
+    {
+      "case_id": "XP-04",
+      "arm": "oracle",
+      "bundle_keys": [
+        "xp04.gold",
+        "xp04.dist"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "Evidence from the main account must remain isolated from another account [xp04.gold], and evidence from a secondary account is not valid for the main account [xp04.dist].",
+      "notes": "Both gold and dist evidence retrieved. Answer correctly states main account isolation and that secondary account evidence is not valid. Grounded in cited sources. Fully covers expected claim."
+    },
+    {
+      "case_id": "XP-04",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "xp04.dist",
+        "xp04.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "Evidence from the main account must remain isolated from other accounts [xp04.gold]. Consequently, similarly worded evidence from a secondary account is not valid for the main account [xp04.dist].",
+      "notes": "Retrieved both xp04.gold and xp04.dist. Answer correctly conveys isolation principle and secondary account invalidity. Well grounded with citations. Covers expected claim."
+    },
+    {
+      "case_id": "XP-04",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "xp04.gold"
+      ],
+      "answer_quality_score": 0.875,
+      "claim_coverage": 0.5,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "Evidence from the main account must remain isolated from another account [xp04.gold]. The provided evidence does not contain additional details regarding \"wrong account isolation.\"",
+      "notes": "Only retrieved xp04.gold, missing xp04.dist. Correctly states isolation principle and is grounded. Partial claim coverage since the dist evidence (wrong account evidence must not bleed in) was available but not retrieved. Does not fabricate."
+    },
+    {
+      "case_id": "XP-04",      "arm": "ucg_opus",
+      "bundle_keys": [
+        "xp04.dist",
+        "xp04.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "Evidence from the main account must remain isolated from another account [xp04.gold], and secondary account evidence is not valid for the main account [xp04.dist].",
+      "notes": "Retrieved both sources. Answer correctly states main account isolation and secondary account evidence invalidity. Grounded with citations. Covers expected claim."
+    },
+    {
+      "case_id": "TU-01",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "answer_quality_score": 0.35,
+      "claim_coverage": 0.0,
+      "factual_correctness": 0.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The supplied evidence is insufficient to answer the question, as no evidence was provided.",
+      "notes": "No evidence provided, so the answer correctly abstains. Abstention is appropriate here."
+    },
+    {
+      "case_id": "TU-01",
+      "arm": "oracle",
+      "bundle_keys": [
+        "tu01.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The current cache eviction policy is LRU plus TTL [tu01.gold].",
+      "notes": "Correctly states the cache eviction policy is LRU plus TTL, fully supported by evidence."
+    },
+    {
+      "case_id": "TU-01",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "tu01.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The current cache eviction policy is LRU plus TTL [tu01.gold].",
+      "notes": "Correctly states the cache eviction policy is LRU plus TTL, fully supported by evidence."
+    },
+    {
+      "case_id": "TU-01",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "tu01.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The current cache eviction policy is LRU plus TTL [tu01.gold].",
+      "notes": "Correctly states the cache eviction policy is LRU plus TTL, fully supported by evidence."
+    },
+    {
+      "case_id": "TU-01",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "tu01.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The current cache eviction policy is LRU plus TTL [tu01.gold].",
+      "notes": "Correctly states the cache eviction policy is LRU plus TTL, fully supported by evidence."
+    },
+    {
+      "case_id": "TU-02",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "answer_quality_score": 0.25,
+      "claim_coverage": 0.0,
+      "factual_correctness": 0.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 0.0,
+      "citation_valid": true,
+      "answer": "The supplied evidence is insufficient to determine the current benchmark retrieval method.",
+      "notes": "No evidence provided; correctly abstains rather than guessing."
+    },
+    {
+      "case_id": "TU-02",
+      "arm": "oracle",
+      "bundle_keys": [
+        "tu02.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The current retrieval baseline is SQLite FTS5 at message granularity [tu02.gold].",
+      "notes": "Directly matches expected claim, fully supported by evidence."
+    },
+    {
+      "case_id": "TU-02",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "tu02.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The current benchmark retrieval method is SQLite FTS5 at message granularity [tu02.gold].",
+      "notes": "Directly matches expected claim, fully supported by evidence."
+    },
+    {
+      "case_id": "TU-02",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "tu02.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The current benchmark retrieval method is SQLite FTS5 at message granularity [tu02.gold].",
+      "notes": "Directly matches expected claim, fully supported by evidence."
+    },
+    {
+      "case_id": "TU-02",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "tu02.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The current benchmark retrieval method is SQLite FTS5 at message granularity [tu02.gold].",
+      "notes": "Directly matches expected claim, fully supported by evidence."
+    },
+    {
+      "case_id": "TU-03",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "answer_quality_score": 0.35,
+      "claim_coverage": 0.0,
+      "factual_correctness": 0.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The supplied evidence is insufficient to answer this question, as no evidence was provided.",
+      "notes": "No evidence provided; correctly abstains rather than guessing."
+    },
+    {
+      "case_id": "TU-03",
+      "arm": "oracle",
+      "bundle_keys": [
+        "tu03.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "Under the current boundary, execution governance, admission, and execution leases are kept in Hermes rather than UCG core [tu03.gold].",
+      "notes": "Fully covers the expected claim with direct evidence support."
+    },
+    {
+      "case_id": "TU-03",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "tu03.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "Under the current boundary, execution governance (along with admission and execution leases) is kept in Hermes rather than UCG core [tu03.gold].",
+      "notes": "Fully covers the expected claim with direct evidence support."
+    },
+    {
+      "case_id": "TU-03",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "tu03.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "Under the current boundary, execution governance, admission, and execution leases are kept in Hermes rather than UCG core [tu03.gold].",
+      "notes": "Fully covers the expected claim with direct evidence support."
+    },
+    {
+      "case_id": "TU-03",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "tu03.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "Under the current boundary, execution governance (along with admission and execution leases) is kept in Hermes rather than the UCG core [tu03.gold].",
+      "notes": "Fully covers the expected claim with direct evidence support."
+    },
+    {
+      "case_id": "TU-04",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "answer_quality_score": 0.35,
+      "claim_coverage": 0.0,
+      "factual_correctness": 0.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The supplied evidence is insufficient to answer the question, as no evidence was provided.",
+      "notes": "No evidence provided, correctly abstains."
+    },
+    {
+      "case_id": "TU-04",
+      "arm": "oracle",
+      "bundle_keys": [
+        "tu04.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "Automatic recall remains a hypothesis until it is benchmarked against native-only and explicit-trigger UCG [tu04.gold].",
+      "notes": "Fully covers the expected claim, grounded in tu04.gold."
+    },
+    {
+      "case_id": "TU-04",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "tu04.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The latest decision is that automatic recall remains a hypothesis until it is benchmarked against native-only and explicit-trigger UCG [tu04.gold].",
+      "notes": "Fully covers the expected claim, grounded in tu04.gold."
+    },
+    {
+      "case_id": "TU-04",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [],
+      "answer_quality_score": 0.25,
+      "claim_coverage": 0.0,
+      "factual_correctness": 0.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 0.0,
+      "citation_valid": true,
+      "answer": "The supplied evidence is insufficient to answer the question.",
+      "notes": "No evidence provided, correctly abstains."
+    },
+    {
+      "case_id": "TU-04",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "tu04.dist1",
+        "tu04.dist2",
+        "tu04.gold"
+      ],
+      "answer_quality_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "abstention_correctness": 1.0,
+      "citation_valid": true,
+      "answer": "The latest decision is that automatic recall remains a hypothesis until it is benchmarked against native-only and explicit-trigger UCG [tu04.gold].",
+      "notes": "Correctly identifies the gold claim from tu04.gold despite distractor evidence, fully grounded."
+    }
+  ],
+  "critical_findings": [
+    "Native-only mean answer quality is 0.2875; all UCG/Oracle arms materially outperform it on the frozen 16-case seed.",
+    "Oracle, UCG Gemini-bundle, and UCG Opus-bundle each score 0.9797 mean answer quality in this run.",
+    "UCG Gemini-bundle reaches the Oracle answer-quality ceiling with the smallest simulated mean bundle (1.625 evidence items) and zero simulated semantic noise in the prior bundle experiment.",
+    "UCG Sonnet-bundle scores 0.925; TU-04 is the clearest failure because the frozen Sonnet semantic assessor produced an empty bundle, causing justified abstention.",
+    "XP-03 remains a real conflict seam: all evidence-bearing arms expose the design conflict instead of collapsing it; judge score is 0.675 for the case.",
+    "This is diagnostic seed evidence, not a CORE GATE: 16 cases, one fixed answer model, one judge model, and Native-only means no UCG evidence injection rather than measured hidden provider memory."
+  ],
+  "next_step": "Run the same frozen bundles with a different fixed answer model, then expand P1/P2 and add human audit before any CORE GATE decision.",
+  "raw_artifact_sha256": "f0a2b76fa4aafb940ff87896d1bf4e54e5523d02bac7e98bf397bda7aafa7cd0",
+  "raw_answer_artifact_sha256": "b418d214583dd1e358fce58934dd912789631957bdd560b10484ff629264cf79",
+  "rerun_judge_sha256": "ed939a75f9da644e8c971f8fa37bb0662db2d85e895a92f10b891ba6fd7760d0",
+  "repository": "everthen/chatgpt-context-gateway",
+  "branch": "experiment/evidence-admission-v0.1",
+  "code_commit": "3efee11f2303a46c3818a3490da70c0405407a4c",
+  "router_runtime_commit": "c477314d",
+  "router_runtime": "9Router dev on localhost:20128; temporary dev-only benchmark route",
+  "temporary_route": "src/app/api/v1/ucg-benchmark/route.js (dev-only, not committed)",
+  "decision": "PASS diagnostic answer-quality seam; NOT CORE GATE"
+}

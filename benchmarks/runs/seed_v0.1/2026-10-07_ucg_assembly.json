@@ -1,0 +1,1004 @@
+[Reading 1000 lines from start (total: 1741 lines, 741 remaining)]
+
+{
+  "schema_version": "ucg-benchmark-run.v0.1",
+  "dataset_cases": 16,
+  "arms": [
+    {
+      "name": "oracle",
+      "description": "Gold evidence supplied directly to the model.",
+      "status": "interface"
+    },
+    {
+      "name": "native",
+      "description": "Native model context/memory without UCG.",
+      "status": "interface"
+    },
+    {
+      "name": "ucg",
+      "description": "Native context plus explicit UCG retrieval.",
+      "status": "runnable"
+    }
+  ],
+  "runnable_arms": [
+    "ucg"
+  ],
+  "case_results": [
+    {
+      "case_id": "LS-01",
+      "task_family": "long_session",
+      "difficulty": "easy",
+      "arm": "ucg",
+      "query": "preferred deployment region",
+      "returned": [
+        {
+          "message_uid": "bb727edb3dc8160f4b7517b5519b8f534d50df84b5c588be2b77fd469a25663c",
+          "snapshot_id": "b7b70944afec594f2af6de344b14f0a746cab254c21d73b3e15663dd02db15fc:snapshot-000001",
+          "conversation_uid": "b7b70944afec594f2af6de344b14f0a746cab254c21d73b3e15663dd02db15fc",
+          "conversation_id": "ls01",
+          "project_name": "UCG Benchmark",
+          "title": "Long architecture thread",
+          "role": "user",
+          "content": "We decided the preferred deployment region is Singapore for the first production rollout.",
+          "message_id": "m-gold",
+          "id": "ls01",
+          "project_id": "bench",
+          "update_time": 1700000000.0,
+          "create_time": 1700000000.0,
+          "provider": "chatgpt",
+          "account_id": "main",
+          "source": "benchmark",
+          "snapshot_seq": 1,
+          "captured_at": 1700000000.0,
+          "source_updated_at": 1700000000.0,
+          "raw_path": "benchmark://chatgpt/main/ls01/snapshot-001.json",
+          "raw_hash": "840e2346eedc41e0abfd5a6e9a2038d24f4bee33845c517b436fe3c71b6d8ace",
+          "score": -3e-06,
+          "evidence_id": "b7b70944afec594f2af6de344b14f0a746cab254c21d73b3e15663dd02db15fc:snapshot-000001:bb727edb3dc8160f4b7517b5519b8f534d50df84b5c588be2b77fd469a25663c",
+          "excerpt": "We decided the preferred deployment region is Singapore for the first production rollout.",
+          "evidence_key": "ls01.gold"
+        },
+        {
+          "message_uid": "a4b6b4e8a9375bf66256cd2af77829c9b5431ae2c97f2ca4a7e8ed7826924594",
+          "snapshot_id": "ad874cd120a44c9918222211574f5f2f02f5d879d216118b46b36c01610bd7b0:snapshot-000001",
+          "conversation_uid": "ad874cd120a44c9918222211574f5f2f02f5d879d216118b46b36c01610bd7b0",
+          "conversation_id": "ls01-dist",
+          "project_name": "UCG Benchmark",
+          "title": "Similar architecture thread",
+          "role": "user",
+          "content": "An early proposal considered Frankfurt as the preferred deployment region, but that was not the final decision.",
+          "message_id": "m-dist",
+          "id": "ls01-dist",
+          "project_id": "bench",
+          "update_time": 1700000000.0,
+          "create_time": 1700000000.0,
+          "provider": "chatgpt",
+          "account_id": "main",
+          "source": "benchmark",
+          "snapshot_seq": 1,
+          "captured_at": 1700000000.0,
+          "source_updated_at": 1700000000.0,
+          "raw_path": "benchmark://chatgpt/main/ls01-dist/snapshot-001.json",
+          "raw_hash": "fad0314e011a594f7e171c11bb251fb00ec276a5265ffa8742a5136e76ca24e0",
+          "score": -2.7621145374449344e-06,
+          "evidence_id": "ad874cd120a44c9918222211574f5f2f02f5d879d216118b46b36c01610bd7b0:snapshot-000001:a4b6b4e8a9375bf66256cd2af77829c9b5431ae2c97f2ca4a7e8ed7826924594",
+          "excerpt": "An early proposal considered Frankfurt as the preferred deployment region, but that was not the final decision.",
+          "evidence_key": "ls01.dist"
+        }
+      ],
+      "retrieval": {
+        "precision": 0.5,
+        "recall": 1.0,
+        "mrr": 1.0,
+        "ndcg": 1.0,
+        "gold_coverage": 1.0,
+        "hits": 1.0,
+        "returned": 2.0
+      },
+      "context": {
+        "irrelevant_rate": 0.5,
+        "context_noise_ratio": 0.5,
+        "provenance_completeness": 1.0
+      },
+      "latency_ms": 0.7808249210938811
+    },
+    {
+      "case_id": "LS-02",
+      "task_family": "long_session",
+      "difficulty": "medium",
+      "arm": "ucg",
+      "query": "event stream retention",
+      "returned": [
+        {
+          "message_uid": "89d63c8abc797cb6da8cb6b64f34e3eb0deb0dd43b1a0479f5531c1118606f19",
+          "snapshot_id": "4c4c2bcf7aadad018d42f68999ab5b21af1405359b59f31858cc8c05bae1eb7b:snapshot-000001",
+          "conversation_uid": "4c4c2bcf7aadad018d42f68999ab5b21af1405359b59f31858cc8c05bae1eb7b",
+          "conversation_id": "ls02-dist",
+          "project_name": "UCG Benchmark",
+          "title": "Retention discussion",
+          "role": "user",
+          "content": "One earlier design suggested 90-day event stream retention for debugging.",
+          "message_id": "m-dist",
+          "id": "ls02-dist",
+          "project_id": "bench",
+          "update_time": 1700000000.0,
+          "create_time": 1700000000.0,
+          "provider": "chatgpt",
+          "account_id": "main",
+          "source": "benchmark",
+          "snapshot_seq": 1,
+          "captured_at": 1700000000.0,
+          "source_updated_at": 1700000000.0,
+          "raw_path": "benchmark://chatgpt/main/ls02-dist/snapshot-001.json",
+          "raw_hash": "c88274cfee6ff72a0d18c98c5e1bb4bef3ee5a0cb28255b70d41873a2b16af56",
+          "score": -2.710271071197935,
+          "evidence_id": "4c4c2bcf7aadad018d42f68999ab5b21af1405359b59f31858cc8c05bae1eb7b:snapshot-000001:89d63c8abc797cb6da8cb6b64f34e3eb0deb0dd43b1a0479f5531c1118606f19",
+          "excerpt": "One earlier design suggested 90-day event stream retention for debugging.",
+          "evidence_key": "ls02.dist"
+        },
+        {
+          "message_uid": "4991d53c0f3897b5018f433580c36852f8e0775ab8a578a23348c672c3749b37",
+          "snapshot_id": "07e7933202ad8252b2b846860966463bca414da79a96cb284252c9c08ac0cfd1:snapshot-000001",
+          "conversation_uid": "07e7933202ad8252b2b846860966463bca414da79a96cb284252c9c08ac0cfd1",
+          "conversation_id": "ls02",
+          "project_name": "UCG Benchmark",
+          "title": "Long data platform thread",
+          "role": "user",
+          "content": "The final event stream retention policy is 30 days.",
+          "message_id": "m-gold",
+          "id": "ls02",
+          "project_id": "bench",
+          "update_time": 1700000000.0,
+          "create_time": 1700000000.0,
+          "provider": "chatgpt",
+          "account_id": "main",
+          "source": "benchmark",
+          "snapshot_seq": 1,
+          "captured_at": 1700000000.0,
+          "source_updated_at": 1700000000.0,
+          "raw_path": "benchmark://chatgpt/main/ls02/snapshot-001.json",
+          "raw_hash": "bf607cb80dfcbae05eb973143f21300c5a1e475fb0698f9272cc2736deab5e69",
+          "score": -2.4156199537832173,
+          "evidence_id": "07e7933202ad8252b2b846860966463bca414da79a96cb284252c9c08ac0cfd1:snapshot-000001:4991d53c0f3897b5018f433580c36852f8e0775ab8a578a23348c672c3749b37",
+          "excerpt": "The final event stream retention policy is 30 days.",
+          "evidence_key": "ls02.gold"
+        }
+      ],
+      "retrieval": {
+        "precision": 0.5,
+        "recall": 1.0,
+        "mrr": 0.5,
+        "ndcg": 0.6309297535714575,
+        "gold_coverage": 1.0,
+        "hits": 1.0,
+        "returned": 2.0
+      },
+      "context": {
+        "irrelevant_rate": 0.5,
+        "context_noise_ratio": 0.5,
+        "provenance_completeness": 1.0
+      },
+      "latency_ms": 0.42708299588412046
+    },
+    {
+      "case_id": "LS-03",
+      "task_family": "long_session",
+      "difficulty": "hard",
+      "arm": "ucg",
+      "query": "approval owner mobile release",
+      "returned": [
+        {
+          "message_uid": "cac734ad776735b894c1ac12c22e72ad29ad3a6f7272460a03a6d6ee74926dbf",
+          "snapshot_id": "27a8133a67877536e681905c64440a21b062607333f7a193ee1072b909222bab:snapshot-000001",
+          "conversation_uid": "27a8133a67877536e681905c64440a21b062607333f7a193ee1072b909222bab",
+          "conversation_id": "ls03",
+          "project_name": "UCG Benchmark",
+          "title": "Mobile launch planning",
+          "role": "user",
+          "content": "Mira is the final approval owner for the mobile release.",
+          "message_id": "m-gold",
+          "id": "ls03",
+          "project_id": "bench",
+          "update_time": 1700000000.0,
+          "create_time": 1700000000.0,
+          "provider": "chatgpt",
+          "account_id": "main",
+          "source": "benchmark",
+          "snapshot_seq": 1,
+          "captured_at": 1700000000.0,
+          "source_updated_at": 1700000000.0,
+          "raw_path": "benchmark://chatgpt/main/ls03/snapshot-001.json",
+          "raw_hash": "3cfdfd8a0e6377f8636e2d261c6f0f4b29d3bb94b4f9e479d0dbf210ba39a370",
+          "score": -4.438807875091079,
+          "evidence_id": "27a8133a67877536e681905c64440a21b062607333f7a193ee1072b909222bab:snapshot-000001:cac734ad776735b894c1ac12c22e72ad29ad3a6f7272460a03a6d6ee74926dbf",
+          "excerpt": "Mira is the final approval owner for the mobile release.",
+          "evidence_key": "ls03.gold"
+        }
+      ],
+      "retrieval": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "mrr": 1.0,
+        "ndcg": 1.0,
+        "gold_coverage": 1.0,
+        "hits": 1.0,
+        "returned": 1.0
+      },
+      "context": {
+        "irrelevant_rate": 0.0,
+        "context_noise_ratio": 0.0,
+        "provenance_completeness": 1.0
+      },
+      "latency_ms": 0.3943530609831214
+    },
+    {
+      "case_id": "LS-04",
+      "task_family": "long_session",
+      "difficulty": "adversarial",
+      "arm": "ucg",
+      "query": "fallback database after failover test",
+      "returned": [
+        {
+          "message_uid": "984f93c00bc5c895ebf999b486e669f21ad8a0521cae173f5499df9af3d58bfd",
+          "snapshot_id": "6dd3c4a449ebb121de66b6a757296433f514784e7aa7c1b2ee49d2335bc9468a:snapshot-000001",
+          "conversation_uid": "6dd3c4a449ebb121de66b6a757296433f514784e7aa7c1b2ee49d2335bc9468a",
+          "conversation_id": "ls04",
+          "project_name": "UCG Benchmark",
+          "title": "Reliability review",
+          "role": "user",
+          "content": "After the failover test, the fallback database is CockroachDB.",
+          "message_id": "m-gold",
+          "id": "ls04",
+          "project_id": "bench",
+          "update_time": 1700000000.0,
+          "create_time": 1700000000.0,
+          "provider": "chatgpt",
+          "account_id": "main",
+          "source": "benchmark",
+          "snapshot_seq": 1,
+          "captured_at": 1700000000.0,
+          "source_updated_at": 1700000000.0,
+          "raw_path": "benchmark://chatgpt/main/ls04/snapshot-001.json",
+          "raw_hash": "d27d6a25388f2762600b095b62af5f0b013e9424783047248d639861b00ad6c3",
+          "score": -7.079918227544291,
+          "evidence_id": "6dd3c4a449ebb121de66b6a757296433f514784e7aa7c1b2ee49d2335bc9468a:snapshot-000001:984f93c00bc5c895ebf999b486e669f21ad8a0521cae173f5499df9af3d58bfd",
+          "excerpt": "After the failover test, the fallback database is CockroachDB.",
+          "evidence_key": "ls04.gold"
+        }
+      ],
+      "retrieval": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "mrr": 1.0,
+        "ndcg": 1.0,
+        "gold_coverage": 1.0,
+        "hits": 1.0,
+        "returned": 1.0
+      },
+      "context": {
+        "irrelevant_rate": 0.0,
+        "context_noise_ratio": 0.0,
+        "provenance_completeness": 1.0
+      },
+      "latency_ms": 0.7249790942296386
+    },
+    {
+      "case_id": "NS-01",
+      "task_family": "new_session",
+      "difficulty": "easy",
+      "arm": "ucg",
+      "query": "research notebook export format",
+      "returned": [
+        {
+          "message_uid": "7c0eca1d69924f117b3c6c0442ba8c0741bf700edfbfeb6b8f41261dcf7a511c",
+          "snapshot_id": "eaafbbbeec1b6c6884106464511843ed935b4c4171d8dd112f6ce3f4a5cfbdda:snapshot-000001",
+          "conversation_uid": "eaafbbbeec1b6c6884106464511843ed935b4c4171d8dd112f6ce3f4a5cfbdda",
+          "conversation_id": "ns01",
+          "project_name": "UCG Benchmark",
+          "title": "Session A research notes",
+          "role": "user",
+          "content": "For portability, the research notebook export format is JSONL.",
+          "message_id": "m-gold",
+          "id": "ns01",
+          "project_id": "bench",
+          "update_time": 1700000000.0,
+          "create_time": 1700000000.0,
+          "provider": "chatgpt",
+          "account_id": "main",
+          "source": "benchmark",
+          "snapshot_seq": 1,
+          "captured_at": 1700000000.0,
+          "source_updated_at": 1700000000.0,
+          "raw_path": "benchmark://chatgpt/main/ns01/snapshot-001.json",
+          "raw_hash": "68743854561e6b9c09c824a77b71eb1e7e1504960c8c027228dbefbddcbd104f",
+          "score": -9.010210551986958,
+          "evidence_id": "eaafbbbeec1b6c6884106464511843ed935b4c4171d8dd112f6ce3f4a5cfbdda:snapshot-000001:7c0eca1d69924f117b3c6c0442ba8c0741bf700edfbfeb6b8f41261dcf7a511c",
+          "excerpt": "For portability, the research notebook export format is JSONL.",
+          "evidence_key": "ns01.gold"
+        }
+      ],
+      "retrieval": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "mrr": 1.0,
+        "ndcg": 1.0,
+        "gold_coverage": 1.0,
+        "hits": 1.0,
+        "returned": 1.0
+      },
+      "context": {
+        "irrelevant_rate": 0.0,
+        "context_noise_ratio": 0.0,
+        "provenance_completeness": 1.0
+      },
+      "latency_ms": 1.3732189545407891
+    },
+    {
+      "case_id": "NS-02",
+      "task_family": "new_session",
+      "difficulty": "medium",
+      "arm": "ucg",
+      "query": "benchmark split freeze",
+      "returned": [
+        {
+          "message_uid": "7cea8e3a2769e930cecdf4bf787e4cd82a135a035520a5fdebf50b0cbce8c132",
+          "snapshot_id": "2afb26d46b6b12b23eed3d334589f03b76a88cce7c22dc56108a65336db252c7:snapshot-000001",
+          "conversation_uid": "2afb26d46b6b12b23eed3d334589f03b76a88cce7c22dc56108a65336db252c7",
+          "conversation_id": "ns02",
+          "project_name": "UCG Benchmark",
+          "title": "Benchmark planning",
+          "role": "user",
+          "content": "We freeze the evaluation split after the harness is stable and metric artifacts are validated.",
+          "message_id": "m-gold",
+          "id": "ns02",
+          "project_id": "bench",
+          "update_time": 1700000000.0,
+          "create_time": 1700000000.0,
+          "provider": "chatgpt",
+          "account_id": "main",
+          "source": "benchmark",
+          "snapshot_seq": 1,
+          "captured_at": 1700000000.0,
+          "source_updated_at": 1700000000.0,
+          "raw_path": "benchmark://chatgpt/main/ns02/snapshot-001.json",
+          "raw_hash": "a4e56984d205c581368298a0493841e8a5678b5b3d8331e2ce0cf2ea41ba924d",
+          "score": -4.013432693419491,
+          "evidence_id": "2afb26d46b6b12b23eed3d334589f03b76a88cce7c22dc56108a65336db252c7:snapshot-000001:7cea8e3a2769e930cecdf4bf787e4cd82a135a035520a5fdebf50b0cbce8c132",
+          "excerpt": "We freeze the evaluation split after the harness is stable and metric artifacts are validated.",
+          "evidence_key": "ns02.gold"
+        }
+      ],
+      "retrieval": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "mrr": 1.0,
+        "ndcg": 1.0,
+        "gold_coverage": 1.0,
+        "hits": 1.0,
+        "returned": 1.0
+      },
+      "context": {
+        "irrelevant_rate": 0.0,
+        "context_noise_ratio": 0.0,
+        "provenance_completeness": 1.0
+      },
+      "latency_ms": 0.5948970792815089
+    },
+    {
+      "case_id": "NS-03",
+      "task_family": "new_session",
+      "difficulty": "hard",
+      "arm": "ucg",
+      "query": "who owns context evaluation",
+      "returned": [],
+      "retrieval": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "mrr": 0.0,
+        "ndcg": 0.0,
+        "gold_coverage": 0.0,
+        "hits": 0.0,
+        "returned": 0.0
+      },
+      "context": {
+        "irrelevant_rate": 0.0,
+        "context_noise_ratio": 0.0,
+        "provenance_completeness": 1.0
+      },
+      "latency_ms": 0.7663279538974166
+    },
+    {
+      "case_id": "NS-04",
+      "task_family": "new_session",
+      "difficulty": "adversarial",
+      "arm": "ucg",
+      "query": "north star recall less noise",
+      "returned": [
+        {
+          "message_uid": "d8bb33de530bc7dbb46682a646c5222f9e921a143f8b5dfb87de45a6df93f1bd",
+          "snapshot_id": "7be673092f0d4a11a5bc7914a4cad2abad558609e1aaa9e101d1fbd9fc12ec04:snapshot-000001",
+          "conversation_uid": "7be673092f0d4a11a5bc7914a4cad2abad558609e1aaa9e101d1fbd9fc12ec04",
+          "conversation_id": "ns04",
+          "project_name": "UCG Benchmark",
+          "title": "Product framing",
+          "role": "user",
+          "content": "The north star is whether UCG improves recall of relevant context with less noise than native context alone.",
+          "message_id": "m-gold",
+          "id": "ns04",
+          "project_id": "bench",
+          "update_time": 1700000000.0,
+          "create_time": 1700000000.0,
+          "provider": "chatgpt",
+          "account_id": "main",
+          "source": "benchmark",
+          "snapshot_seq": 1,
+          "captured_at": 1700000000.0,
+          "source_updated_at": 1700000000.0,
+          "raw_path": "benchmark://chatgpt/main/ns04/snapshot-001.json",
+          "raw_hash": "b57f389405fed9284cae315718c601f83d79dad90256bd6c4608948b4199a8ad",
+          "score": -11.19899945056726,
+          "evidence_id": "7be673092f0d4a11a5bc7914a4cad2abad558609e1aaa9e101d1fbd9fc12ec04:snapshot-000001:d8bb33de530bc7dbb46682a646c5222f9e921a143f8b5dfb87de45a6df93f1bd",
+          "excerpt": "The north star is whether UCG improves recall of relevant context with less noise than native context alone.",
+          "evidence_key": "ns04.gold"
+        }
+      ],
+      "retrieval": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "mrr": 1.0,
+        "ndcg": 1.0,
+        "gold_coverage": 1.0,
+        "hits": 1.0,
+        "returned": 1.0
+      },
+      "context": {
+        "irrelevant_rate": 0.0,
+        "context_noise_ratio": 0.0,
+        "provenance_completeness": 1.0
+      },
+      "latency_ms": 1.1207700008526444
+    },
+    {
+      "case_id": "XP-01",
+      "task_family": "cross_provider",
+      "difficulty": "medium",
+      "arm": "ucg",
+      "query": "context bundle provenance exact message",
+      "returned": [],
+      "retrieval": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "mrr": 0.0,
+        "ndcg": 0.0,
+        "gold_coverage": 0.0,
+        "hits": 0.0,
+        "returned": 0.0
+      },
+      "context": {
+        "irrelevant_rate": 0.0,
+        "context_noise_ratio": 0.0,
+        "provenance_completeness": 1.0
+      },
+      "latency_ms": 0.5994000239297748
+    },
+    {
+      "case_id": "XP-02",
+      "task_family": "cross_provider",
+      "difficulty": "hard",
+      "arm": "ucg",
+      "query": "provider neutral context layer",
+      "returned": [
+        {
+          "message_uid": "05f9d47d9a5c21f48b8dfbd86148958336422406743bb00553ed7dc706cff60b",
+          "snapshot_id": "7c9ae7b53b9fe802a5cdd3cb4ce64bf143b46bf3a799187503842ed06c44f3e4:snapshot-000001",
+          "conversation_uid": "7c9ae7b53b9fe802a5cdd3cb4ce64bf143b46bf3a799187503842ed06c44f3e4",
+          "conversation_id": "xp02-a",
+          "project_name": "UCG Benchmark",
+          "title": "Provider neutrality",
+          "role": "user",
+          "content": "UCG should act as a provider-neutral context layer for OpenAI and other models.",
+          "message_id": "m-openai",
+          "id": "xp02-a",
+          "project_id": "bench",
+          "update_time": 1700000000.0,
+          "create_time": 1700000000.0,
+          "provider": "openai",
+          "account_id": "main",
+          "source": "benchmark",
+          "snapshot_seq": 1,
+          "captured_at": 1700000000.0,
+          "source_updated_at": 1700000000.0,
+          "raw_path": "benchmark://openai/main/xp02-a/snapshot-001.json",
+          "raw_hash": "bd03b9f2c8eb41250f3c1a34f3579aac9ad30445cfe3e734bf9b50409b2678fc",
+          "score": -9.42717032429655,
+          "evidence_id": "7c9ae7b53b9fe802a5cdd3cb4ce64bf143b46bf3a799187503842ed06c44f3e4:snapshot-000001:05f9d47d9a5c21f48b8dfbd86148958336422406743bb00553ed7dc706cff60b",
+          "excerpt": "UCG should act as a provider-neutral context layer for OpenAI and other models.",
+          "evidence_key": "xp02.openai"
+        }
+      ],
+      "retrieval": {
+        "precision": 1.0,
+        "recall": 0.5,
+        "mrr": 1.0,
+        "ndcg": 1.0,
+        "gold_coverage": 0.5,
+        "hits": 1.0,
+        "returned": 1.0
+      },
+      "context": {
+        "irrelevant_rate": 0.0,
+        "context_noise_ratio": 0.0,
+        "provenance_completeness": 1.0
+      },
+      "latency_ms": 0.6851858925074339
+    },
+    {
+      "case_id": "XP-03",
+      "task_family": "cross_provider",
+      "difficulty": "hard",
+      "arm": "ucg",
+      "query": "native memory plus UCG final judgment",
+      "returned": [],
+      "retrieval": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "mrr": 0.0,
+        "ndcg": 0.0,
+        "gold_coverage": 0.0,
+        "hits": 0.0,
+        "returned": 0.0
+      },
+      "context": {
+        "irrelevant_rate": 0.0,
+        "context_noise_ratio": 0.0,
+        "provenance_completeness": 1.0
+      },
+      "latency_ms": 0.9039590368047357
+    },
+    {
+      "case_id": "XP-04",
+      "task_family": "cross_provider",
+      "difficulty": "adversarial",
+      "arm": "ucg",
+      "query": "wrong account isolation",
+      "returned": [],
+      "retrieval": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "mrr": 0.0,
+        "ndcg": 0.0,
+        "gold_coverage": 0.0,
+        "hits": 0.0,
+        "returned": 0.0
+      },
+      "context": {
+        "irrelevant_rate": 0.0,
+        "context_noise_ratio": 0.0,
+        "provenance_completeness": 1.0
+      },
+      "latency_ms": 0.941416947171092
+    },
+    {
+      "case_id": "TU-01",
+      "task_family": "temporal_update",
+      "difficulty": "medium",
+      "arm": "ucg",
+      "query": "current cache eviction policy",
+      "returned": [
+        {
+          "message_uid": "2e0d097dd1f17745760b218355fc3dfe1da63f7aa511b4049dddbae84ba9b23e",
+          "snapshot_id": "3ddb7ffa62dd987ebf6b308f21461f6b27f53c48a8e10539d109271a56233f6b:snapshot-000001",
+          "conversation_uid": "3ddb7ffa62dd987ebf6b308f21461f6b27f53c48a8e10539d109271a56233f6b",
+          "conversation_id": "tu01-current",
+          "project_name": "UCG Benchmark",
+          "title": "Cache policy current",
+          "role": "user",
+          "content": "The current cache eviction policy is LRU plus TTL.",
+          "message_id": "m-gold",
+          "id": "tu01-current",
+          "project_id": "bench",
+          "update_time": 1700000000.0,
+          "create_time": 1700000000.0,
+          "provider": "chatgpt",
+          "account_id": "main",
+          "source": "benchmark",
+          "snapshot_seq": 1,
+          "captured_at": 1700000000.0,
+          "source_updated_at": 1700000000.0,
+          "raw_path": "benchmark://chatgpt/main/tu01-current/snapshot-001.json",
+          "raw_hash": "a3e0e5b1a2f0da5e624db576b97bba37f426484f55e146a33c9a8b4073a13360",
+          "score": -14.288629727838291,
+          "evidence_id": "3ddb7ffa62dd987ebf6b308f21461f6b27f53c48a8e10539d109271a56233f6b:snapshot-000001:2e0d097dd1f17745760b218355fc3dfe1da63f7aa511b4049dddbae84ba9b23e",
+          "excerpt": "The current cache eviction policy is LRU plus TTL.",
+          "evidence_key": "tu01.gold"
+        }
+      ],
+      "retrieval": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "mrr": 1.0,
+        "ndcg": 1.0,
+        "gold_coverage": 1.0,
+        "hits": 1.0,
+        "returned": 1.0
+      },
+      "context": {
+        "irrelevant_rate": 0.0,
+        "context_noise_ratio": 0.0,
+        "provenance_completeness": 1.0
+      },
+      "latency_ms": 0.5852879257872701
+    },
+    {
+      "case_id": "TU-02",
+      "task_family": "temporal_update",
+      "difficulty": "hard",
+      "arm": "ucg",
+      "query": "current benchmark retrieval method",
+      "returned": [
+        {
+          "message_uid": "1a15d0dbd23f56ebcd30fac740c23a692b60f923437315c7a95e240c5de18d31",
+          "snapshot_id": "62a70a2c90ca507245def98ba0f1d4cf94c499d58099fcf00d44f18ab792f33a:snapshot-000001",
+          "conversation_uid": "62a70a2c90ca507245def98ba0f1d4cf94c499d58099fcf00d44f18ab792f33a",
+          "conversation_id": "tu02-current",
+          "project_name": "UCG Benchmark",
+          "title": "Retrieval method current",
+          "role": "user",
+          "content": "The current retrieval baseline is SQLite FTS5 at message granularity.",
+          "message_id": "m-gold",
+          "id": "tu02-current",
+          "project_id": "bench",
+          "update_time": 1700000000.0,
+          "create_time": 1700000000.0,
+          "provider": "chatgpt",
+          "account_id": "main",
+          "source": "benchmark",
+          "snapshot_seq": 1,
+          "captured_at": 1700000000.0,
+          "source_updated_at": 1700000000.0,
+          "raw_path": "benchmark://chatgpt/main/tu02-current/snapshot-001.json",
+          "raw_hash": "2da515afbe44a35db903706713ced9768f5407c5551d97a07f1eb73ad67b2b74",
+          "score": -9.784111017806893,
+          "evidence_id": "62a70a2c90ca507245def98ba0f1d4cf94c499d58099fcf00d44f18ab792f33a:snapshot-000001:1a15d0dbd23f56ebcd30fac740c23a692b60f923437315c7a95e240c5de18d31",
+          "excerpt": "The current retrieval baseline is SQLite FTS5 at message granularity.",
+          "evidence_key": "tu02.gold"
+        }
+      ],
+      "retrieval": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "mrr": 1.0,
+        "ndcg": 1.0,
+        "gold_coverage": 1.0,
+        "hits": 1.0,
+        "returned": 1.0
+      },
+      "context": {
+        "irrelevant_rate": 0.0,
+        "context_noise_ratio": 0.0,
+        "provenance_completeness": 1.0
+      },
+      "latency_ms": 1.6198689118027687
+    },
+    {
+      "case_id": "TU-03",
+      "task_family": "temporal_update",
+      "difficulty": "hard",
+      "arm": "ucg",
+      "query": "current UCG core boundary Hermes governance",
+      "returned": [
+        {
+          "message_uid": "6b6e05e717561db06beef4c2f279dff8321625e67288aa47545629fe581b806e",
+          "snapshot_id": "7b585f89c0bb7f4c2bfe624c9da7e703deaa916da2774a29adce17469a642809:snapshot-000001",
+          "conversation_uid": "7b585f89c0bb7f4c2bfe624c9da7e703deaa916da2774a29adce17469a642809",
+          "conversation_id": "tu03-current",
+          "project_name": "UCG Benchmark",
+          "title": "Boundary decision",
+          "role": "user",
+          "content": "The current boundary keeps admission, execution leases, and execution governance in Hermes rather than UCG core.",
+          "message_id": "m-gold",
+          "id": "tu03-current",
+          "project_id": "bench",
+          "update_time": 1700000000.0,
+          "create_time": 1700000000.0,
+          "provider": "chatgpt",
+          "account_id": "main",
+          "source": "benchmark",
+          "snapshot_seq": 1,
+          "captured_at": 1700000000.0,
+          "source_updated_at": 1700000000.0,
+          "raw_path": "benchmark://chatgpt/main/tu03-current/snapshot-001.json",
+          "raw_hash": "71c0a7b76c0b95b5c205f12a4fe8eb87b9438f7644ae6218429022bc614893a6",
+          "score": -13.741650281523544,
+          "evidence_id": "7b585f89c0bb7f4c2bfe624c9da7e703deaa916da2774a29adce17469a642809:snapshot-000001:6b6e05e717561db06beef4c2f279dff8321625e67288aa47545629fe581b806e",
+          "excerpt": "The current boundary keeps admission, execution leases, and execution governance in Hermes rather than UCG core.",
+          "evidence_key": "tu03.gold"
+        }
+      ],
+      "retrieval": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "mrr": 1.0,
+        "ndcg": 1.0,
+        "gold_coverage": 1.0,
+        "hits": 1.0,
+        "returned": 1.0
+      },
+      "context": {
+        "irrelevant_rate": 0.0,
+        "context_noise_ratio": 0.0,
+        "provenance_completeness": 1.0
+      },
+      "latency_ms": 0.7448549149557948
+    },
+    {
+      "case_id": "TU-04",
+      "task_family": "temporal_update",
+      "difficulty": "adversarial",
+      "arm": "ucg",
+      "query": "latest automatic recall decision",
+      "returned": [],
+      "retrieval": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "mrr": 0.0,
+        "ndcg": 0.0,
+        "gold_coverage": 0.0,
+        "hits": 0.0,
+        "returned": 0.0
+      },
+      "context": {
+        "irrelevant_rate": 0.0,
+        "context_noise_ratio": 0.0,
+        "provenance_completeness": 1.0
+      },
+      "latency_ms": 0.6548460805788636
+    }
+  ],
+  "aggregate": {
+    "context_noise_ratio": 0.0625,
+    "gold_coverage": 0.65625,
+    "hits": 0.6875,
+    "irrelevant_rate": 0.0625,
+    "latency_ms": 0.8073296121438034,
+    "mrr": 0.65625,
+    "ndcg": 0.6644331095982161,
+    "precision": 0.625,
+    "provenance_completeness": 1.0,
+    "recall": 0.65625,
+    "returned": 0.8125
+  },
+  "assembly": {
+    "arm": "ucg_assembly",
+    "subquery_counts": {
+      "count": 1.75
+    },
+    "case_results": [
+      {
+        "case_id": "LS-01",
+        "task_family": "long_session",
+        "difficulty": "easy",
+        "arm": "ucg_assembly",
+        "query": "preferred deployment region",
+        "returned": [
+          {
+            "message_uid": "bb727edb3dc8160f4b7517b5519b8f534d50df84b5c588be2b77fd469a25663c",
+            "snapshot_id": "b7b70944afec594f2af6de344b14f0a746cab254c21d73b3e15663dd02db15fc:snapshot-000001",
+            "conversation_uid": "b7b70944afec594f2af6de344b14f0a746cab254c21d73b3e15663dd02db15fc",
+            "conversation_id": "ls01",
+            "project_name": "UCG Benchmark",
+            "title": "Long architecture thread",
+            "role": "user",
+            "content": "We decided the preferred deployment region is Singapore for the first production rollout.",
+            "message_id": "m-gold",
+            "id": "ls01",
+            "project_id": "bench",
+            "update_time": 1700000000.0,
+            "create_time": 1700000000.0,
+            "provider": "chatgpt",
+            "account_id": "main",
+            "source": "benchmark",
+            "snapshot_seq": 1,
+            "captured_at": 1700000000.0,
+            "source_updated_at": 1700000000.0,
+            "raw_path": "benchmark://chatgpt/main/ls01/snapshot-001.json",
+            "raw_hash": "840e2346eedc41e0abfd5a6e9a2038d24f4bee33845c517b436fe3c71b6d8ace",
+            "score": -2e-06,
+            "evidence_id": "b7b70944afec594f2af6de344b14f0a746cab254c21d73b3e15663dd02db15fc:snapshot-000001:bb727edb3dc8160f4b7517b5519b8f534d50df84b5c588be2b77fd469a25663c",
+            "excerpt": "We decided the preferred deployment region is Singapore for the first production rollout.",
+            "_query_index": 0,
+            "_rank": 1,
+            "_fusion_score": 0.1111111111111111,
+            "evidence_key": "ls01.gold"
+          },
+          {
+            "message_uid": "a4b6b4e8a9375bf66256cd2af77829c9b5431ae2c97f2ca4a7e8ed7826924594",
+            "snapshot_id": "ad874cd120a44c9918222211574f5f2f02f5d879d216118b46b36c01610bd7b0:snapshot-000001",
+            "conversation_uid": "ad874cd120a44c9918222211574f5f2f02f5d879d216118b46b36c01610bd7b0",
+            "conversation_id": "ls01-dist",
+            "project_name": "UCG Benchmark",
+            "title": "Similar architecture thread",
+            "role": "user",
+            "content": "An early proposal considered Frankfurt as the preferred deployment region, but that was not the final decision.",
+            "message_id": "m-dist",
+            "id": "ls01-dist",
+            "project_id": "bench",
+            "update_time": 1700000000.0,
+            "create_time": 1700000000.0,
+            "provider": "chatgpt",
+            "account_id": "main",
+            "source": "benchmark",
+            "snapshot_seq": 1,
+            "captured_at": 1700000000.0,
+            "source_updated_at": 1700000000.0,
+            "raw_path": "benchmark://chatgpt/main/ls01-dist/snapshot-001.json",
+            "raw_hash": "fad0314e011a594f7e171c11bb251fb00ec276a5265ffa8742a5136e76ca24e0",
+            "score": -1.8414096916299562e-06,
+            "evidence_id": "ad874cd120a44c9918222211574f5f2f02f5d879d216118b46b36c01610bd7b0:snapshot-000001:a4b6b4e8a9375bf66256cd2af77829c9b5431ae2c97f2ca4a7e8ed7826924594",
+            "excerpt": "An early proposal considered Frankfurt as the preferred deployment region, but that was not the final decision.",
+            "_query_index": 0,
+            "_rank": 2,
+            "_fusion_score": 0.2222222222222222,
+            "evidence_key": "ls01.dist"
+          }
+        ],
+        "retrieval": {
+          "precision": 0.5,
+          "recall": 1.0,
+          "mrr": 1.0,
+          "ndcg": 1.0,
+          "gold_coverage": 1.0,
+          "hits": 1.0,
+          "returned": 2.0
+        },
+        "context": {
+          "irrelevant_rate": 0.5,
+          "context_noise_ratio": 0.5,
+          "provenance_completeness": 1.0
+        },
+        "latency_ms": 0.5044009303674102
+      },
+      {
+        "case_id": "LS-02",
+        "task_family": "long_session",
+        "difficulty": "medium",
+        "arm": "ucg_assembly",
+        "query": "event stream retention",
+        "returned": [
+          {
+            "message_uid": "89d63c8abc797cb6da8cb6b64f34e3eb0deb0dd43b1a0479f5531c1118606f19",
+            "snapshot_id": "4c4c2bcf7aadad018d42f68999ab5b21af1405359b59f31858cc8c05bae1eb7b:snapshot-000001",
+            "conversation_uid": "4c4c2bcf7aadad018d42f68999ab5b21af1405359b59f31858cc8c05bae1eb7b",
+            "conversation_id": "ls02-dist",
+            "project_name": "UCG Benchmark",
+            "title": "Retention discussion",
+            "role": "user",
+            "content": "One earlier design suggested 90-day event stream retention for debugging.",
+            "message_id": "m-dist",
+            "id": "ls02-dist",
+            "project_id": "bench",
+            "update_time": 1700000000.0,
+            "create_time": 1700000000.0,
+            "provider": "chatgpt",
+            "account_id": "main",
+            "source": "benchmark",
+            "snapshot_seq": 1,
+            "captured_at": 1700000000.0,
+            "source_updated_at": 1700000000.0,
+            "raw_path": "benchmark://chatgpt/main/ls02-dist/snapshot-001.json",
+            "raw_hash": "c88274cfee6ff72a0d18c98c5e1bb4bef3ee5a0cb28255b70d41873a2b16af56",
+            "score": -2.710271071197935,
+            "evidence_id": "4c4c2bcf7aadad018d42f68999ab5b21af1405359b59f31858cc8c05bae1eb7b:snapshot-000001:89d63c8abc797cb6da8cb6b64f34e3eb0deb0dd43b1a0479f5531c1118606f19",
+            "excerpt": "One earlier design suggested 90-day event stream retention for debugging.",
+            "_query_index": 0,
+            "_rank": 1,
+            "_fusion_score": 0.1111111111111111,
+            "evidence_key": "ls02.dist"
+          },
+          {
+            "message_uid": "4991d53c0f3897b5018f433580c36852f8e0775ab8a578a23348c672c3749b37",
+            "snapshot_id": "07e7933202ad8252b2b846860966463bca414da79a96cb284252c9c08ac0cfd1:snapshot-000001",
+            "conversation_uid": "07e7933202ad8252b2b846860966463bca414da79a96cb284252c9c08ac0cfd1",
+            "conversation_id": "ls02",
+            "project_name": "UCG Benchmark",
+            "title": "Long data platform thread",
+            "role": "user",
+            "content": "The final event stream retention policy is 30 days.",
+            "message_id": "m-gold",
+            "id": "ls02",
+            "project_id": "bench",
+            "update_time": 1700000000.0,
+            "create_time": 1700000000.0,
+            "provider": "chatgpt",
+            "account_id": "main",
+            "source": "benchmark",
+            "snapshot_seq": 1,
+            "captured_at": 1700000000.0,
+            "source_updated_at": 1700000000.0,
+            "raw_path": "benchmark://chatgpt/main/ls02/snapshot-001.json",
+            "raw_hash": "bf607cb80dfcbae05eb973143f21300c5a1e475fb0698f9272cc2736deab5e69",
+            "score": -2.4156199537832173,
+            "evidence_id": "07e7933202ad8252b2b846860966463bca414da79a96cb284252c9c08ac0cfd1:snapshot-000001:4991d53c0f3897b5018f433580c36852f8e0775ab8a578a23348c672c3749b37",
+            "excerpt": "The final event stream retention policy is 30 days.",
+            "_query_index": 0,
+            "_rank": 2,
+            "_fusion_score": 0.2222222222222222,
+            "evidence_key": "ls02.gold"
+          }
+        ],
+        "retrieval": {
+          "precision": 0.5,
+          "recall": 1.0,
+          "mrr": 0.5,
+          "ndcg": 0.6309297535714575,
+          "gold_coverage": 1.0,
+          "hits": 1.0,
+          "returned": 2.0
+        },
+        "context": {
+          "irrelevant_rate": 0.5,
+          "context_noise_ratio": 0.5,
+          "provenance_completeness": 1.0
+        },
+        "latency_ms": 0.3237720811739564
+      },
+      {
+        "case_id": "LS-03",
+        "task_family": "long_session",
+        "difficulty": "hard",
+        "arm": "ucg_assembly",
+        "query": "approval owner mobile release",
+        "returned": [],
+        "retrieval": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "mrr": 0.0,
+          "ndcg": 0.0,
+          "gold_coverage": 0.0,
+          "hits": 0.0,
+          "returned": 0.0
+        },
+        "context": {
+          "irrelevant_rate": 0.0,
+          "context_noise_ratio": 0.0,
+          "provenance_completeness": 1.0
+        },
+        "latency_ms": 0.14320993795990944
+      },
+      {
+        "case_id": "LS-04",
+        "task_family": "long_session",
+        "difficulty": "adversarial",
+        "arm": "ucg_assembly",
+        "query": "fallback database after failover test",
+        "returned": [
+          {
+            "message_uid": "984f93c00bc5c895ebf999b486e669f21ad8a0521cae173f5499df9af3d58bfd",
+            "snapshot_id": "6dd3c4a449ebb121de66b6a757296433f514784e7aa7c1b2ee49d2335bc9468a:snapshot-000001",
+            "conversation_uid": "6dd3c4a449ebb121de66b6a757296433f514784e7aa7c1b2ee49d2335bc9468a",
+            "conversation_id": "ls04",
+            "project_name": "UCG Benchmark",
+            "title": "Reliability review",
+            "role": "user",
+            "content": "After the failover test, the fallback database is CockroachDB.",
+            "message_id": "m-gold",
+            "id": "ls04",
+            "project_id": "bench",
+            "update_time": 1700000000.0,
+            "create_time": 1700000000.0,
+            "provider": "chatgpt",
+            "account_id": "main",
+            "source": "benchmark",
+            "snapshot_seq": 1,
+            "captured_at": 1700000000.0,
+            "source_updated_at": 1700000000.0,
+            "raw_path": "benchmark://chatgpt/main/ls04/snapshot-001.json",
+            "raw_hash": "d27d6a25388f2762600b095b62af5f0b013e9424783047248d639861b00ad6c3",
+            "score": -7.079918227544291,
+            "evidence_id": "6dd3c4a449ebb121de66b6a757296433f514784e7aa7c1b2ee49d2335bc9468a:snapshot-000001:984f93c00bc5c895ebf999b486e669f21ad8a0521cae173f5499df9af3d58bfd",
+            "excerpt": "After the failover test, the fallback database is CockroachDB.",
+            "_query_index": 0,
+            "_rank": 1,
+            "_fusion_score": 0.1111111111111111,
+
+[executed on device: hermes-vm (24be9d7a-f374-4723-94ee-b7833b4dd0cb)]

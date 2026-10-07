@@ -86,6 +86,7 @@ Default relation mapping:
 | Selection relation | Target lane | Answer-visible |
 |---|---|---|
 | `required_contrast` | `answer_contrast` | yes |
+| `required_complement` | `answer_support` | yes |
 | `required_boundary_contrast` | `control_boundary` | no |
 | `required_conflict` | `control_conflict` | no |
 | `required_state_contrast` | `control_state` | no |

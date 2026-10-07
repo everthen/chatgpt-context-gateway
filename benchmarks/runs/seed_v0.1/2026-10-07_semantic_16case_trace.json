@@ -1,0 +1,35 @@
+{
+  "schema_version": "ucg-traceability.v0.1",
+  "experiment_id": "EXP-2E",
+  "step_id": "EXP-2E-S6",
+  "parent_step": "EXP-2E-S5",
+  "objective": "Run the frozen rich-gold semantic treatment across all 16 seed cases for Claude Sonnet 4.6 and Claude Opus 4.6-thinking.",
+  "repository": "everthen/chatgpt-context-gateway",
+  "branch": "experiment/evidence-admission-v0.1",
+  "code_commit": "00dda136edf37a8f1355298e0b98525eb7d38459",
+  "dataset_version": "seed_v0.1",
+  "dataset_hash": "977d081d4b0221d89c04bcd6ebe513c23304bbb2e94973b4fb9dbf25c5c34141",
+  "assessor": "semantic-model-via-local-9router",
+  "assessor_version": "semantic-assessor-v0.1",
+  "configuration": {
+    "cases": 16,
+    "models": [
+      "ag/claude-sonnet-4-6",
+      "ag/claude-opus-4-6-thinking"
+    ],
+    "temperature": 0,
+    "max_output_tokens": 1024,
+    "normalizer": "normalize_semantic_response"
+  },
+  "artifacts": [
+    "benchmarks/audits/seed_v0.1/2026-10-07_semantic_gold_audit_16_v0.1.json",
+    "benchmarks/runs/seed_v0.1/2026-10-07_sonnet_opus_16_compact_v0.2.json",
+    "benchmarks/runs/seed_v0.1/2026-10-07_sonnet_opus_16_gold_score_v0.1.json",
+    "benchmarks/runs/seed_v0.1/2026-10-07_semantic_benchmark_router_gate_fix_v0.2.json"
+  ],
+  "status": "pass_with_transport_exceptions",
+  "finding": "Both models recovered 100% of required evidence. Sonnet scored 74.44% worthiness-role accuracy, 94.05% temporal accuracy, and 79.44% admission accuracy over 15 scorable cases; Opus scored 67.71%, 87.78%, and 83.33% respectively over 16 scorable cases. Sonnet had one malformed TU-04 response at the 1024 output cap. Opus had 11 pre-inference RPM blocks that were replayed after a benchmark-only RPM limit increase.",
+  "decision": "Treat Sonnet as stronger semantic-role/temporal candidate and Opus as stronger admission candidate, but do not declare a permanent winner. Run the same frozen treatment on the provisional Gemini Flash comparator before model selection.",
+  "next_step": "Run ag/gemini-3.8-flash across the same 16 cases with the same 1024 output cap and frozen gold.",
+  "recorded_at": "2026-10-07T12:00:00+07:00"
+}

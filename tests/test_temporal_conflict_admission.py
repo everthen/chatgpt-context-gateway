@@ -53,7 +53,7 @@ def test_temporal_conflict_attack_suite():
             assert annotations[evidence_id] == expected, case["attack_id"]
 
 
-def test_recency_alone_does_not_resolve_conflict():
+def test_temporal_state_classification_resolves_stale_candidate():
     candidates = [
         {
             "evidence_id": "old",
@@ -77,7 +77,7 @@ def test_recency_alone_does_not_resolve_conflict():
     )
 
     assert ids(selected) == ["new"]
-    assert selected[0]["admission_annotation"]["conflict_status"] == "unresolved"
+    assert selected[0]["admission_annotation"]["conflict_status"] == "resolved_by_temporal_state"
 
 
 def test_explicit_supersession_resolves_conflict():

@@ -81,3 +81,27 @@ class SemanticCaseGold:
             "conflict_complete_set": list(self.conflict_complete_set),
             "audit_rationale": self.audit_rationale,
         }
+
+
+def derive_admission(
+    *,
+    task_fit: str,
+    worthiness_role: str,
+    temporal_state: str,
+    query_mode: str,
+) -> str:
+    """Derive an expected gate action from a semantic assessment.
+
+    This is intentionally a scoring/control rule, not a truth oracle. The
+    semantic assessor predicts relationship; the gate policy decides whether
+    that relationship is worth carrying into the current context mode.
+    """
+    if task_fit == "none":
+        return "reject"
+    if query_mode in {"current_fact", "latest_current_decision"} and temporal_state == "obsolete":
+        return "reject"
+    if worthiness_role == "contradiction":
+        return "admit_conflict"
+    if worthiness_role in {"direct_support", "supporting"}:
+        return "admit"
+    return "reject"

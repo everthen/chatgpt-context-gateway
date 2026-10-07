@@ -128,3 +128,20 @@ commit + dataset hash + config + assessor + artifact
 ```
 
 A local pass without a reconstructable trace is not accepted as a research result.
+
+
+## Semantic worthiness assessor
+
+- [x] EXP-2E issue created (#5)
+- [x] Blind semantic assessor contract
+- [x] Strict structured-output parser
+- [x] Blind/gold pack separation
+- [x] Fail-closed unavailable model adapter
+- [x] Trace record with dataset SHA-256
+- [ ] Real semantic/model adapter
+- [ ] Semantic assessor benchmark run
+
+Current trace:
+`benchmarks/runs/seed_v0.1/2026-10-07_semantic_assessor_trace.json`
+
+Decision: the evaluator and blind input contract are now frozen for the treatment experiment. Only the real model/provider adapter remains unbound.

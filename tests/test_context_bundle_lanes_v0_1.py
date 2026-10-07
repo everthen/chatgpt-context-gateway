@@ -143,3 +143,39 @@ def test_answer_context_rejects_control_lane_metadata():
         assert "supporting evidence cannot" in str(exc)
     else:
         raise AssertionError("supporting evidence cannot silently become control")
+
+from benchmarks.context_bundle_lanes_v0_1 import ContextBundle, validate_context_bundle
+
+
+def test_control_to_answer_leak_attack_fails_closed():
+    candidates = [
+        candidate(
+            "gold",
+            "supporting",
+            "account-A",
+            [
+                {
+                    "target": "wrong",
+                    "type": "required_boundary_contrast",
+                    "when_selected": True,
+                }
+            ],
+        ),
+        candidate("wrong", "contrastive", "account-B"),
+    ]
+    bundle = build_context_bundle(candidates, ["gold", "wrong"])
+
+    leaked = dict(bundle.control_context[0])
+    tampered = ContextBundle(
+        answer_context=bundle.answer_context + (leaked,),
+        control_context=bundle.control_context,
+        epistemic_relations=bundle.epistemic_relations,
+    )
+
+    try:
+        validate_context_bundle(tampered)
+    except ContextBundleValidationError as exc:
+        assert "answer-visible" in str(exc)
+    else:
+        raise AssertionError("control-to-answer leakage must fail closed")
+

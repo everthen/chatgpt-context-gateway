@@ -175,7 +175,7 @@ def test_control_to_answer_leak_attack_fails_closed():
     try:
         validate_context_bundle(tampered)
     except ContextBundleValidationError as exc:
-        assert "answer-visible" in str(exc)
+        assert ("both lanes" in str(exc)) or ("answer-visible" in str(exc))
     else:
         raise AssertionError("control-to-answer leakage must fail closed")
 

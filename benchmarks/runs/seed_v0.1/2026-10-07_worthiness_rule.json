@@ -1,0 +1,23 @@
+{
+  "schema_version": "ucg-worthiness-rule-run.v0.1",
+  "dataset_cases": 16,
+  "candidate_limit": 8,
+  "assessor": "lexical-v0.1",
+  "aggregate": {
+    "task_fit_accuracy": 0.5208333333333334,
+    "worthiness_role_accuracy": 0.5208333333333334,
+    "worthiness_precision": 0.6354166666666666,
+    "worthiness_recall": 0.875
+  },
+  "interpretation": {
+    "status": "lower_bound_control",
+    "conclusion": "lexical overlap alone is insufficient for context worthiness assessment"
+  },
+  "observed_failure_classes": [
+    "lexical distractors receive direct-support labels",
+    "semantically relevant evidence receives none/supporting mismatches",
+    "cross-provider claims require semantic relation rather than token overlap",
+    "account-isolation and temporal-update cases defeat lexical scoring",
+    "contradiction detection is not modeled by the rule baseline"
+  ]
+}

@@ -1,0 +1,614 @@
+[Reading 610 lines from start (total: 610 lines, 0 remaining)]
+
+{
+  "schema_version": "ucg-semantic-bakeoff-compact.v0.2",
+  "experiment_id": "EXP-2E",
+  "step_id": "EXP-2E-S5",
+  "dataset_version": "seed_v0.1",
+  "dataset_hash": "977d081d4b0221d89c04bcd6ebe513c23304bbb2e94973b4fb9dbf25c5c34141",
+  "models": [
+    "ag/claude-sonnet-4-6",
+    "ag/claude-opus-4-6-thinking"
+  ],
+  "cases": [
+    "LS-02",
+    "NS-04",
+    "XP-01",
+    "TU-04"
+  ],
+  "configuration": {
+    "temperature": 0,
+    "max_output_tokens": 1024,
+    "endpoint": "local_9router_openai_compatible",
+    "normalizer": "normalize_semantic_response"
+  },
+  "summary": {
+    "ag/claude-sonnet-4-6": {
+      "cases_scored": 4,
+      "task_fit_accuracy": 0.5208333333333333,
+      "worthiness_role_accuracy": 0.9166666666666666,
+      "temporal_accuracy": 0.75,
+      "admission_accuracy": 0.5833333333333334,
+      "required_evidence_recall": 1.0,
+      "contradiction_precision": 0.9166666666666666,
+      "contradiction_recall": 1.0,
+      "protocol_compliance_rate": 0.0,
+      "mean_latency_ms": 4952.953773259651,
+      "latencies_ms": [
+        5237.2,
+        5933.2,
+        4305.9,
+        4335.5
+      ]
+    },
+    "ag/claude-opus-4-6-thinking": {
+      "cases_scored": 4,
+      "task_fit_accuracy": 0.4583333333333333,
+      "worthiness_role_accuracy": 0.8333333333333333,
+      "temporal_accuracy": 0.75,
+      "admission_accuracy": 0.75,
+      "required_evidence_recall": 1.0,
+      "contradiction_precision": 1.0,
+      "contradiction_recall": 0.75,
+      "protocol_compliance_rate": 0.0,
+      "mean_latency_ms": 4920.014510280453,
+      "latencies_ms": [
+        4735.6,
+        5642.0,
+        4558.2,
+        4744.2
+      ]
+    }
+  },
+  "case_metrics": [
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "NS-04",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.3333333333333333,
+        "worthiness_role_accuracy": 1.0,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 0.3333333333333333,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "LS-02",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.75,
+        "worthiness_role_accuracy": 1.0,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "XP-01",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.6666666666666666,
+        "worthiness_role_accuracy": 1.0,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "TU-04",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.3333333333333333,
+        "worthiness_role_accuracy": 0.6666666666666666,
+        "temporal_accuracy": 0.0,
+        "admission_accuracy": 0.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.6666666666666666,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "NS-04",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.3333333333333333,
+        "worthiness_role_accuracy": 0.6666666666666666,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 0.6666666666666666,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 0.5
+      }
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "LS-02",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.5,
+        "worthiness_role_accuracy": 1.0,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "TU-04",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.3333333333333333,
+        "worthiness_role_accuracy": 0.6666666666666666,
+        "temporal_accuracy": 0.0,
+        "admission_accuracy": 0.3333333333333333,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 0.5
+      }
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "XP-01",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.6666666666666666,
+        "worthiness_role_accuracy": 1.0,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    }
+  ],
+  "rows": [
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "NS-04",
+      "status": "complete",
+      "protocol_compliant": false,
+      "latency_ms": 5237.2,
+      "prompt_hash": "e357a2f9e359c01f31b536ccabbbb6e717e2f167b5b275da27788127dfebfc0e",
+      "assessments": [
+        {
+          "candidate_id": "C1",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-1"
+          ],
+          "conflict_group": "north-star-definition",
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.97
+        },
+        {
+          "candidate_id": "C2",
+          "task_fit": "none",
+          "worthiness_role": "contradiction",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-2"
+          ],
+          "conflict_group": "north-star-definition",
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.88
+        },
+        {
+          "candidate_id": "C3",
+          "task_fit": "none",
+          "worthiness_role": "contradiction",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-3"
+          ],
+          "conflict_group": "north-star-definition",
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.85
+        }
+      ],
+      "raw_response_sha256": "d7713f285801f05a1b9c4186b8ff33fcd6412e554a9458d319434580556d7d43"
+    },
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "LS-02",
+      "status": "complete",
+      "protocol_compliant": false,
+      "latency_ms": 5933.2,
+      "prompt_hash": "191d89d530064c5bb3606ff4bdc4e717448ed78ab54e7eba38347023a21a8603",
+      "assessments": [
+        {
+          "candidate_id": "C1",
+          "task_fit": "contextual",
+          "worthiness_role": "contextual",
+          "temporal_state": "unknown",
+          "claim_ids": [
+            "claim-context-analytics-pipeline"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.55
+        },
+        {
+          "candidate_id": "C2",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-retention-30-days"
+          ],
+          "conflict_group": "retention-policy-conflict",
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.92
+        },
+        {
+          "candidate_id": "C3",
+          "task_fit": "contextual",
+          "worthiness_role": "contextual",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-cold-archival-separate"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.6
+        },
+        {
+          "candidate_id": "C4",
+          "task_fit": "supporting",
+          "worthiness_role": "contradiction",
+          "temporal_state": "obsolete",
+          "claim_ids": [
+            "claim-retention-90-days"
+          ],
+          "conflict_group": "retention-policy-conflict",
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.78
+        }
+      ],
+      "raw_response_sha256": "a09484594a2920c52b0e6a215a7f3b0d152eafee3c86a3f95c3dd8cdb13208e1"
+    },
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "XP-01",
+      "status": "complete",
+      "protocol_compliant": false,
+      "latency_ms": 4305.9,
+      "prompt_hash": "decf9c5a97230874c9bbbb9824aace5495ced67874cea3039d8f2b6798da7865",
+      "assessments": [
+        {
+          "candidate_id": "C1",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-exact-message-provenance"
+          ],
+          "conflict_group": "provenance-completeness-conflict",
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.92
+        },
+        {
+          "candidate_id": "C2",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-context-bundle-provenance",
+            "claim-exact-message-provenance"
+          ],
+          "conflict_group": "provenance-completeness-conflict",
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.95
+        },
+        {
+          "candidate_id": "C3",
+          "task_fit": "supporting",
+          "worthiness_role": "contradiction",
+          "temporal_state": "proposed",
+          "claim_ids": [
+            "claim-exact-message-provenance-absent"
+          ],
+          "conflict_group": "provenance-completeness-conflict",
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.82
+        }
+      ],
+      "raw_response_sha256": "7d5b7fbf740103b6347a688d097fe7cbc513cde96939e64854650222e3827937"
+    },
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "TU-04",
+      "status": "complete",
+      "protocol_compliant": false,
+      "latency_ms": 4335.5,
+      "prompt_hash": "da652df9dc2bd46d73eed188aa799a83fad46417b946692c12a8f425eb7e0546",
+      "assessments": [
+        {
+          "candidate_id": "C1",
+          "task_fit": "direct",
+          "worthiness_role": "contradiction",
+          "temporal_state": "proposed",
+          "claim_ids": [
+            "claim-ar-undecided"
+          ],
+          "conflict_group": "automatic-recall-status",
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.72
+        },
+        {
+          "candidate_id": "C2",
+          "task_fit": "direct",
+          "worthiness_role": "contradiction",
+          "temporal_state": "proposed",
+          "claim_ids": [
+            "claim-ar-enable-default"
+          ],
+          "conflict_group": "automatic-recall-status",
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.6
+        },
+        {
+          "candidate_id": "C3",
+          "task_fit": "direct",
+          "worthiness_role": "contradiction",
+          "temporal_state": "unknown",
+          "claim_ids": [
+            "claim-ar-always-better-decided"
+          ],
+          "conflict_group": "automatic-recall-status",
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.5
+        }
+      ],
+      "raw_response_sha256": "5b5fc12d008b8341149d0049f33726e188cb9f36a0413f0e99abbc1a71158f25"
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "NS-04",
+      "status": "complete",
+      "protocol_compliant": false,
+      "latency_ms": 4735.6,
+      "prompt_hash": "e357a2f9e359c01f31b536ccabbbb6e717e2f167b5b275da27788127dfebfc0e",
+      "assessments": [
+        {
+          "candidate_id": "C1",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-1"
+          ],
+          "conflict_group": "north-star-definition",
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.97
+        },
+        {
+          "candidate_id": "C2",
+          "task_fit": "direct",
+          "worthiness_role": "contradiction",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-2"
+          ],
+          "conflict_group": "north-star-definition",
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.85
+        },
+        {
+          "candidate_id": "C3",
+          "task_fit": "none",
+          "worthiness_role": "none",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-3"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.82
+        }
+      ],
+      "raw_response_sha256": "7bf9d71be554c32a74dd25210e4e28fefb1cdef0439eea3f28273358c2f78022"
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "LS-02",
+      "status": "complete",
+      "protocol_compliant": false,
+      "latency_ms": 5642.0,
+      "prompt_hash": "191d89d530064c5bb3606ff4bdc4e717448ed78ab54e7eba38347023a21a8603",
+      "assessments": [
+        {
+          "candidate_id": "C1",
+          "task_fit": "none",
+          "worthiness_role": "contextual",
+          "temporal_state": "unknown",
+          "claim_ids": [],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.85
+        },
+        {
+          "candidate_id": "C2",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-retention-30d"
+          ],
+          "conflict_group": "retention-duration",
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.95
+        },
+        {
+          "candidate_id": "C3",
+          "task_fit": "contextual",
+          "worthiness_role": "contextual",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-cold-archival-separate"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.75
+        },
+        {
+          "candidate_id": "C4",
+          "task_fit": "direct",
+          "worthiness_role": "contradiction",
+          "temporal_state": "obsolete",
+          "claim_ids": [
+            "claim-retention-90d"
+          ],
+          "conflict_group": "retention-duration",
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.88
+        }
+      ],
+      "raw_response_sha256": "fe21c4e8fb3ed313373bdcdf518980e33db2cbe53452e551b1474ec03dbdca11"
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "TU-04",
+      "status": "complete",
+      "protocol_compliant": false,
+      "latency_ms": 4558.2,
+      "prompt_hash": "da652df9dc2bd46d73eed188aa799a83fad46417b946692c12a8f425eb7e0546",
+      "assessments": [
+        {
+          "candidate_id": "C1",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "proposed",
+          "claim_ids": [
+            "claim-1"
+          ],
+          "conflict_group": "auto-recall-decision",
+          "redundancy_group": null,
+          "provenance_complete": false,
+          "confidence": 0.55
+        },
+        {
+          "candidate_id": "C2",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "proposed",
+          "claim_ids": [
+            "claim-2"
+          ],
+          "conflict_group": "auto-recall-decision",
+          "redundancy_group": null,
+          "provenance_complete": false,
+          "confidence": 0.45
+        },
+        {
+          "candidate_id": "C3",
+          "task_fit": "direct",
+          "worthiness_role": "contradiction",
+          "temporal_state": "unknown",
+          "claim_ids": [
+            "claim-3"
+          ],
+          "conflict_group": "auto-recall-decision",
+          "redundancy_group": null,
+          "provenance_complete": false,
+          "confidence": 0.35
+        }
+      ],
+      "raw_response_sha256": "072edb5a70f2bbec46cb87cfac7fddb515d7175a33f855e18de8e3acb529cc58"
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "XP-01",
+      "status": "complete",
+      "protocol_compliant": false,
+      "latency_ms": 4744.2,
+      "prompt_hash": "decf9c5a97230874c9bbbb9824aace5495ced67874cea3039d8f2b6798da7865",
+      "assessments": [
+        {
+          "candidate_id": "C1",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-1"
+          ],
+          "conflict_group": "provenance-exact-message",
+          "redundancy_group": "supports-exact-message-provenance",
+          "provenance_complete": true,
+          "confidence": 0.75
+        },
+        {
+          "candidate_id": "C2",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-2"
+          ],
+          "conflict_group": "provenance-exact-message",
+          "redundancy_group": "supports-exact-message-provenance",
+          "provenance_complete": true,
+          "confidence": 0.8
+        },
+        {
+          "candidate_id": "C3",
+          "task_fit": "direct",
+          "worthiness_role": "contradiction",
+          "temporal_state": "proposed",
+          "claim_ids": [
+            "claim-3"
+          ],
+          "conflict_group": "provenance-exact-message",
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.7
+        }
+      ],
+      "raw_response_sha256": "342b108442a0e1a76604c0eb5475b9b196b105503fdf381caac3c33b32ff866f"
+    }
+  ]
+}
+
+[executed on device: hermes-vm (24be9d7a-f374-4723-94ee-b7833b4dd0cb)]

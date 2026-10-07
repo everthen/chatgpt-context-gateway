@@ -105,3 +105,48 @@ Keep Context Worthiness Gate v0.1 behind the experiment branch.
 Do not attach it to the main retrieval benchmark until the benchmark schema can provide auditable task-fit and claim-support annotations.
 
 That separation is intentional: otherwise the benchmark would measure our annotation assumptions rather than the UCG retrieval/admission system.
+
+
+## EXP-2d: lexical worthiness assessment baseline
+
+Recorded on 2026-10-07 in
+`benchmarks/runs/seed_v0.1/2026-10-07_worthiness_rule.json`.
+
+The assessor uses only query/evidence lexical overlap. It does not read gold labels.
+
+| Metric | Lexical baseline |
+|---|---:|
+| Task-fit accuracy | 52.08% |
+| Worthiness-role accuracy | 52.08% |
+| Worthiness precision | 63.54% |
+| Worthiness recall | 87.50% |
+
+This is deliberately a lower-bound control.
+
+Observed failure pattern:
+
+- lexical distractors are often promoted to direct support;
+- semantically relevant evidence can be scored as none/supporting incorrectly;
+- cross-provider portability cases expose token-overlap limitations;
+- account-isolation and temporal cases cannot be solved by lexical overlap alone;
+- contradiction detection is absent.
+
+Decision:
+
+> do not tune this rule into a production solution.
+
+The next treatment is a real semantic/model assessor evaluated against the same evidence-bound contract. A real assessor must return explicit unavailable status until a provider/model adapter exists; the benchmark must never fabricate model judgments.
+
+## Assessor ladder
+
+```
+Oracle / Human
+      ↓
+Semantic Model Assessor   ← next treatment
+      ↓
+Lexical Rule Assessor     ← current lower bound
+      ↓
+No Assessment
+```
+
+All assessors must emit the same evidence-bound `EvidenceAssessment` contract so their outputs are directly comparable.

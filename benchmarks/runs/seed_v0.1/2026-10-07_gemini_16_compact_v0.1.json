@@ -1,0 +1,1004 @@
+[Reading 1000 lines from start (total: 1020 lines, 20 remaining)]
+
+{
+  "schema_version": "ucg-semantic-bakeoff-compact.v0.4",
+  "experiment_id": "EXP-2E",
+  "step_id": "EXP-2E-S7",
+  "dataset_version": "seed_v0.1",
+  "dataset_hash": "977d081d4b0221d89c04bcd6ebe513c23304bbb2e94973b4fb9dbf25c5c34141",
+  "gold_version": "semantic-gold-v0.2-16case",
+  "model": "ag/gemini-3.8-flash",
+  "cases": 16,
+  "configuration": {
+    "temperature": 0,
+    "max_output_tokens": 1024,
+    "normalizer": "normalize_semantic_response"
+  },
+  "summary": {
+    "cases_scored": 16,
+    "task_fit_accuracy": 0.8645833333333334,
+    "worthiness_role_accuracy": 0.6666666666666666,
+    "temporal_accuracy": 0.9777777777777777,
+    "admission_accuracy": 0.9791666666666666,
+    "required_evidence_recall": 1.0,
+    "contradiction_precision": 0.375,
+    "contradiction_recall": 0.34375,
+    "complete_rate": 1.0,
+    "protocol_compliance_rate": 0.0625,
+    "mean_latency_ms": 13490.678990448941,
+    "median_latency_ms": 12640.574448974803
+  },
+  "case_metrics": [
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "LS-01",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 0.6666666666666666,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "LS-02",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.75,
+        "worthiness_role_accuracy": 0.5,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "LS-03",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 0.6666666666666666,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "LS-04",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.75,
+        "worthiness_role_accuracy": 0.5,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "NS-01",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 0.5,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "NS-02",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 0.6666666666666666,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "NS-03",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 1.0,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "NS-04",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.6666666666666666,
+        "worthiness_role_accuracy": 1.0,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "XP-01",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.3333333333333333,
+        "worthiness_role_accuracy": 0.6666666666666666,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "XP-02",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.6666666666666666,
+        "worthiness_role_accuracy": 0.3333333333333333,
+        "temporal_accuracy": null,
+        "admission_accuracy": 0.6666666666666666,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "XP-03",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.6666666666666666,
+        "worthiness_role_accuracy": 1.0,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "XP-04",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 1.0,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "TU-01",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 0.5,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "TU-02",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 0.5,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "TU-03",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 0.5,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "TU-04",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 0.6666666666666666,
+        "temporal_accuracy": 0.6666666666666666,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 0.5
+      }
+    }
+  ],
+  "rows": [
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "LS-01",
+      "status": "complete",
+      "protocol_compliant": false,
+      "latency_ms": 8724.6,
+      "prompt_hash": "8e4b56013361c6ed6b51d0e146a7b7fdc22f952e9b95f4bdb720b7001e7193db",
+      "assessments": [
+        {
+          "candidate_id": "C1",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-preferred-singapore"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.98
+        },
+        {
+          "candidate_id": "C2",
+          "task_fit": "contextual",
+          "worthiness_role": "contextual",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-decision-criteria"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.9
+        },
+        {
+          "candidate_id": "C3",
+          "task_fit": "contextual",
+          "worthiness_role": "contextual",
+          "temporal_state": "obsolete",
+          "claim_ids": [
+            "claim-early-proposal-frankfurt"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.95
+        }
+      ],
+      "raw_response_sha256": "4c002c67122fbd51ac97c3285788fd901b9f68fd10b180b4118b7cea99707a46"
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "LS-02",
+      "status": "complete",
+      "protocol_compliant": false,
+      "latency_ms": 16812.7,
+      "prompt_hash": "191d89d530064c5bb3606ff4bdc4e717448ed78ab54e7eba38347023a21a8603",
+      "assessments": [
+        {
+          "candidate_id": "C1",
+          "task_fit": "none",
+          "worthiness_role": "none",
+          "temporal_state": "unknown",
+          "claim_ids": [],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.95
+        },
+        {
+          "candidate_id": "C2",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-final-retention-30d"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.98
+        },
+        {
+          "candidate_id": "C3",
+          "task_fit": "contextual",
+          "worthiness_role": "contextual",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-cold-archival-scope"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.85
+        },
+        {
+          "candidate_id": "C4",
+          "task_fit": "contextual",
+          "worthiness_role": "contextual",
+          "temporal_state": "obsolete",
+          "claim_ids": [
+            "claim-early-retention-90d"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.92
+        }
+      ],
+      "raw_response_sha256": "49f8e83f91f26e78d79aa3bf8800023a7dfb00a9a58afaa9dd3e30366ff17ca6"
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "LS-03",
+      "status": "complete",
+      "protocol_compliant": false,
+      "latency_ms": 11438.9,
+      "prompt_hash": "e4b6e72a9bc492c8fee63647445035e2e7a6aa02cc73f029a70940a7ede132d5",
+      "assessments": [
+        {
+          "candidate_id": "C1",
+          "task_fit": "supporting",
+          "worthiness_role": "supporting",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-approval-requirement"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.9
+        },
+        {
+          "candidate_id": "C2",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-mira-approval-owner"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.98
+        },
+        {
+          "candidate_id": "C3",
+          "task_fit": "contextual",
+          "worthiness_role": "contextual",
+          "temporal_state": "obsolete",
+          "claim_ids": [
+            "claim-jon-past-approval-owner"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.92
+        }
+      ],
+      "raw_response_sha256": "d106a9608825348379f943e66ad857b8d360ab94e9b5e40357b4824bbd02c17a"
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "LS-04",
+      "status": "complete",
+      "protocol_compliant": false,
+      "latency_ms": 13570.1,
+      "prompt_hash": "cbc89237ff810cd11ae1e69de02478b48afd1fe4de169d7c951d7b3a5051ae92",
+      "assessments": [
+        {
+          "candidate_id": "C1",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-fallback-after-test-cockroachdb"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.98
+        },
+        {
+          "candidate_id": "C2",
+          "task_fit": "contextual",
+          "worthiness_role": "contextual",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-failover-test-scope"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.85
+        },
+        {
+          "candidate_id": "C3",
+          "task_fit": "contextual",
+          "worthiness_role": "contextual",
+          "temporal_state": "obsolete",
+          "claim_ids": [
+            "claim-fallback-prior-proposal-postgres"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.9
+        },
+        {
+          "candidate_id": "C4",
+          "task_fit": "none",
+          "worthiness_role": "none",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-cockroachdb-benchmarked"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.88
+        }
+      ],
+      "raw_response_sha256": "1f687f0bde3367a6f0fe7982a2c32a26b45b191cb9ba3b92e133626b6352d074"
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "NS-01",
+      "status": "complete",
+      "protocol_compliant": false,
+      "latency_ms": 10438.0,
+      "prompt_hash": "ef8ac498dd9e8fbd84b5d9dd92da1d3e5321782e24f5026a559382eb6e3b21c7",
+      "assessments": [
+        {
+          "candidate_id": "C1",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-notebook-export-jsonl"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.98
+        },
+        {
+          "candidate_id": "C2",
+          "task_fit": "contextual",
+          "worthiness_role": "contextual",
+          "temporal_state": "obsolete",
+          "claim_ids": [
+            "claim-notebook-export-csv-experiment"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.92
+        }
+      ],
+      "raw_response_sha256": "517ee52fd1bee9e6a528fa714946edd2f65fcbdebb0e54dc0fd523850c84003a"
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "NS-02",
+      "status": "complete",
+      "protocol_compliant": false,
+      "latency_ms": 11650.3,
+      "prompt_hash": "48d7d65e4366c0bf77b5f249aa0882e5b6eb3835af11f3c5d7aade0333fb0ce3",
+      "assessments": [
+        {
+          "candidate_id": "C1",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-eval-split-freeze-policy"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.95
+        },
+        {
+          "candidate_id": "C2",
+          "task_fit": "supporting",
+          "worthiness_role": "supporting",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-train-dev-mutability"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.88
+        },
+        {
+          "candidate_id": "C3",
+          "task_fit": "contextual",
+          "worthiness_role": "contextual",
+          "temporal_state": "obsolete",
+          "claim_ids": [
+            "claim-early-draft-immediate-freeze"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.9
+        }
+      ],
+      "raw_response_sha256": "6a260caae2bff7c394528c8c3ce6d2fde479f0d0a15ca95323b9253d4a63eed3"
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "NS-03",
+      "status": "complete",
+      "protocol_compliant": false,
+      "latency_ms": 13704.7,
+      "prompt_hash": "2e4eb5a0691a11c44878a0b76b80d90a10b91b55ccb85743f61e486788d5d903",
+      "assessments": [
+        {
+          "candidate_id": "C1",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-raka-owns-context-evaluation"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.98
+        },
+        {
+          "candidate_id": "C2",
+          "task_fit": "contextual",
+          "worthiness_role": "contextual",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-sinta-does-not-own-context-evaluation"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.85
+        }
+      ],
+      "raw_response_sha256": "589cacba1daec2d34801d1a3913b9c7747053abfb2b0a6ef97ec10b78762d5d5"
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "NS-04",
+      "status": "complete",
+      "protocol_compliant": false,
+      "latency_ms": 17755.2,
+      "prompt_hash": "e357a2f9e359c01f31b536ccabbbb6e717e2f167b5b275da27788127dfebfc0e",
+      "assessments": [
+        {
+          "candidate_id": "C1",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-ucg-north-star-recall-noise"
+          ],
+          "conflict_group": "conflict-context-noise-objective",
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.98
+        },
+        {
+          "candidate_id": "C2",
+          "task_fit": "direct",
+          "worthiness_role": "contradiction",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-goal-maximize-volume-noisy"
+          ],
+          "conflict_group": "conflict-context-noise-objective",
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.92
+        },
+        {
+          "candidate_id": "C3",
+          "task_fit": "contextual",
+          "worthiness_role": "contradiction",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-goal-billing-not-recall"
+          ],
+          "conflict_group": "conflict-priority-recall-vs-billing",
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.85
+        }
+      ],
+      "raw_response_sha256": "3e195960c729c0e9204a01f7c3018f5fd9cb665ccd36a22066b0ea21636391ea"
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "XP-01",
+      "status": "complete",
+      "protocol_compliant": false,
+      "latency_ms": 20217.5,
+      "prompt_hash": "decf9c5a97230874c9bbbb9824aace5495ced67874cea3039d8f2b6798da7865",
+      "assessments": [
+        {
+          "candidate_id": "C1",
+          "task_fit": "supporting",
+          "worthiness_role": "supporting",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-message-provenance-requirement"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.88
+        },
+        {
+          "candidate_id": "C2",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-bundle-carries-exact-message-provenance"
+          ],
+          "conflict_group": "conflict-exact-message-provenance",
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.92
+        },
+        {
+          "candidate_id": "C3",
+          "task_fit": "direct",
+          "worthiness_role": "contradiction",
+          "temporal_state": "proposed",
+          "claim_ids": [
+            "claim-draft-omits-exact-message-provenance"
+          ],
+          "conflict_group": "conflict-exact-message-provenance",
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.85
+        }
+      ],
+      "raw_response_sha256": "c4430b39f119a685a3d29970ed8719edfef9a53669a524024c545b6616135e43"
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "XP-02",
+      "status": "complete",
+      "protocol_compliant": false,
+      "latency_ms": 13556.5,
+      "prompt_hash": "a8da8146223cc86506911d8420286f067c649f7056699e6e52278012548c63b8",
+      "assessments": [
+        {
+          "candidate_id": "C1",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "proposed",
+          "claim_ids": [
+            "claim-provider-neutral-context"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.95
+        },
+        {
+          "candidate_id": "C2",
+          "task_fit": "supporting",
+          "worthiness_role": "supporting",
+          "temporal_state": "proposed",
+          "claim_ids": [
+            "claim-context-portability"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.9
+        },
+        {
+          "candidate_id": "C3",
+          "task_fit": "contextual",
+          "worthiness_role": "contextual",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-single-provider-implementation"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.85
+        }
+      ],
+      "raw_response_sha256": "62462b681f0c1afb0a13559ec93903cd3cf325b679f72ee9c329e5df6619dbd0"
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "XP-03",
+      "status": "complete",
+      "protocol_compliant": false,
+      "latency_ms": 16291.4,
+      "prompt_hash": "19ba5d7eacef23888b1876c34cf89dc626e287414d81015fe35f9b389f5367bc",
+      "assessments": [
+        {
+          "candidate_id": "C1",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-native-ucg-coexistence",
+            "claim-ucg-preserves-model-judgment"
+          ],
+          "conflict_group": "conflict-final-decision-authority",
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.95
+        },
+        {
+          "candidate_id": "C2",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-llm-final-decision"
+          ],
+          "conflict_group": "conflict-final-decision-authority",
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.95
+        },
+        {
+          "candidate_id": "C3",
+          "task_fit": "direct",
+          "worthiness_role": "contradiction",
+          "temporal_state": "proposed",
+          "claim_ids": [
+            "claim-gateway-final-decision"
+          ],
+          "conflict_group": "conflict-final-decision-authority",
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.9
+        }
+      ],
+      "raw_response_sha256": "f91669c6570f98952e182045d0ff5b565a268b5048e3b353ab25ff3b7eff3681"
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "XP-04",
+      "status": "complete",
+      "protocol_compliant": false,
+      "latency_ms": 10789.9,
+      "prompt_hash": "23391706267f5dfbb378446f3581acfac9268d175b9e6a42cb53ec48b4db6947",
+      "assessments": [
+        {
+          "candidate_id": "C1",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-account-isolation-policy"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.95
+        },
+        {
+          "candidate_id": "C2",
+          "task_fit": "supporting",
+          "worthiness_role": "supporting",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-secondary-account-invalid-for-main"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.9
+        }
+      ],
+      "raw_response_sha256": "2884f61672fe076d4f4c96fc72140a188177cf6a01482de1474be8c30212a89b"
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "TU-01",
+      "status": "complete",
+      "protocol_compliant": false,
+      "latency_ms": 8906.9,
+      "prompt_hash": "695f6278426c83aa1829765ef530d44291fd2972f98bd9059273144c7dde25f3",
+      "assessments": [
+        {
+          "candidate_id": "C1",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-current-cache-eviction-lru-ttl"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.98
+        },
+        {
+          "candidate_id": "C2",
+          "task_fit": "contextual",
+          "worthiness_role": "contextual",
+          "temporal_state": "obsolete",
+          "claim_ids": [
+            "claim-old-cache-eviction-fifo"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.92
+        }
+      ],
+      "raw_response_sha256": "0ff48ab422884198a2d26c44579e78f092b87fbfc1ef3a85d9382aaf1eeeec89"
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "TU-02",
+      "status": "complete",
+      "protocol_compliant": false,
+      "latency_ms": 11724.6,
+      "prompt_hash": "c253751893673002892b5c8543d5157fbfd3b9b8c130714773f75c16b2490e50",
+      "assessments": [
+        {
+          "candidate_id": "C1",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-current-baseline-sqlite-fts5"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.95
+        },
+        {
+          "candidate_id": "C2",
+          "task_fit": "contextual",
+          "worthiness_role": "contextual",
+          "temporal_state": "obsolete",
+          "claim_ids": [
+            "claim-old-plan-vector-db"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.9
+        }
+      ],
+      "raw_response_sha256": "cc02e5763f84990a883d63753f3fa6ad7eca223f25dba893ccb26f399b013efd"
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "TU-03",
+      "status": "complete",
+      "protocol_compliant": true,
+      "latency_ms": 8358.4,
+      "prompt_hash": "75b261db640351f1fdfb5e1aff8076878ecc654df9ae4a75cf2ef3db8bbaadba",
+      "assessments": [
+        {
+          "candidate_id": "C1",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-hermes-governance-boundary"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.95
+        },
+        {
+          "candidate_id": "C2",
+          "task_fit": "contextual",
+          "worthiness_role": "contextual",
+          "temporal_state": "obsolete",
+          "claim_ids": [
+            "claim-earlier-proposal-gateway-governance"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.85
+        }
+      ],
+      "raw_response_sha256": "f61f3f3e870a5916a7e38d803d927feffc3da54074620c94ebfe31669092789d"
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "TU-04",
+      "status": "complete",
+      "protocol_compliant": false,
+      "latency_ms": 21911.1,
+      "prompt_hash": "da652df9dc2bd46d73eed188aa799a83fad46417b946692c12a8f425eb7e0546",
+      "assessments": [
+        {
+          "candidate_id": "C1",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "claim_ids": [
+            "claim-recall-hypothesis"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.95
+        },
+        {
+          "candidate_id": "C2",
+          "task_fit": "contextual",
+          "worthiness_role": "contextual",
+          "temporal_state": "proposed",
+          "claim_ids": [
+            "claim-recall-default-proposal"
+          ],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+
+[executed on device: hermes-vm (24be9d7a-f374-4723-94ee-b7833b4dd0cb)]

@@ -1,0 +1,38 @@
+{
+  "schema_version": "ucg-semantic-model-candidates.v0.1",
+  "recorded_at": "2026-10-07",
+  "source": "local_9router_model_catalog",
+  "candidates": [
+    {
+      "model": "ag/gemini-3.8-flash",
+      "status": "provisional_treatment",
+      "benchmark_max_output_tokens": 2048
+    },
+    {
+      "model": "ag/gemini-3.8-flash-high",
+      "status": "candidate",
+      "benchmark_max_output_tokens": 1024
+    },
+    {
+      "model": "oc/muse-spark-1.2-contributor-free",
+      "status": "candidate_adapter_blocked",
+      "benchmark_max_output_tokens": 2048
+    },
+    {
+      "model": "oc/muse-spark-1.3-contributor-free",
+      "status": "candidate_adapter_blocked",
+      "benchmark_max_output_tokens": 2048
+    },
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "status": "next_treatment_candidate",
+      "benchmark_max_output_tokens": 1024
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "status": "next_treatment_candidate",
+      "benchmark_max_output_tokens": 1024
+    }
+  ],
+  "note": "benchmark_max_output_tokens is an experiment configuration, not a statement of account quota."
+}

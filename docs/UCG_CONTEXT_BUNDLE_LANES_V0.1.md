@@ -157,7 +157,7 @@ Fresh downstream gate:
 - live endpoint: 9Router OpenAI-compatible `/v1/chat/completions`
 - cases: XP-02 and XP-04
 
-Contract tests: **5/5 PASS**.
+Contract tests: **6/6 PASS** (including an explicit control-to-answer leak attack).
 
 Live answer generation: **2/2 PASS**.
 
@@ -174,6 +174,7 @@ Observed behavior:
 - XP-04 retained `xp04.dist` as `control_boundary`; its text was not answer-visible and it was not cited.
 - XP-04 preserved the requested contamination direction and grounded the isolation claim in `xp04.gold`.
 - No invalid citation to control evidence was observed.
+- A tampered bundle placing `xp04.dist` in both lanes was rejected fail-closed with `evidence cannot inhabit both lanes`.
 
 This passes the lane-aware downstream gate.
 

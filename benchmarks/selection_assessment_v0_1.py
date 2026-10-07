@@ -5,6 +5,7 @@ from typing import Any
 
 RELATION_TYPES = {
     "required_contrast",
+    "required_complement",
     "required_boundary_contrast",
     "required_conflict",
     "required_state_contrast",
@@ -13,6 +14,11 @@ RELATION_TYPES = {
 _RELATION_SOURCE_KEYS = ("source", "from", "from_id")
 _RELATION_TARGET_KEYS = ("target", "to", "to_id")
 _RELATION_TYPE_KEYS = ("type", "relation_type")
+
+_RELATION_TYPE_ALIASES = {
+    "complementary": "required_complement",
+    "required_complement": "required_complement",
+}
 
 
 def _first(mapping: dict[str, Any], keys: tuple[str, ...]) -> Any:
@@ -51,6 +57,8 @@ def normalize_selection_assessment(
         source = _first(relation, _RELATION_SOURCE_KEYS)
         target = _first(relation, _RELATION_TARGET_KEYS)
         relation_type = _first(relation, _RELATION_TYPE_KEYS)
+
+        relation_type = _RELATION_TYPE_ALIASES.get(relation_type, relation_type)
 
         if source not in candidate_ids or target not in candidate_ids:
             raise ValueError(

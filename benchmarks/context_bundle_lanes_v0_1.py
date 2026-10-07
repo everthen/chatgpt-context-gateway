@@ -81,11 +81,22 @@ def _infer_lane(
         _validate_explicit_lane(item, lane)
         return lane
 
-    for relation_type, lane in _RELATION_TO_TARGET_LANE.items():
-        if relation_type in incoming_relation_types:
-            return lane
-
     role = str(item.get("role") or "").strip()
+
+    # A conflict can be answer-relevant (for example a rejected provider
+    # alternative) or control-only. Let semantic role disambiguate it.
+    if "required_conflict" in incoming_relation_types:
+        if role in {"contrastive", "answer_contrast"}:
+            return "answer_contrast"
+        return "control_conflict"
+
+    for relation_type in (
+        "required_boundary_contrast",
+        "required_state_contrast",
+        "required_contrast",
+    ):
+        if relation_type in incoming_relation_types:
+            return _RELATION_TO_TARGET_LANE[relation_type]
     if role in _ROLE_DEFAULT_LANE:
         return _ROLE_DEFAULT_LANE[role]
 

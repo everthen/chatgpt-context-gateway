@@ -32,6 +32,14 @@ def test_score_greedy_fails_required_contrastive_retention():
     assert by_case["XP-04"]["contrastive_retention"] == 0.0
 
 
+def test_reference_selector_passes_contrastive_attack_suite():
+    result = run_suite(SUITE, "reference_selector")
+    assert result["pass_rate"] == 1.0
+    assert result["mean_required_recall"] == 1.0
+    assert result["mean_contrastive_retention"] == 1.0
+    assert result["mean_distractor_rejection"] == 1.0
+
+
 def test_all_admitted_preserves_contrastive_but_pays_noise():
     result = run_suite(SUITE, "all_admitted")
     assert result["mean_required_recall"] == 1.0

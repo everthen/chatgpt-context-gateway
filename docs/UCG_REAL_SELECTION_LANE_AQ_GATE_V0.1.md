@@ -204,6 +204,8 @@ The contrastive attack suite remains the appropriate test for that structural pr
 
 The gate does not authorize production wiring yet.
 
+Final XP-04 targeted rerun after direction-explicit boundary relation guidance scored **1.0 / 1.0 / 1.0 / 1.0** and removed the remaining directionality seam without exposing `xp04.dist` to the answer consumer.
+
 Before production integration, the remaining work is:
 
 1. connect the real selection-assessment result into the production admission/selection path;

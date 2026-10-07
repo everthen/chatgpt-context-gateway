@@ -76,12 +76,22 @@ def select_context(
             claim_to_items.setdefault(str(claim_id), []).append(item)
 
     for claim_id in sorted(claim_to_items):
-        winner = max(
-            claim_to_items[claim_id],
-            key=lambda item: (_score(item), item["key"]),
+        items_for_claim = claim_to_items[claim_id]
+        coverage_mode = (items_for_claim[0].get("selection") or {}).get(
+            "coverage_mode", "best"
         )
-        if winner["key"] not in selected:
-            selected.append(winner["key"])
+        if coverage_mode == "all":
+            winners = sorted(items_for_claim, key=lambda item: (-_score(item), item["key"]))
+        else:
+            winners = [
+                max(
+                    items_for_claim,
+                    key=lambda item: (_score(item), item["key"]),
+                )
+            ]
+        for winner in winners:
+            if winner["key"] not in selected:
+                selected.append(winner["key"])
 
     if not selected and by_key:
         fallback = max(by_key.values(), key=lambda item: (_score(item), item["key"]))

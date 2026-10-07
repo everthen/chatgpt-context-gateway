@@ -1,0 +1,49 @@
+{
+  "schema_version": "ucg-reference-selector-result.v0.1",
+  "suite_id": "UCG-CRT-20261007-v0.1",
+  "branch": "experiment/contrastive-evidence-retention-v0.1",
+  "implementation": "benchmarks/selection_policy_v0_1.py",
+  "test_suite": {
+    "automated_tests": 18,
+    "status": "PASS"
+  },
+  "result": {
+    "pass_rate": 1,
+    "required_recall": 1,
+    "contrastive_retention": 1,
+    "distractor_rejection": 1,
+    "cases": [
+      "NS-04",
+      "XP-02",
+      "XP-04",
+      "TU-04"
+    ]
+  },
+  "selected_keys": {
+    "NS-04": [
+      "ns04.gold",
+      "ns04.conflict"
+    ],
+    "XP-02": [
+      "xp02.openai",
+      "xp02.claude",
+      "xp02.dist"
+    ],
+    "XP-04": [
+      "xp04.gold",
+      "xp04.dist"
+    ],
+    "TU-04": [
+      "tu04.gold"
+    ]
+  },
+  "architectural_properties": [
+    "semantic relevance score is not the sole selection criterion",
+    "complementary provider evidence can be selected together",
+    "required contrastive and boundary relations are transitively closed",
+    "optional noise is not retained merely because of a high semantic score",
+    "selection is not evaluated as an admission repair mechanism"
+  ],
+  "decision": "PASS reference selector benchmark; NOT CORE GATE",
+  "next_gate": "Integrate the selector after real semantic admission output and rerun downstream answer-quality evaluation."
+}

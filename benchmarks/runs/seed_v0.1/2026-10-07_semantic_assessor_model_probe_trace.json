@@ -1,0 +1,30 @@
+{
+  "schema_version": "ucg-traceability.v0.1",
+  "experiment_id": "EXP-2E",
+  "step_id": "EXP-2E-S2",
+  "objective": "Attempt the real semantic/model worthiness treatment without changing the frozen blind evaluator.",
+  "parent_step": "EXP-2E-S1",
+  "repository": "everthen/chatgpt-context-gateway",
+  "branch": "experiment/evidence-admission-v0.1",
+  "code_commit": "f6159f26f97ee3389a20ac755229ec0a2e589f38",
+  "dataset_version": "seed_v0.1",
+  "dataset_hash": "977d081d4b0221d89c04bcd6ebe513c23304bbb2e94973b4fb9dbf25c5c34141",
+  "assessor": "openai-compatible-semantic-v0.1",
+  "assessor_version": "v0.1",
+  "configuration": {
+    "endpoint": "http://127.0.0.1:20127",
+    "adapter": "OpenAICompatibleSemanticAssessor",
+    "treatment_run_allowed": false,
+    "blind_pack_contract": "v0.1"
+  },
+  "artifact_paths": [
+    "src/context_gateway/benchmark/semantic_model_adapter.py",
+    "tests/test_semantic_model_adapter.py",
+    "benchmarks/runs/seed_v0.1/2026-10-07_semantic_model_probe.json"
+  ],
+  "status": "blocked",
+  "finding": "OpenAI-compatible semantic assessor adapter contract passed, but the configured local endpoint is not listening on 127.0.0.1:20127, so no real model assessment was executed.",
+  "decision": "Keep the semantic treatment blocked; do not fabricate or substitute model results.",
+  "next_step": "Start/configure a real model endpoint, then run the frozen blind assessment pack and persist raw request/response plus scoring.",
+  "recorded_at": "2026-10-07T03:52:48Z"
+}

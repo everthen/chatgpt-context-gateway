@@ -80,7 +80,7 @@ def test_xp04_wrong_account_is_control_only():
             "from": "xp04.gold",
             "to": "xp04.dist",
             "relation_type": "required_boundary_contrast",
-            "answer_guidance": "do not merge target evidence into the source scope; answer from the source scope only",
+            "answer_guidance": "for the requested source scope, explicitly state that target evidence must not be merged into the source scope; answer from the source scope only",
         },
     )
 

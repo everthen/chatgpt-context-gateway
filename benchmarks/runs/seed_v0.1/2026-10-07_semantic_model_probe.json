@@ -1,6 +1,6 @@
 {
   "schema_version": "ucg-semantic-model-probe.v0.1",
-  "timestamp_utc": "2026-10-07T03:50:55Z",
+  "timestamp_utc": "2026-10-07T03:52:48Z",
   "endpoint": "http://127.0.0.1:20127",
   "provider": "openai-compatible",
   "model": "not_configured",

@@ -230,27 +230,6 @@ def run_ucg_retrieval_benchmark(
         ),
     }
 
-    if output_dir:
-        out = Path(output_dir)
-        out.mkdir(parents=True, exist_ok=True)
-        (out / "manifest.json").write_text(
-            json.dumps(
-                {
-                    "schema_version": "ucg-benchmark-run.v0.1",
-                    "dataset_cases": len(cases),
-                    "arms": result_payload["arms"],
-                    "runnable_arms": result_payload["runnable_arms"],
-                },
-                indent=2,
-            ),
-            encoding="utf-8",
-        )
-        (out / "results.json").write_text(
-            json.dumps(result_payload, indent=2),
-            encoding="utf-8",
-        )
-
-
     assembly_results: list[CaseResult] = []
     with TemporaryDirectory(prefix="ucg-assembly-") as tmp:
         db = ArchiveDB(Path(tmp) / "benchmark.sqlite3")
@@ -270,5 +249,27 @@ def run_ucg_retrieval_benchmark(
             for result in assembly_results
         ]),
     }
+
+
+    if output_dir:
+        out = Path(output_dir)
+        out.mkdir(parents=True, exist_ok=True)
+        (out / "manifest.json").write_text(
+            json.dumps(
+                {
+                    "schema_version": "ucg-benchmark-run.v0.1",
+                    "dataset_cases": len(cases),
+                    "arms": result_payload["arms"],
+                    "runnable_arms": result_payload["runnable_arms"],
+                    "assembly_arm": "ucg_assembly",
+                },
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+        (out / "results.json").write_text(
+            json.dumps(result_payload, indent=2),
+            encoding="utf-8",
+        )
 
     return result_payload

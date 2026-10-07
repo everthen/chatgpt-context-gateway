@@ -63,6 +63,7 @@ The model-facing selection assessment SHOULD emit JSON with:
 Allowed relation types:
 
 - `required_contrast`
+- `required_complement`
 - `required_boundary_contrast`
 - `required_conflict`
 - `required_state_contrast`
@@ -142,7 +143,7 @@ LLM output was observed using aliases such as `from`/`to` and `from_id`/`to_id`,
 
 This is a protocol-adapter concern, not a selector concern.
 
-The adapter MUST either normalize known aliases into the canonical schema or reject the response as non-compliant. Production code MUST NOT silently accept arbitrary field variants.
+The adapter MUST normalize only known aliases into the canonical schema or reject the response as non-compliant. Observed aliases `complementary` and `required_complement` normalize to canonical `required_complement`. Production code MUST NOT silently accept arbitrary field variants.
 
 ## Decision
 
@@ -150,6 +151,8 @@ The adapter MUST either normalize known aliases into the canonical schema or rej
 
 Confirmed:
 
+- real selection output can contain relation vocabulary that needs a narrow protocol normalization layer;
+- complementary provider evidence can be represented explicitly without misclassifying it as contradiction;
 - the semantic output can be insufficient for deterministic selection;
 - an explicit selection contract can recover complementary-provider evidence;
 - an explicit selection contract can recover wrong-account boundary evidence;

@@ -93,6 +93,8 @@ Default relation mapping:
 
 `answer_contrast` is answer-visible because the contrast itself may be part of the reasoning, but downstream policy must treat it as a rejected/alternative position, not as positive support.
 
+Each `epistemic_relations[]` record also carries deterministic `answer_guidance`. This is semantic control-plane metadata, not evidence text and not a citation. For `required_boundary_contrast`, the guidance states that the target is out of scope for the source scope and must not be merged into it.
+
 This taxonomy is downstream of semantic assessment:
 
 - semantic assessment describes what evidence is;

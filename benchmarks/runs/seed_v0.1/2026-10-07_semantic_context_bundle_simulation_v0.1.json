@@ -1,0 +1,743 @@
+[Reading 739 lines from start (total: 739 lines, 0 remaining)]
+
+{
+  "schema_version": "ucg-semantic-context-bundle-simulation.v0.1",
+  "experiment_id": "EXP-2E",
+  "step_id": "EXP-2E-S8",
+  "dataset_version": "seed_v0.1",
+  "dataset_hash": "977d081d4b0221d89c04bcd6ebe513c23304bbb2e94973b4fb9dbf25c5c34141",
+  "gold_version": "semantic-gold-v0.2-16case",
+  "models": {
+    "ag/claude-sonnet-4-6": {
+      "cases_scored": 15,
+      "completion_rate": 0.9375,
+      "bundle_required_recall_macro": 1.0,
+      "bundle_required_recall_micro": 1.0,
+      "semantic_noise_ratio_macro": 0.16666666666666666,
+      "semantic_noise_ratio_micro": 0.20689655172413793,
+      "minimal_noise_ratio_macro": 0.28888888888888886,
+      "conflict_preservation_macro": 0.9333333333333333,
+      "conflict_preservation_micro": 0.6,
+      "mean_bundle_size": 1.9333333333333333,
+      "case_metrics": [
+        {
+          "case_id": "LS-01",
+          "scorable": true,
+          "bundle_keys": [
+            "ls01.anchor",
+            "ls01.gold"
+          ],
+          "bundle_size": 2,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.5,
+          "minimal_noise_ratio": 0.5,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": [
+            "ls01.anchor"
+          ]
+        },
+        {
+          "case_id": "LS-02",
+          "scorable": true,
+          "bundle_keys": [
+            "ls02.gold",
+            "ls02.note"
+          ],
+          "bundle_size": 2,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.5,
+          "minimal_noise_ratio": 0.5,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": [
+            "ls02.note"
+          ]
+        },
+        {
+          "case_id": "LS-03",
+          "scorable": true,
+          "bundle_keys": [
+            "ls03.gold",
+            "ls03.support"
+          ],
+          "bundle_size": 2,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.5,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "LS-04",
+          "scorable": true,
+          "bundle_keys": [
+            "ls04.dist1",
+            "ls04.dist2",
+            "ls04.gold"
+          ],
+          "bundle_size": 3,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.6666666666666666,
+          "minimal_noise_ratio": 0.6666666666666666,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": [
+            "ls04.dist1",
+            "ls04.dist2"
+          ]
+        },
+        {
+          "case_id": "NS-01",
+          "scorable": true,
+          "bundle_keys": [
+            "ns01.gold"
+          ],
+          "bundle_size": 1,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.0,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "NS-02",
+          "scorable": true,
+          "bundle_keys": [
+            "ns02.dist",
+            "ns02.gold",
+            "ns02.support"
+          ],
+          "bundle_size": 3,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.3333333333333333,
+          "minimal_noise_ratio": 0.6666666666666666,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": [
+            "ns02.dist"
+          ]
+        },
+        {
+          "case_id": "NS-03",
+          "scorable": true,
+          "bundle_keys": [
+            "ns03.dist",
+            "ns03.gold"
+          ],
+          "bundle_size": 2,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.5,
+          "minimal_noise_ratio": 0.5,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": [
+            "ns03.dist"
+          ]
+        },
+        {
+          "case_id": "NS-04",
+          "scorable": true,
+          "bundle_keys": [
+            "ns04.gold"
+          ],
+          "bundle_size": 1,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.0,
+          "conflict_preservation": 0.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "XP-01",
+          "scorable": true,
+          "bundle_keys": [
+            "xp01.dist",
+            "xp01.google",
+            "xp01.openai"
+          ],
+          "bundle_size": 3,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.3333333333333333,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "XP-02",
+          "scorable": true,
+          "bundle_keys": [
+            "xp02.claude",
+            "xp02.dist",
+            "xp02.openai"
+          ],
+          "bundle_size": 3,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.3333333333333333,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "XP-03",
+          "scorable": true,
+          "bundle_keys": [
+            "xp03.chatgpt",
+            "xp03.dist",
+            "xp03.gemini"
+          ],
+          "bundle_size": 3,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.3333333333333333,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "XP-04",
+          "scorable": true,
+          "bundle_keys": [
+            "xp04.gold"
+          ],
+          "bundle_size": 1,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.0,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "TU-01",
+          "scorable": true,
+          "bundle_keys": [
+            "tu01.gold"
+          ],
+          "bundle_size": 1,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.0,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "TU-02",
+          "scorable": true,
+          "bundle_keys": [
+            "tu02.gold"
+          ],
+          "bundle_size": 1,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.0,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "TU-03",
+          "scorable": true,
+          "bundle_keys": [
+            "tu03.gold"
+          ],
+          "bundle_size": 1,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.0,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "TU-04",
+          "scorable": false,
+          "reason": "semantic assessor did not return valid JSON"
+        }
+      ]
+    },
+    "ag/claude-opus-4-6-thinking": {
+      "cases_scored": 16,
+      "completion_rate": 1.0,
+      "bundle_required_recall_macro": 1.0,
+      "bundle_required_recall_micro": 1.0,
+      "semantic_noise_ratio_macro": 0.16666666666666666,
+      "semantic_noise_ratio_micro": 0.21212121212121213,
+      "minimal_noise_ratio_macro": 0.34375,
+      "conflict_preservation_macro": 0.96875,
+      "conflict_preservation_micro": 0.8,
+      "mean_bundle_size": 2.0625,
+      "case_metrics": [
+        {
+          "case_id": "LS-01",
+          "scorable": true,
+          "bundle_keys": [
+            "ls01.anchor",
+            "ls01.gold"
+          ],
+          "bundle_size": 2,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.5,
+          "minimal_noise_ratio": 0.5,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": [
+            "ls01.anchor"
+          ]
+        },
+        {
+          "case_id": "LS-02",
+          "scorable": true,
+          "bundle_keys": [
+            "ls02.gold"
+          ],
+          "bundle_size": 1,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.0,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "LS-03",
+          "scorable": true,
+          "bundle_keys": [
+            "ls03.gold",
+            "ls03.support"
+          ],
+          "bundle_size": 2,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.5,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "LS-04",
+          "scorable": true,
+          "bundle_keys": [
+            "ls04.dist1",
+            "ls04.dist2",
+            "ls04.gold"
+          ],
+          "bundle_size": 3,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.6666666666666666,
+          "minimal_noise_ratio": 0.6666666666666666,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": [
+            "ls04.dist1",
+            "ls04.dist2"
+          ]
+        },
+        {
+          "case_id": "NS-01",
+          "scorable": true,
+          "bundle_keys": [
+            "ns01.gold"
+          ],
+          "bundle_size": 1,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.0,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "NS-02",
+          "scorable": true,
+          "bundle_keys": [
+            "ns02.dist",
+            "ns02.gold",
+            "ns02.support"
+          ],
+          "bundle_size": 3,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.3333333333333333,
+          "minimal_noise_ratio": 0.6666666666666666,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": [
+            "ns02.dist"
+          ]
+        },
+        {
+          "case_id": "NS-03",
+          "scorable": true,
+          "bundle_keys": [
+            "ns03.dist",
+            "ns03.gold"
+          ],
+          "bundle_size": 2,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.5,
+          "minimal_noise_ratio": 0.5,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": [
+            "ns03.dist"
+          ]
+        },
+        {
+          "case_id": "NS-04",
+          "scorable": true,
+          "bundle_keys": [
+            "ns04.dist1",
+            "ns04.gold"
+          ],
+          "bundle_size": 2,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.5,
+          "conflict_preservation": 0.5,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "XP-01",
+          "scorable": true,
+          "bundle_keys": [
+            "xp01.dist",
+            "xp01.google",
+            "xp01.openai"
+          ],
+          "bundle_size": 3,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.3333333333333333,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "XP-02",
+          "scorable": true,
+          "bundle_keys": [
+            "xp02.claude",
+            "xp02.dist",
+            "xp02.openai"
+          ],
+          "bundle_size": 3,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.3333333333333333,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "XP-03",
+          "scorable": true,
+          "bundle_keys": [
+            "xp03.chatgpt",
+            "xp03.dist",
+            "xp03.gemini"
+          ],
+          "bundle_size": 3,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.3333333333333333,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "XP-04",
+          "scorable": true,
+          "bundle_keys": [
+            "xp04.dist",
+            "xp04.gold"
+          ],
+          "bundle_size": 2,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.5,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "TU-01",
+          "scorable": true,
+          "bundle_keys": [
+            "tu01.gold"
+          ],
+          "bundle_size": 1,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.0,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "TU-02",
+          "scorable": true,
+          "bundle_keys": [
+            "tu02.gold"
+          ],
+          "bundle_size": 1,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.0,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "TU-03",
+          "scorable": true,
+          "bundle_keys": [
+            "tu03.gold"
+          ],
+          "bundle_size": 1,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.0,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "TU-04",
+          "scorable": true,
+          "bundle_keys": [
+            "tu04.dist1",
+            "tu04.dist2",
+            "tu04.gold"
+          ],
+          "bundle_size": 3,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.6666666666666666,
+          "minimal_noise_ratio": 0.6666666666666666,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": [
+            "tu04.dist1",
+            "tu04.dist2"
+          ]
+        }
+      ]
+    },
+    "ag/gemini-3.8-flash": {
+      "cases_scored": 16,
+      "completion_rate": 1.0,
+      "bundle_required_recall_macro": 1.0,
+      "bundle_required_recall_micro": 1.0,
+      "semantic_noise_ratio_macro": 0.0,
+      "semantic_noise_ratio_micro": 0.0,
+      "minimal_noise_ratio_macro": 0.17708333333333331,
+      "conflict_preservation_macro": 0.9375,
+      "conflict_preservation_micro": 0.8,
+      "mean_bundle_size": 1.625,
+      "case_metrics": [
+        {
+          "case_id": "LS-01",
+          "scorable": true,
+          "bundle_keys": [
+            "ls01.gold"
+          ],
+          "bundle_size": 1,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.0,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "LS-02",
+          "scorable": true,
+          "bundle_keys": [
+            "ls02.gold"
+          ],
+          "bundle_size": 1,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.0,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "LS-03",
+          "scorable": true,
+          "bundle_keys": [
+            "ls03.gold",
+            "ls03.support"
+          ],
+          "bundle_size": 2,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.5,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "LS-04",
+          "scorable": true,
+          "bundle_keys": [
+            "ls04.gold"
+          ],
+          "bundle_size": 1,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.0,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "NS-01",
+          "scorable": true,
+          "bundle_keys": [
+            "ns01.gold"
+          ],
+          "bundle_size": 1,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.0,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "NS-02",
+          "scorable": true,
+          "bundle_keys": [
+            "ns02.gold",
+            "ns02.support"
+          ],
+          "bundle_size": 2,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.5,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "NS-03",
+          "scorable": true,
+          "bundle_keys": [
+            "ns03.gold"
+          ],
+          "bundle_size": 1,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.0,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "NS-04",
+          "scorable": true,
+          "bundle_keys": [
+            "ns04.dist1",
+            "ns04.dist2",
+            "ns04.gold"
+          ],
+          "bundle_size": 3,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.6666666666666666,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "XP-01",
+          "scorable": true,
+          "bundle_keys": [
+            "xp01.dist",
+            "xp01.google",
+            "xp01.openai"
+          ],
+          "bundle_size": 3,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.3333333333333333,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "XP-02",
+          "scorable": true,
+          "bundle_keys": [
+            "xp02.claude",
+            "xp02.openai"
+          ],
+          "bundle_size": 2,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.0,
+          "conflict_preservation": 0.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "XP-03",
+          "scorable": true,
+          "bundle_keys": [
+            "xp03.chatgpt",
+            "xp03.dist",
+            "xp03.gemini"
+          ],
+          "bundle_size": 3,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.3333333333333333,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "XP-04",
+          "scorable": true,
+          "bundle_keys": [
+            "xp04.dist",
+            "xp04.gold"
+          ],
+          "bundle_size": 2,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.5,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "TU-01",
+          "scorable": true,
+          "bundle_keys": [
+            "tu01.gold"
+          ],
+          "bundle_size": 1,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.0,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "TU-02",
+          "scorable": true,
+          "bundle_keys": [
+            "tu02.gold"
+          ],
+          "bundle_size": 1,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.0,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "TU-03",
+          "scorable": true,
+          "bundle_keys": [
+            "tu03.gold"
+          ],
+          "bundle_size": 1,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.0,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        },
+        {
+          "case_id": "TU-04",
+          "scorable": true,
+          "bundle_keys": [
+            "tu04.gold"
+          ],
+          "bundle_size": 1,
+          "required_recall": 1.0,
+          "semantic_noise_ratio": 0.0,
+          "minimal_noise_ratio": 0.0,
+          "conflict_preservation": 1.0,
+          "gold_rejected_admitted": []
+        }
+      ]
+    }
+  },
+  "oracle_gold_admission_ceiling": {
+    "bundle_size": 1.6875,
+    "required_recall": 1.0,
+    "semantic_noise_ratio": 0.0,
+    "minimal_noise_ratio": 0.19791666666666666,
+    "conflict_preservation": 1.0
+  }
+}
+
+[executed on device: hermes-vm (24be9d7a-f374-4723-94ee-b7833b4dd0cb)]

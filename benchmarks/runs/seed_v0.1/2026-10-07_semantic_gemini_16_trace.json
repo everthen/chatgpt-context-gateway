@@ -1,0 +1,30 @@
+{
+  "schema_version": "ucg-traceability.v0.1",
+  "experiment_id": "EXP-2E",
+  "step_id": "EXP-2E-S7",
+  "parent_step": "EXP-2E-S6",
+  "objective": "Run the provisional Gemini 3.8 Flash semantic assessor on the same frozen 16-case rich gold treatment as Claude Sonnet and Opus.",
+  "repository": "everthen/chatgpt-context-gateway",
+  "branch": "experiment/evidence-admission-v0.1",
+  "code_commit": "00dda136edf37a8f1355298e0b98525eb7d38459",
+  "dataset_version": "seed_v0.1",
+  "dataset_hash": "977d081d4b0221d89c04bcd6ebe513c23304bbb2e94973b4fb9dbf25c5c34141",
+  "assessor": "semantic-model-via-local-9router",
+  "assessor_version": "semantic-assessor-v0.1",
+  "configuration": {
+    "cases": 16,
+    "model": "ag/gemini-3.8-flash",
+    "temperature": 0,
+    "max_output_tokens": 1024,
+    "normalizer": "normalize_semantic_response"
+  },
+  "artifacts": [
+    "benchmarks/runs/seed_v0.1/2026-10-07_gemini_16_compact_v0.1.json",
+    "benchmarks/runs/seed_v0.1/2026-10-07_gemini_16_gold_score_v0.1.json"
+  ],
+  "status": "pass",
+  "finding": "Gemini completed 16/16 cases with 100% required-evidence recall, 97.92% admission accuracy, and 97.78% temporal accuracy. Worthiness-role accuracy was 66.67% and contradiction precision/recall were 37.50%/34.38%. Mean latency was 13.49s. Strict protocol compliance was 6.25% because most responses used fenced JSON normalized by the benchmark.",
+  "decision": "Do not declare a permanent model winner. Gemini is the strongest candidate for current-admission/temporal gating, while Sonnet remains stronger for semantic role/conflict labeling. Next experiment must measure downstream context-bundle quality rather than label accuracy alone.",
+  "next_step": "Wire Gemini, Sonnet, and the existing oracle assessor into the evidence admission/context assembly path and compare final bundle recall, noise, conflict preservation, provenance, latency, and downstream answer quality.",
+  "recorded_at": "2026-10-07T12:00:00+07:00"
+}

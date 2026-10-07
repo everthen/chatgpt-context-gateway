@@ -191,5 +191,17 @@ Decision: no permanent winner declared. Gemini 3.8 Flash is the provisional trea
 - [x] Add identity-bound semantic re-score
 - [x] Validate gold against seed corpus
 - [x] Register Sonnet 4.6 and Opus 4.6 as next treatment candidates
-- [ ] Run Sonnet/Opus four-case treatment with capped output budget
+- [x] Attempt Sonnet/Opus four-case treatment with capped output budget
+- [ ] Rerun Sonnet/Opus treatment after benchmark API-key quota reset
 - [ ] Expand gold audit to 16 cases
+
+Attempt result:
+
+```
+Sonnet 4.6: 4/4 blocked pre-inference
+Opus 4.6-thinking: 4/4 blocked pre-inference
+Error: API key token limit exceeded
+Scorable model responses: 0
+```
+
+The local 9Router model catalog confirmed both candidates are registered. This run is a transport/quota block, not a model-quality result; neither candidate is ranked or downgraded. Artifact: `benchmarks/runs/seed_v0.1/2026-10-07_semantic_sonnet_opus_quota_block_v0.1.json`.

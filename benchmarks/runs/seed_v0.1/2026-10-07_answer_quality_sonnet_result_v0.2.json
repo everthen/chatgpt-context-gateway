@@ -1,0 +1,1353 @@
+{
+  "schema_version": "ucg-answer-quality-sonnet-result.v0.2",
+  "experiment_id": "UCG-EVAL-AQ-SONNET-20261007-v0.2",
+  "dataset_hash": "977d081d4b0221d89c04bcd6ebe513c23304bbb2e94973b4fb9dbf25c5c34141",
+  "repository": "everthen/chatgpt-context-gateway",
+  "branch": "experiment/evidence-admission-v0.1",
+  "answer_model": "ag/claude-sonnet-4-6",
+  "judge_model": "ag/gemini-3.8-flash",
+  "blind_judging": true,
+  "generation_config": {
+    "temperature": 0,
+    "max_tokens": 256,
+    "same_answer_model_across_arms": true,
+    "native_only_definition": "no UCG evidence injected"
+  },
+  "scoring": {
+    "primary": "task_completion_score",
+    "task_completion_formula": "0 when judge claim_coverage=0; otherwise 0.55*claim_coverage + 0.30*factual_correctness + 0.15*groundedness",
+    "abstention_safety": "reported separately in judge artifact; not credited into task completion",
+    "citation_validity": "deterministic key membership"
+  },
+  "summary": {
+    "native_only": {
+      "n": 16,
+      "task_completion_mean": 0.0,
+      "claim_coverage_mean": 0.0,
+      "factual_correctness_mean": 1.0,
+      "groundedness_mean": 1.0,
+      "mean_latency_seconds": 3.7937,
+      "mean_prompt_tokens": 2106.75,
+      "mean_completion_tokens": 112.0,
+      "citation_valid_rate": 1.0,
+      "delta_vs_native_only": 0.0
+    },
+    "oracle": {
+      "n": 16,
+      "task_completion_mean": 0.9406,
+      "claim_coverage_mean": 0.9688,
+      "factual_correctness_mean": 0.9062,
+      "groundedness_mean": 0.9062,
+      "mean_latency_seconds": 2.9728,
+      "mean_prompt_tokens": 2139.5,
+      "mean_completion_tokens": 109.625,
+      "citation_valid_rate": 1.0,
+      "delta_vs_native_only": 0.9406
+    },
+    "ucg_gemini": {
+      "n": 16,
+      "task_completion_mean": 0.9859,
+      "claim_coverage_mean": 1.0,
+      "factual_correctness_mean": 0.9688,
+      "groundedness_mean": 0.9688,
+      "mean_latency_seconds": 3.1952,
+      "mean_prompt_tokens": 2138.0,
+      "mean_completion_tokens": 104.5,
+      "citation_valid_rate": 1.0,
+      "delta_vs_native_only": 0.9859
+    },
+    "ucg_sonnet": {
+      "n": 16,
+      "task_completion_mean": 0.9062,
+      "claim_coverage_mean": 0.9062,
+      "factual_correctness_mean": 0.9688,
+      "groundedness_mean": 0.9688,
+      "mean_latency_seconds": 3.3388,
+      "mean_prompt_tokens": 2140.625,
+      "mean_completion_tokens": 110.5625,
+      "citation_valid_rate": 1.0,
+      "delta_vs_native_only": 0.9062
+    },
+    "ucg_opus": {
+      "n": 16,
+      "task_completion_mean": 1.0,
+      "claim_coverage_mean": 1.0,
+      "factual_correctness_mean": 1.0,
+      "groundedness_mean": 1.0,
+      "mean_latency_seconds": 3.3666,
+      "mean_prompt_tokens": 2147.1875,
+      "mean_completion_tokens": 122.375,
+      "citation_valid_rate": 1.0,
+      "delta_vs_native_only": 1.0
+    }
+  },
+  "family_summary": {
+    "native_only": {
+      "long_session": 0.0,
+      "new_session": 0.0,
+      "cross_provider": 0.0,
+      "temporal_update": 0.0
+    },
+    "oracle": {
+      "long_session": 1.0,
+      "new_session": 0.9437,
+      "cross_provider": 0.8187,
+      "temporal_update": 1.0
+    },
+    "ucg_gemini": {
+      "long_session": 1.0,
+      "new_session": 1.0,
+      "cross_provider": 0.9437,
+      "temporal_update": 1.0
+    },
+    "ucg_sonnet": {
+      "long_session": 1.0,
+      "new_session": 0.9437,
+      "cross_provider": 0.9313,
+      "temporal_update": 0.75
+    },
+    "ucg_opus": {
+      "long_session": 1.0,
+      "new_session": 1.0,
+      "cross_provider": 1.0,
+      "temporal_update": 1.0
+    }
+  },
+  "bundle_mean_sizes": {
+    "oracle": 1.6875,
+    "ucg_gemini": 1.625,
+    "ucg_sonnet": 1.9333333333,
+    "ucg_opus": 2.0625
+  },
+  "critical_findings": [
+    "Cross-answer-model validation is positive: Sonnet as the fixed answer model still benefits materially from every UCG bundle arm.",
+    "Opus semantic bundle is strongest in this run at 1.0000 task completion; Gemini bundle is 0.9859; Sonnet bundle is 0.9062; Oracle gold-admission bundle is 0.9406.",
+    "The result shows that UCG bundle quality generalizes beyond a Gemini answer model; the strongest bundle in the Sonnet-answer run comes from the Opus semantic assessor, not the answer model family.",
+    "The Oracle gold-admission bundle is below selective UCG bundles on downstream task completion. This does not mean UCG beats a perfect oracle; it shows that admitting all gold-allowed evidence can be less useful than selective admission when distractors/conflicts are present.",
+    "Sonnet semantic admission remains the main failure seam at TU-04 because its frozen assessor produced an empty bundle. XP-04 is a secondary cross-account coverage seam.",
+    "XP-03 is handled substantively by the Sonnet answer model; it exposes the authority conflict rather than fabricating a resolved decision.",
+    "Absolute scores must not be compared with the earlier Gemini-answer run because the judge model changed. Within-run arm deltas and rankings are the valid comparison."
+  ],
+  "router_runtime_commit": "c477314d",
+  "runtime_note": "temporary dev-only benchmark route on 20129; no UCG repo source change",
+  "raw_answer_sha256": "4ebcdb6eeba5dae86d5440c3f5fa2fbd8f458f56543157e00851276bac0bd24c",
+  "raw_judge_sha256": "1d1bdd270723323fec391388b1046da798e010e4c6a95921a53cb6fe10f66ceb",
+  "decision": "PASS cross-answer-model validation seam; NOT CORE GATE",
+  "next_step": "Expand P1/P2, add independent human audit, and attack TU-04/temporal and XP-04/account-isolation admission cases.",
+  "per_case": [
+    {
+      "case_id": "LS-01",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "ls01.anchor",
+        "ls01.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "10ff63cc62ba54d8435212e649073e6eb7b6764626742d5a50d709ad70c167ed",
+      "latency_seconds": 1.9474,
+      "prompt_tokens": 2138,
+      "completion_tokens": 48
+    },
+    {
+      "case_id": "LS-01",
+      "arm": "oracle",
+      "bundle_keys": [
+        "ls01.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "ab34898c06f66ffa159bcba983ac15fab56b2bc16f32ca79178b99fed29737c0",
+      "latency_seconds": 1.9064,
+      "prompt_tokens": 2120,
+      "completion_tokens": 33
+    },
+    {
+      "case_id": "LS-01",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "ls01.anchor",
+        "ls01.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "d6e8a9b567cb056d89ad183ec1ce3eacf714a26bb5b811ed2a8edabf0b5cdf8a",
+      "latency_seconds": 1.5406,
+      "prompt_tokens": 2138,
+      "completion_tokens": 48
+    },
+    {
+      "case_id": "LS-01",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "ls01.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "e026e5105b8e189d581ece6867051156855b6f2245b5f0471757cab9c89cf7aa",
+      "latency_seconds": 2.0721,
+      "prompt_tokens": 2120,
+      "completion_tokens": 34
+    },
+    {
+      "case_id": "LS-01",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "task_completion_score": 0.0,
+      "claim_coverage": 0.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "cb1bc68e5d941b86428162f0dc71510a059b6c7dead12fdee0143ee5a0668a45",
+      "latency_seconds": 2.7017,
+      "prompt_tokens": 2105,
+      "completion_tokens": 61
+    },
+    {
+      "case_id": "LS-02",
+      "arm": "oracle",
+      "bundle_keys": [
+        "ls02.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "add4cf514018686ca6e28f86f2a47e0b0d69af9661af39ff64744ba56e9855fa",
+      "latency_seconds": 1.6147,
+      "prompt_tokens": 2117,
+      "completion_tokens": 27
+    },
+    {
+      "case_id": "LS-02",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "ls02.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "d98189996e73e230996938b1f009d6e38a1829658842a1e4cc7641f757975bd8",
+      "latency_seconds": 1.6183,
+      "prompt_tokens": 2117,
+      "completion_tokens": 28
+    },
+    {
+      "case_id": "LS-02",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "ls02.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "7399e8db50114cd615ed69c4d1102bbb09d4f2c713fa6c8a573b32ba082cb2c0",
+      "latency_seconds": 3.9047,
+      "prompt_tokens": 2117,
+      "completion_tokens": 26
+    },
+    {
+      "case_id": "LS-02",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "task_completion_score": 0.0,
+      "claim_coverage": 0.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "af201a1d01a86bbb36993d9fd2e6445892fde2f81fba015d89aa58d1b1324e79",
+      "latency_seconds": 5.1539,
+      "prompt_tokens": 2105,
+      "completion_tokens": 167
+    },
+    {
+      "case_id": "LS-02",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "ls02.gold",
+        "ls02.note"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "61692ec27f63320e1bbe5ebcb38b8befb3c56b86d7433f38833161f64564b74a",
+      "latency_seconds": 3.0796,
+      "prompt_tokens": 2132,
+      "completion_tokens": 55
+    },
+    {
+      "case_id": "LS-03",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "ls03.gold",
+        "ls03.support"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "20251eff6c05af32b72e4b0af61430c97844be703e0e9ef689fa2b426394a3a6",
+      "latency_seconds": 2.3006,
+      "prompt_tokens": 2134,      "completion_tokens": 74
+    },
+    {
+      "case_id": "LS-03",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "ls03.gold",
+        "ls03.support"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "20251eff6c05af32b72e4b0af61430c97844be703e0e9ef689fa2b426394a3a6",
+      "latency_seconds": 2.1301,
+      "prompt_tokens": 2134,
+      "completion_tokens": 74
+    },
+    {
+      "case_id": "LS-03",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "task_completion_score": 0.0,
+      "claim_coverage": 0.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "fbb1bab1eb55478b0dce6256f713424814884fa8b1e7a9b2edd3ba37e377a5c4",
+      "latency_seconds": 3.7213,
+      "prompt_tokens": 2106,
+      "completion_tokens": 97
+    },
+    {
+      "case_id": "LS-03",
+      "arm": "oracle",
+      "bundle_keys": [
+        "ls03.support",
+        "ls03.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "6d06981c9e7c3bc1194b46c9090c18995fed118714140961694aa7d6c5dcec72",
+      "latency_seconds": 2.1556,
+      "prompt_tokens": 2134,
+      "completion_tokens": 77
+    },
+    {
+      "case_id": "LS-03",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "ls03.gold",
+        "ls03.support"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "ddbd1bb39672cbcbfafc1cddb09f2203cd9be61895033d96fc279aacefa214bc",
+      "latency_seconds": 2.96,
+      "prompt_tokens": 2134,
+      "completion_tokens": 86
+    },
+    {
+      "case_id": "LS-04",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "task_completion_score": 0.0,
+      "claim_coverage": 0.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "35a2f63cf309e0f9a199e5bec37a1558cfa0e70a8b6dfe82067947a2134a6bfa",
+      "latency_seconds": 5.6292,
+      "prompt_tokens": 2109,
+      "completion_tokens": 210
+    },
+    {
+      "case_id": "LS-04",
+      "arm": "oracle",
+      "bundle_keys": [
+        "ls04.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "ab4a66c6c51dcf672057c1567a970e2fefd5eac085edf8863bbcd55e429775c8",
+      "latency_seconds": 1.114,
+      "prompt_tokens": 2126,
+      "completion_tokens": 33
+    },
+    {
+      "case_id": "LS-04",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "ls04.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "87af4c02a323738fb9a70834526bcb28b6f2f3345ebe53a2428a5c66b7a62ec5",
+      "latency_seconds": 1.553,
+      "prompt_tokens": 2126,
+      "completion_tokens": 33
+    },
+    {
+      "case_id": "LS-04",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "ls04.dist1",
+        "ls04.dist2",
+        "ls04.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "d73ac103b85bffd1c52582840e1b9c445e402b84207ddf42d9e3c144fcab9ed3",
+      "latency_seconds": 4.6397,
+      "prompt_tokens": 2172,
+      "completion_tokens": 125
+    },
+    {
+      "case_id": "LS-04",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "ls04.dist1",
+        "ls04.dist2",
+        "ls04.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "8f69cfbe6854cfd6165ffe744f5e84a99af526662a0d036d27ab55782b2b4081",
+      "latency_seconds": 4.8589,
+      "prompt_tokens": 2172,
+      "completion_tokens": 129
+    },
+    {
+      "case_id": "NS-01",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "ns01.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "3843022decf3e6d2cd6f71a5ebd2e4320945533d4bf25a17f9b8c932e19fee9e",
+      "latency_seconds": 1.5503,
+      "prompt_tokens": 2120,
+      "completion_tokens": 36
+    },
+    {
+      "case_id": "NS-01",
+      "arm": "oracle",
+      "bundle_keys": [
+        "ns01.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "3843022decf3e6d2cd6f71a5ebd2e4320945533d4bf25a17f9b8c932e19fee9e",
+      "latency_seconds": 1.5017,
+      "prompt_tokens": 2120,
+      "completion_tokens": 36
+    },
+    {
+      "case_id": "NS-01",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "task_completion_score": 0.0,
+      "claim_coverage": 0.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "df7e763b4d010c428382fce8f4a1d6643219c3052b661b8e2dcc9ef2e89bd39c",
+      "latency_seconds": 4.6862,
+      "prompt_tokens": 2106,
+      "completion_tokens": 154
+    },
+    {
+      "case_id": "NS-01",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "ns01.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "3843022decf3e6d2cd6f71a5ebd2e4320945533d4bf25a17f9b8c932e19fee9e",
+      "latency_seconds": 1.532,
+      "prompt_tokens": 2120,
+      "completion_tokens": 36
+    },
+    {
+      "case_id": "NS-01",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "ns01.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "3843022decf3e6d2cd6f71a5ebd2e4320945533d4bf25a17f9b8c932e19fee9e",
+      "latency_seconds": 2.0255,
+      "prompt_tokens": 2120,
+      "completion_tokens": 36
+    },
+    {
+      "case_id": "NS-02",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "task_completion_score": 0.0,
+      "claim_coverage": 0.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "8b317c2d5832a11a4a737b6a0817b010a9cd55997f888f2f074353c989f9193f",
+      "latency_seconds": 3.7182,
+      "prompt_tokens": 2105,
+      "completion_tokens": 107
+    },
+    {
+      "case_id": "NS-02",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "ns02.dist",
+        "ns02.gold",
+        "ns02.support"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "2e7190699f58518c56e5e99e7adb026491bb3d9dfbcdd925bc2c03c026afd5d4",
+      "latency_seconds": 3.7442,
+      "prompt_tokens": 2158,
+      "completion_tokens": 176
+    },
+    {
+      "case_id": "NS-02",
+      "arm": "oracle",
+      "bundle_keys": [
+        "ns02.gold",
+        "ns02.support"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "819c116120986469a8882d69141e29be098bda289ad24fdf5c884f654d9a86ff",
+      "latency_seconds": 3.17,
+      "prompt_tokens": 2140,
+      "completion_tokens": 123
+    },
+    {
+      "case_id": "NS-02",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "ns02.dist",
+        "ns02.gold",
+        "ns02.support"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "3cad29a909027d4978001a4c0dd31a7100eb158cc985cf7244e72cdfb2b5b351",
+      "latency_seconds": 3.8442,
+      "prompt_tokens": 2158,
+      "completion_tokens": 150
+    },
+    {
+      "case_id": "NS-02",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "ns02.gold",
+        "ns02.support"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "08001d8947266ee4c9dda0a4eeb4ff829322d557b7ed9708a57ef0d848de811c",
+      "latency_seconds": 4.1502,
+      "prompt_tokens": 2140,
+      "completion_tokens": 194
+    },
+    {
+      "case_id": "NS-03",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "task_completion_score": 0.0,
+      "claim_coverage": 0.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,      "answer_sha256": "d3adbe4a0e26523b4d64d1f6bcb67f9b13024bbce90a0a32d3e690c0ef5ae9f9",
+      "latency_seconds": 2.2754,
+      "prompt_tokens": 2106,
+      "completion_tokens": 48
+    },
+    {
+      "case_id": "NS-03",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "ns03.dist",
+        "ns03.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "2c0ad572a4ef0ad14179069d8f2fd135e1821a71f768a1c6bc9ff04556926b5b",
+      "latency_seconds": 1.7094,
+      "prompt_tokens": 2138,
+      "completion_tokens": 56
+    },
+    {
+      "case_id": "NS-03",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "ns03.dist",
+        "ns03.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "f333e69477ead24a8a3653ade6211f670bf08e13cf278dfe77fb48ad226f2619",
+      "latency_seconds": 2.554,
+      "prompt_tokens": 2138,
+      "completion_tokens": 57
+    },
+    {
+      "case_id": "NS-03",
+      "arm": "oracle",
+      "bundle_keys": [
+        "ns03.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "4bede3a20b0913ff8209af0a56b12c4909a2c47c888f5d9cb73315aee0dc57ac",
+      "latency_seconds": 1.4999,
+      "prompt_tokens": 2119,
+      "completion_tokens": 31
+    },
+    {
+      "case_id": "NS-03",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "ns03.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "d91ccdf9d569e1622319a3331bb91db069e56983f1c3447c6ce38654eb1f5281",
+      "latency_seconds": 1.8051,
+      "prompt_tokens": 2119,
+      "completion_tokens": 30
+    },
+    {
+      "case_id": "NS-04",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "ns04.gold"
+      ],
+      "task_completion_score": 0.775,
+      "claim_coverage": 1.0,
+      "factual_correctness": 0.5,
+      "groundedness": 0.5,
+      "answer_sha256": "8b862c6310ae761230406eb9dec6def6f350d5829d6f3360e24ac3f7daf563ed",
+      "latency_seconds": 4.3288,
+      "prompt_tokens": 2128,
+      "completion_tokens": 146
+    },
+    {
+      "case_id": "NS-04",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "ns04.dist1",
+        "ns04.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "62c0f968b00b78b3dc0bca485c9a34fbbebffaf03e8859240a7c9847c5ec0b00",
+      "latency_seconds": 4.3836,
+      "prompt_tokens": 2153,
+      "completion_tokens": 184
+    },
+    {
+      "case_id": "NS-04",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "ns04.dist1",
+        "ns04.dist2",
+        "ns04.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "f1b33d445bb4b9526a423c59f9e6da393ea5ae9c200bdf78df245bb625203234",
+      "latency_seconds": 4.1781,
+      "prompt_tokens": 2176,
+      "completion_tokens": 153
+    },
+    {
+      "case_id": "NS-04",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "task_completion_score": 0.0,
+      "claim_coverage": 0.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "373bad6fd4d4221d7dafbe5362ea73bd7fb0dd81c59c5c4fc5b9f6187ee8f60f",
+      "latency_seconds": 3.8616,
+      "prompt_tokens": 2107,
+      "completion_tokens": 119
+    },
+    {
+      "case_id": "NS-04",
+      "arm": "oracle",
+      "bundle_keys": [
+        "ns04.gold",
+        "ns04.dist1",
+        "ns04.dist2"
+      ],
+      "task_completion_score": 0.775,
+      "claim_coverage": 1.0,
+      "factual_correctness": 0.5,
+      "groundedness": 0.5,
+      "answer_sha256": "3183772b044f6e57b28a58952b53388550ed4e9aba7d3d89ad51f7f494813e5f",
+      "latency_seconds": 5.6769,
+      "prompt_tokens": 2176,
+      "completion_tokens": 256
+    },
+    {
+      "case_id": "XP-01",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "xp01.dist",
+        "xp01.google",
+        "xp01.openai"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "8e875385f56a3df2ab44ca7cd4e4b6308318f93834eb2e80e7db1d294470ad1e",
+      "latency_seconds": 3.8932,
+      "prompt_tokens": 2169,
+      "completion_tokens": 194
+    },
+    {
+      "case_id": "XP-01",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "xp01.dist",
+        "xp01.google",
+        "xp01.openai"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "64fb4b1e8caa989142ce76e4a732a5fffa87353e0bb585186e2a62978aaf085d",
+      "latency_seconds": 4.0133,
+      "prompt_tokens": 2169,
+      "completion_tokens": 171
+    },
+    {
+      "case_id": "XP-01",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "xp01.dist",
+        "xp01.google",
+        "xp01.openai"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "7dac002175128cf73d66c490355900bc042f5a6b65b21afff67ed5455fbb2e3a",
+      "latency_seconds": 4.3811,
+      "prompt_tokens": 2169,
+      "completion_tokens": 192
+    },
+    {
+      "case_id": "XP-01",
+      "arm": "oracle",
+      "bundle_keys": [
+        "xp01.openai",
+        "xp01.google",
+        "xp01.dist"
+      ],
+      "task_completion_score": 0.5,
+      "claim_coverage": 0.5,
+      "factual_correctness": 0.5,
+      "groundedness": 0.5,
+      "answer_sha256": "888e8259777d6f0fc7413ba360b70613fbb0ef993250ef75d7ce2c9d5eb8283f",
+      "latency_seconds": 5.5706,
+      "prompt_tokens": 2169,
+      "completion_tokens": 256
+    },
+    {
+      "case_id": "XP-01",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "task_completion_score": 0.0,
+      "claim_coverage": 0.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "3ec6b981f658d2fe82a06e7893647e3c7ab8e6a95018608c8ecad4697b34e4b3",
+      "latency_seconds": 3.8076,
+      "prompt_tokens": 2108,
+      "completion_tokens": 129
+    },
+    {
+      "case_id": "XP-02",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "xp02.claude",
+        "xp02.openai"
+      ],
+      "task_completion_score": 0.775,
+      "claim_coverage": 1.0,
+      "factual_correctness": 0.5,
+      "groundedness": 0.5,
+      "answer_sha256": "9be7624b476e395fd27625c2eeceb9296bd888980384321eaebcbd43a8ca8864",
+      "latency_seconds": 5.7643,
+      "prompt_tokens": 2153,
+      "completion_tokens": 256
+    },
+    {
+      "case_id": "XP-02",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "xp02.claude",
+        "xp02.dist",
+        "xp02.openai"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "c729e86bc015d4727fdd1b7d3d1dbbbdf4b56cfa1d1b25e6470e8e09a95f634d",
+      "latency_seconds": 5.7137,
+      "prompt_tokens": 2177,
+      "completion_tokens": 238
+    },
+    {
+      "case_id": "XP-02",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "xp02.claude",
+        "xp02.dist",
+        "xp02.openai"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "c6dc006147fb10ada38ac5859a2f83d6099a0bf08897ade4556d53512fc3f531",
+      "latency_seconds": 5.6294,
+      "prompt_tokens": 2177,
+      "completion_tokens": 208
+    },
+    {
+      "case_id": "XP-02",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "task_completion_score": 0.0,
+      "claim_coverage": 0.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "5a89393a91db91a5e84b7a91d06bd466f92ecaf21ea9eb366757e8f160161969",
+      "latency_seconds": 3.4182,
+      "prompt_tokens": 2106,
+      "completion_tokens": 111
+    },
+    {
+      "case_id": "XP-02",
+      "arm": "oracle",
+      "bundle_keys": [
+        "xp02.openai",
+        "xp02.claude",
+        "xp02.dist"
+      ],
+      "task_completion_score": 0.775,
+      "claim_coverage": 1.0,
+      "factual_correctness": 0.5,      "groundedness": 0.5,
+      "answer_sha256": "9fc7666df2193bdfe617b2e3d3addc018bf61e5f50fc05e7f846d75894b41e2b",
+      "latency_seconds": 4.9071,
+      "prompt_tokens": 2177,
+      "completion_tokens": 199
+    },
+    {
+      "case_id": "XP-03",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "xp03.chatgpt",
+        "xp03.dist",
+        "xp03.gemini"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "f20f57b3fffed25eb2f4185e55dca5be3734d8152a3e2aceb6686b05e91f024f",
+      "latency_seconds": 5.814,
+      "prompt_tokens": 2180,
+      "completion_tokens": 256
+    },
+    {
+      "case_id": "XP-03",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "task_completion_score": 0.0,
+      "claim_coverage": 0.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "4b041373dcae67c2b1c0155d2a2fd1fe090154a143c520d235f1db5991723319",
+      "latency_seconds": 3.5004,
+      "prompt_tokens": 2109,
+      "completion_tokens": 113
+    },
+    {
+      "case_id": "XP-03",
+      "arm": "oracle",
+      "bundle_keys": [
+        "xp03.gemini",
+        "xp03.chatgpt",
+        "xp03.dist"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "bf64fd6a3533f1a85ea9e74bb749d96899c7f4219ef549556938d5100fd4a4f1",
+      "latency_seconds": 4.8508,
+      "prompt_tokens": 2180,
+      "completion_tokens": 256
+    },
+    {
+      "case_id": "XP-03",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "xp03.chatgpt",
+        "xp03.dist",
+        "xp03.gemini"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "e7dd4723cef2414e3e47ca9ff865532186c2e0f2031bf7d95581ae7433057d3d",
+      "latency_seconds": 5.6298,
+      "prompt_tokens": 2180,
+      "completion_tokens": 256
+    },
+    {
+      "case_id": "XP-03",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "xp03.chatgpt",
+        "xp03.dist",
+        "xp03.gemini"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "b23d2757906df65e4f452509f62ab1f0208f84c0084ad984b5f1c1bf91081859",
+      "latency_seconds": 5.3994,
+      "prompt_tokens": 2180,
+      "completion_tokens": 256
+    },
+    {
+      "case_id": "XP-04",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "xp04.dist",
+        "xp04.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "f16741fb9f5c22b5efd2190ce22c584463dad05e185fce513f09145be273ee1e",
+      "latency_seconds": 4.9654,
+      "prompt_tokens": 2145,
+      "completion_tokens": 172
+    },
+    {
+      "case_id": "XP-04",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "xp04.dist",
+        "xp04.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "000a17a3a0919ef92d8353d178f5af434ed03e0789a8b03f914a4f3571c0ca90",
+      "latency_seconds": 4.2056,
+      "prompt_tokens": 2145,
+      "completion_tokens": 131
+    },
+    {
+      "case_id": "XP-04",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "task_completion_score": 0.0,
+      "claim_coverage": 0.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "39ca9106a42e2d86a818daa1b61aa1b45b7c44a6175e74e20a70c18a0a30aad7",
+      "latency_seconds": 4.5324,
+      "prompt_tokens": 2105,
+      "completion_tokens": 125
+    },
+    {
+      "case_id": "XP-04",
+      "arm": "oracle",
+      "bundle_keys": [
+        "xp04.gold",
+        "xp04.dist"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "de9782aae858a4aa056624225b0201319c97f0fdbce53cdf72d343f595a3a6f5",
+      "latency_seconds": 3.9524,
+      "prompt_tokens": 2145,
+      "completion_tokens": 139
+    },
+    {
+      "case_id": "XP-04",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "xp04.gold"
+      ],
+      "task_completion_score": 0.725,
+      "claim_coverage": 0.5,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "d8aee1992102b867a4f847a0f604d321e972260f45849a874fcc752747a58f24",
+      "latency_seconds": 3.8443,
+      "prompt_tokens": 2118,
+      "completion_tokens": 140
+    },
+    {
+      "case_id": "TU-01",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "tu01.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "27b1536229617f6f3760d7573785c90e13710b310e3cb48fa6bc2d6165e9acbc",
+      "latency_seconds": 1.4005,
+      "prompt_tokens": 2121,
+      "completion_tokens": 41
+    },
+    {
+      "case_id": "TU-01",
+      "arm": "oracle",
+      "bundle_keys": [
+        "tu01.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "27b1536229617f6f3760d7573785c90e13710b310e3cb48fa6bc2d6165e9acbc",
+      "latency_seconds": 1.695,
+      "prompt_tokens": 2121,
+      "completion_tokens": 41
+    },
+    {
+      "case_id": "TU-01",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "tu01.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "33cf4d17fdf4b45f9fb068a325a1b88b617cbee712d0759e378bc01c1e1769c5",
+      "latency_seconds": 1.6028,
+      "prompt_tokens": 2121,
+      "completion_tokens": 43
+    },
+    {
+      "case_id": "TU-01",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "tu01.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "27b1536229617f6f3760d7573785c90e13710b310e3cb48fa6bc2d6165e9acbc",
+      "latency_seconds": 1.7881,
+      "prompt_tokens": 2121,
+      "completion_tokens": 41
+    },
+    {
+      "case_id": "TU-01",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "task_completion_score": 0.0,
+      "claim_coverage": 0.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "ffe4590e670f2caabebf31bb1143960f634c63a92be8d0c8b898e4e6b56e865e",
+      "latency_seconds": 3.6118,
+      "prompt_tokens": 2107,
+      "completion_tokens": 67
+    },
+    {
+      "case_id": "TU-02",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "tu02.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "4fbdad45d246d7d1947fd2441a621948aecace28fde5767493842e41b9516871",
+      "latency_seconds": 1.8167,
+      "prompt_tokens": 2125,
+      "completion_tokens": 47
+    },
+    {
+      "case_id": "TU-02",
+      "arm": "oracle",
+      "bundle_keys": [
+        "tu02.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "4fbdad45d246d7d1947fd2441a621948aecace28fde5767493842e41b9516871",
+      "latency_seconds": 1.7457,
+      "prompt_tokens": 2125,
+      "completion_tokens": 47
+    },
+    {
+      "case_id": "TU-02",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "tu02.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "4fbdad45d246d7d1947fd2441a621948aecace28fde5767493842e41b9516871",
+      "latency_seconds": 1.721,
+      "prompt_tokens": 2125,
+      "completion_tokens": 47
+    },
+    {
+      "case_id": "TU-02",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "task_completion_score": 0.0,
+      "claim_coverage": 0.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "21168af28adc5f27cf5e182110b428bd1a0b1c0399ff91d277f2a16d2740bd46",
+      "latency_seconds": 3.2186,
+      "prompt_tokens": 2107,
+      "completion_tokens": 88
+    },
+    {
+      "case_id": "TU-02",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "tu02.gold"
+      ],      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "4fbdad45d246d7d1947fd2441a621948aecace28fde5767493842e41b9516871",
+      "latency_seconds": 1.6226,
+      "prompt_tokens": 2125,
+      "completion_tokens": 47
+    },
+    {
+      "case_id": "TU-03",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [
+        "tu03.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "45cf52502d4c93b8bc9cf05a43371e5251531aa9a32e57aa149bd6f87cd987ab",
+      "latency_seconds": 3.4392,
+      "prompt_tokens": 2134,
+      "completion_tokens": 81
+    },
+    {
+      "case_id": "TU-03",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "task_completion_score": 0.0,
+      "claim_coverage": 0.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "cb00e5229869d7508b584becc5ea430008c39e1396c6417443810757438fe6bb",
+      "latency_seconds": 3.9672,
+      "prompt_tokens": 2111,
+      "completion_tokens": 128
+    },
+    {
+      "case_id": "TU-03",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "tu03.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "c2a39dede73e566dd6233bc0da9106fb18b6ff5b463f3184e931565f393f65f6",
+      "latency_seconds": 3.0862,
+      "prompt_tokens": 2134,
+      "completion_tokens": 83
+    },
+    {
+      "case_id": "TU-03",
+      "arm": "oracle",
+      "bundle_keys": [
+        "tu03.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "dcac427c8737d1a6d8e21f1bd3982736ce3f233ac85d5685144a698e9724a8fe",
+      "latency_seconds": 2.8322,
+      "prompt_tokens": 2134,
+      "completion_tokens": 97
+    },
+    {
+      "case_id": "TU-03",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "tu03.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "2b5cad079cb9946abe2287a4cd1eccc0df3d69356345ac692bb76a06da4895df",
+      "latency_seconds": 3.7702,
+      "prompt_tokens": 2134,
+      "completion_tokens": 98
+    },
+    {
+      "case_id": "TU-04",
+      "arm": "ucg_opus",
+      "bundle_keys": [
+        "tu04.dist1",
+        "tu04.dist2",
+        "tu04.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "c2849efd81dec31bb1bb74c7921462df98c5c1ce794729464176f22b68990984",
+      "latency_seconds": 4.6773,
+      "prompt_tokens": 2174,
+      "completion_tokens": 209
+    },
+    {
+      "case_id": "TU-04",
+      "arm": "native_only",
+      "bundle_keys": [],
+      "task_completion_score": 0.0,
+      "claim_coverage": 0.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "26987b60c214f2856b66b20356b07b1e15cd727e45ec1be2fb7630a66b05d24b",
+      "latency_seconds": 2.8964,
+      "prompt_tokens": 2106,
+      "completion_tokens": 68
+    },
+    {
+      "case_id": "TU-04",
+      "arm": "ucg_gemini",
+      "bundle_keys": [
+        "tu04.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "0d4a7587973efd301bbbae031d1d66fb664c9e63d9969aa846d545195803dee6",
+      "latency_seconds": 3.1386,
+      "prompt_tokens": 2129,
+      "completion_tokens": 107
+    },
+    {
+      "case_id": "TU-04",
+      "arm": "ucg_sonnet",
+      "bundle_keys": [],
+      "task_completion_score": 0.0,
+      "claim_coverage": 0.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "b8be4937a6668245dfdf9595add30a435394995a53b5c123737d0025e54359ed",
+      "latency_seconds": 2.6803,
+      "prompt_tokens": 2106,
+      "completion_tokens": 71
+    },
+    {
+      "case_id": "TU-04",
+      "arm": "oracle",
+      "bundle_keys": [
+        "tu04.gold"
+      ],
+      "task_completion_score": 1.0,
+      "claim_coverage": 1.0,
+      "factual_correctness": 1.0,
+      "groundedness": 1.0,
+      "answer_sha256": "e8bb95282151cf759dd5f7528264a7c501d5660d21ac852fbbc088eedc59251b",
+      "latency_seconds": 3.3722,
+      "prompt_tokens": 2129,
+      "completion_tokens": 103
+    }
+  ]
+}

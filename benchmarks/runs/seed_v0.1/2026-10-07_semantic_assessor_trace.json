@@ -1,0 +1,32 @@
+{
+  "schema_version": "ucg-traceability.v0.1",
+  "experiment_id": "EXP-2E",
+  "step_id": "EXP-2E-S1",
+  "objective": "Define and validate a blind semantic worthiness assessor contract without leaking benchmark truth labels.",
+  "parent_step": "EXP-2D",
+  "repository": "everthen/chatgpt-context-gateway",
+  "branch": "experiment/evidence-admission-v0.1",
+  "code_commit": "581749d0065430425f20e20447b1481664a4284b",
+  "dataset_version": "seed_v0.1",
+  "dataset_hash": "977d081d4b0221d89c04bcd6ebe513c23304bbb2e94973b4fb9dbf25c5c34141",
+  "assessor": "semantic-assessor-contract",
+  "assessor_version": "v0.1",
+  "configuration": {
+    "blind_candidate_ids": "C1..Cn",
+    "strict_json": true,
+    "fail_closed_unavailable": true,
+    "gold_labels_excluded_from_model_input": true
+  },
+  "artifact_paths": [
+    "src/context_gateway/benchmark/semantic_assessor.py",
+    "src/context_gateway/benchmark/worthiness_pack.py",
+    "tests/test_semantic_assessor.py",
+    "tests/test_worthiness_pack.py",
+    "docs/UCG_SEMANTIC_WORTHINESS_ASSESSOR_V0.1.md"
+  ],
+  "status": "pass",
+  "finding": "Blindness, structured response validation, candidate coverage enforcement, and unavailable-adapter fail-closed behavior passed isolated contract execution.",
+  "decision": "Proceed to a real semantic/model adapter without changing the evaluator or blind input contract.",
+  "next_step": "Connect a real model adapter and run frozen blind assessment packs; do not fabricate model results if unavailable.",
+  "recorded_at": "2026-10-07T03:50:55Z"
+}

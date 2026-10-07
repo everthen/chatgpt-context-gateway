@@ -1,0 +1,196 @@
+{
+  "schema_version": "ucg-observed-contrastive-seams.v0.1",
+  "source_experiment": "UCG-EVAL-AQ-SONNET-20261007-v0.2",
+  "source_branch": "experiment/evidence-admission-v0.1",
+  "source_result_path": "benchmarks/runs/seed_v0.1/2026-10-07_answer_quality_sonnet_result_v0.2.json",
+  "source_result_blob_sha": "95a482b6a31ebf18abc5c8d0ca56170f42930362",
+  "cases": [
+    {
+      "case_id": "NS-04",
+      "failure_class": "over_pruning",
+      "expected_contrastive_keys": [
+        "ns04.dist1",
+        "ns04.dist2"
+      ],
+      "observed": [
+        {
+          "arm": "ucg_sonnet",
+          "bundle_keys": [
+            "ns04.gold"
+          ],
+          "task_completion_score": 0.775
+        },
+        {
+          "arm": "ucg_opus",
+          "bundle_keys": [
+            "ns04.dist1",
+            "ns04.gold"
+          ],
+          "task_completion_score": 1
+        },
+        {
+          "arm": "ucg_gemini",
+          "bundle_keys": [
+            "ns04.dist1",
+            "ns04.dist2",
+            "ns04.gold"
+          ],
+          "task_completion_score": 1
+        },
+        {
+          "arm": "oracle",
+          "bundle_keys": [
+            "ns04.gold",
+            "ns04.dist1",
+            "ns04.dist2"
+          ],
+          "task_completion_score": 0.775
+        }
+      ],
+      "regression_assertion": {
+        "weak_bundle": "ucg_sonnet",
+        "stronger_bundle": "ucg_opus",
+        "required_added_key": "ns04.dist1",
+        "score_delta": 0.225
+      }
+    },
+    {
+      "case_id": "XP-02",
+      "failure_class": "contrastive_provider_evidence",
+      "expected_contrastive_keys": [
+        "xp02.dist"
+      ],
+      "observed": [
+        {
+          "arm": "ucg_gemini",
+          "bundle_keys": [
+            "xp02.claude",
+            "xp02.openai"
+          ],
+          "task_completion_score": 0.775
+        },
+        {
+          "arm": "ucg_opus",
+          "bundle_keys": [
+            "xp02.claude",
+            "xp02.dist",
+            "xp02.openai"
+          ],
+          "task_completion_score": 1
+        },
+        {
+          "arm": "ucg_sonnet",
+          "bundle_keys": [
+            "xp02.claude",
+            "xp02.dist",
+            "xp02.openai"
+          ],
+          "task_completion_score": 1
+        },
+        {
+          "arm": "oracle",
+          "bundle_keys": [
+            "xp02.openai",
+            "xp02.claude",
+            "xp02.dist"
+          ],
+          "task_completion_score": 0.775
+        }
+      ],
+      "regression_assertion": {
+        "weak_bundle": "ucg_gemini",
+        "stronger_bundle": "ucg_sonnet",
+        "required_added_key": "xp02.dist",
+        "score_delta": 0.225
+      }
+    },
+    {
+      "case_id": "XP-04",
+      "failure_class": "account_isolation",
+      "expected_contrastive_keys": [
+        "xp04.dist"
+      ],
+      "observed": [
+        {
+          "arm": "ucg_opus",
+          "bundle_keys": [
+            "xp04.dist",
+            "xp04.gold"
+          ],
+          "task_completion_score": 1
+        },
+        {
+          "arm": "ucg_gemini",
+          "bundle_keys": [
+            "xp04.dist",
+            "xp04.gold"
+          ],
+          "task_completion_score": 1
+        },
+        {
+          "arm": "oracle",
+          "bundle_keys": [
+            "xp04.gold",
+            "xp04.dist"
+          ],
+          "task_completion_score": 1
+        },
+        {
+          "arm": "ucg_sonnet",
+          "bundle_keys": [
+            "xp04.gold"
+          ],
+          "task_completion_score": 0.725
+        }
+      ],
+      "regression_assertion": {
+        "weak_bundle": "ucg_sonnet",
+        "stronger_bundle": "ucg_opus",
+        "required_added_key": "xp04.dist",
+        "score_delta": 0.275
+      }
+    },
+    {
+      "case_id": "TU-04",
+      "failure_class": "admission_failure",
+      "expected_contrastive_keys": [],
+      "observed": [
+        {
+          "arm": "ucg_opus",
+          "bundle_keys": [
+            "tu04.dist1",
+            "tu04.dist2",
+            "tu04.gold"
+          ],
+          "task_completion_score": 1
+        },
+        {
+          "arm": "ucg_gemini",
+          "bundle_keys": [
+            "tu04.gold"
+          ],
+          "task_completion_score": 1
+        },
+        {
+          "arm": "ucg_sonnet",
+          "bundle_keys": [],
+          "task_completion_score": 0
+        },
+        {
+          "arm": "oracle",
+          "bundle_keys": [
+            "tu04.gold"
+          ],
+          "task_completion_score": 1
+        }
+      ],
+      "regression_assertion": {
+        "failing_arm": "ucg_sonnet",
+        "failure_owner": "admission",
+        "expected_empty_bundle": true
+      }
+    }
+  ],
+  "decision": "PASS observed-seam regression fixture",
+  "note": "This fixture freezes empirical downstream behavior from the Sonnet answer-quality artifact. It is a regression/evidence artifact, not proof that the production selector is correct."
+}

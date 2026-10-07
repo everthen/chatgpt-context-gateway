@@ -155,6 +155,7 @@ def call_model(
             raw = response.read().decode("utf-8")
         result["raw_response"] = raw
         content = json.loads(raw)["choices"][0]["message"]["content"]
+        result["model_content"] = str(content)
         assessments, protocol_compliant = normalize_semantic_response(
             str(content), request
         )

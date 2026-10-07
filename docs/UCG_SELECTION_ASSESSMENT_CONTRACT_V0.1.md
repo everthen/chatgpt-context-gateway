@@ -173,3 +173,8 @@ Run:
 on the observed NS-04 / XP-02 / XP-04 cases, then compare against the existing native/UCG bundles.
 
 Do not wire the selector into the production retrieval path until that downstream gate passes.
+
+
+## Fail-closed protocol shape
+
+The protocol adapter rejects selection output that omits `selected_candidate_ids` or supplies it in a non-array shape. It must not silently coerce a non-canonical selection shape into an empty selection.

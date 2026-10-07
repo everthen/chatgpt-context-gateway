@@ -25,15 +25,15 @@ def score_row(
         item["evidence_key"]: item
         for item in gold_case["labels"]
     }
+    candidate_to_key = {
+        item["candidate_id"]: item["evidence_key"]
+        for item in model_row.get("gold", [])
+    }
     predicted_by_key = {}
-    for prediction, gold_label in zip(
-        model_row["result"].get("assessments", []),
-        [
-            item
-            for item in gold_case["labels"]
-        ],
-    ):
-        predicted_by_key[gold_label["evidence_key"]] = prediction
+    for prediction in model_row["result"].get("assessments", []):
+        evidence_key = candidate_to_key.get(prediction["candidate_id"])
+        if evidence_key:
+            predicted_by_key[evidence_key] = prediction
 
     if len(predicted_by_key) != len(labels):
         return {"scorable": False, "reason": "assessment coverage mismatch"}

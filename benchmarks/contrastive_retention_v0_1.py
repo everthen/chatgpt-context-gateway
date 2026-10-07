@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from .selection_policy_v0_1 import select_context
+
 
 def load_suite(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
@@ -48,6 +50,15 @@ def select_for_vector(case: dict[str, Any], vector: str) -> tuple[list[str], lis
             if item["admission"] in {"required", "optional"}
         ]
         return admitted, list(case["minimal_sufficient_keys"]), "EVALUATED"
+
+    if vector == "reference_selector":
+        admitted = [
+            item["key"]
+            for item in case["candidates"]
+            if item["admission"] in {"required", "optional"}
+        ]
+        decision = select_context(case["candidates"])
+        return admitted, list(decision.selected_keys), "EVALUATED"
 
     if vector == "empty_admission_tu04":
         if case["case_id"] != "TU-04":
@@ -201,6 +212,7 @@ def main() -> int:
             "score_greedy_2",
             "all_admitted",
             "contrastive_aware",
+            "reference_selector",
             "empty_admission_tu04",
         ],
     )

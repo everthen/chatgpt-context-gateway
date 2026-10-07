@@ -301,7 +301,7 @@ def run_matrix(
         return result
 
     results = []
-    with ThreadPoolExecutor(max_workers=len(models)) as executor:
+    with ThreadPoolExecutor(max_workers=min(2, len(models))) as executor:
         futures = {
             executor.submit(one, model, case): (model, case["case_id"])
             for model in models

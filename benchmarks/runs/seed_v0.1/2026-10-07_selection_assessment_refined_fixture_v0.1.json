@@ -1,0 +1,98 @@
+{
+  "schema_version": "ucg-selection-assessment-refined-fixture.v0.1",
+  "source": {
+    "semantic_model": "ag/claude-sonnet-4-6",
+    "selection_model": "ag/gemini-3.8-flash",
+    "corpus": "seed_v0.1",
+    "prompt_gold_bundle_hidden": true
+  },
+  "cases": {
+    "XP-02": {
+      "status": "complete",
+      "selected_candidate_ids": [
+        "C1",
+        "C2",
+        "C3"
+      ],
+      "relations": [
+        {
+          "source": "C1",
+          "target": "C2",
+          "type": "required_contrast",
+          "when_selected": true
+        },
+        {
+          "source": "C1",
+          "target": "C3",
+          "type": "required_conflict",
+          "when_selected": true
+        }
+      ],
+      "candidate_to_evidence_key": {
+        "C1": "xp02.openai",
+        "C2": "xp02.claude",
+        "C3": "xp02.dist"
+      },
+      "expected_bundle_keys": [
+        "xp02.openai",
+        "xp02.claude",
+        "xp02.dist"
+      ],
+      "downstream_reference": {
+        "source_experiment": "UCG-EVAL-AQ-SONNET-20261007-v0.2",
+        "known_bundle_score": 1,
+        "note": "The produced key set matches the previously observed stronger Sonnet-answer bundle."
+      }
+    },
+    "XP-04": {
+      "status": "complete",
+      "selected_candidate_ids": [
+        "C1",
+        "C2"
+      ],
+      "relations": [
+        {
+          "source": "C1",
+          "target": "C2",
+          "type": "required_boundary_contrast",
+          "when_selected": true
+        }
+      ],
+      "candidate_to_evidence_key": {
+        "C1": "xp04.gold",
+        "C2": "xp04.dist"
+      },
+      "expected_bundle_keys": [
+        "xp04.gold",
+        "xp04.dist"
+      ],
+      "downstream_reference": {
+        "source_experiment": "UCG-EVAL-AQ-SONNET-20261007-v0.2",
+        "known_bundle_score": 1,
+        "weak_bundle_score": 0.725,
+        "delta": 0.275,
+        "note": "The produced key set matches the previously observed stronger Sonnet-answer bundle."
+      }
+    },
+    "NS-04": {
+      "status": "UNCONFIRMED",
+      "pass1_selected_candidate_ids": [
+        "C1",
+        "C2",
+        "C3"
+      ],
+      "failure_class": "over_selection",
+      "note": "Refined model call did not produce a confirmed recorded result; not counted as a pass."
+    },
+    "TU-04": {
+      "status": "UPSTREAM_SEMANTIC_FAILURE",
+      "selection_evaluable": false,
+      "failure_owner": "semantic_assessment"
+    }
+  },
+  "decision": "PARTIAL PASS",
+  "downstream_rerun": "BLOCKED_BY_LOCAL_BENCHMARK_ROUTER",
+  "blocked_endpoint": "127.0.0.1:20128",
+  "observed_endpoint_state": "GET returned 404 Next UI; POST benchmark route was unavailable during rerun",
+  "required_before_core_gate": "restore benchmark router and rerun treatment/control with identical answer and judge models"
+}

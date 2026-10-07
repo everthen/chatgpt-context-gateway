@@ -217,21 +217,30 @@ def normalize_semantic_response(
     raw_text: str,
     request: SemanticAssessmentRequest,
 ) -> tuple[tuple[SemanticAssessment, ...], bool]:
-    """Normalize semantically valid model variants for research scoring.
+    """Normalize semantically useful model variants for research scoring.
 
-    Returns (assessments, protocol_compliant). The production contract remains
-    strict via parse_semantic_assessment(); this helper only prevents a model's
-    richer-but-equivalent JSON shape from becoming a semantic-quality score of
-    zero. Extra fields are ignored, and a top-level candidates collection is
-    accepted as a benchmark variant.
+    Production parsing remains strict in parse_semantic_assessment(). This
+    benchmark normalizer additionally accepts markdown JSON fences and a
+    top-level candidates[] alias while preserving protocol_compliant=false for
+    those variants.
     """
+    candidate_text = raw_text.strip()
+    fenced = candidate_text.startswith("```") and candidate_text.endswith("```")
+    if fenced:
+        lines = candidate_text.splitlines()
+        if lines and lines[0].strip().startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        candidate_text = chr(10).join(lines).strip()
+
     try:
-        payload = json.loads(raw_text)
+        payload = json.loads(candidate_text)
     except json.JSONDecodeError as exc:
         raise ValueError("semantic assessor did not return valid JSON") from exc
 
     rows = payload.get("assessments")
-    protocol_compliant = protocol_compliant and isinstance(rows, list)
+    protocol_compliant = (not fenced) and isinstance(rows, list)
 
     if rows is None:
         rows = payload.get("candidates")
@@ -290,13 +299,14 @@ def normalize_semantic_response(
             )
             result.validate(expected_ids)
             if result.candidate_id in seen:
-                raise ValueError(f"duplicate assessment for {result.candidate_id}") from strict_exc
+                raise ValueError(
+                    f"duplicate assessment for {result.candidate_id}"
+                ) from strict_exc
             seen.add(result.candidate_id)
             results.append(result)
         if seen != expected_ids:
             raise ValueError("assessment coverage mismatch") from strict_exc
         return tuple(results), False
-
 
 class UnavailableSemanticAssessor:
     name = "unavailable"

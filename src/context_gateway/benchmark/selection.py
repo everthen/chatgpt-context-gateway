@@ -10,6 +10,13 @@ class EvidenceAdmissionConfig:
     final_limit: int = 4
 
 
+def _rrf_score(item: dict[str, Any]) -> float:
+    return sum(
+        1.0 / (60 + int(entry["rank"]))
+        for entry in item.get("query_support", [])
+    )
+
+
 def admit_rrf_candidates(
     candidates: list[dict[str, Any]],
     *,
@@ -37,7 +44,7 @@ def admit_rrf_candidates(
     ranked = sorted(
         eligible,
         key=lambda item: (
-            -float(item.get("rrf_score", 0.0)),
+            -_rrf_score(item),
             min(int(entry["rank"]) for entry in item.get("query_support", [])),
             str(item.get("evidence_id", "")),
         ),

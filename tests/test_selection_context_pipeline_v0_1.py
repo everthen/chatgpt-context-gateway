@@ -7,16 +7,120 @@ from benchmarks.selection_context_pipeline_v0_1 import (
 )
 
 
-ROOT = Path(__file__).resolve().parents[1]
-CASES = json.loads(
-    (Path("/tmp/ucg_answer_quality_input_v0.1.json").read_text())
-    if Path("/tmp/ucg_answer_quality_input_v0.1.json").exists()
-    else "{}"
-)
-
-
 def _case(case_id):
-    return CASES["cases"][case_id]
+    if case_id == "XP-02":
+        return {
+            "case_id": "XP-02",
+            "provenance_map": {
+                "xp02.openai": {
+                    "provider": "openai",
+                    "account_id": "main",
+                    "conversation_id": "xp02-a",
+                    "message_id": "m-openai",
+                },
+                "xp02.claude": {
+                    "provider": "anthropic",
+                    "account_id": "main",
+                    "conversation_id": "xp02-b",
+                    "message_id": "m-claude",
+                },
+                "xp02.dist": {
+                    "provider": "openai",
+                    "account_id": "secondary",
+                    "conversation_id": "xp02-c",
+                    "message_id": "m-dist",
+                },
+            },
+            "corpus": {
+                "conversations": [
+                    {
+                        "provider": "openai",
+                        "account_id": "main",
+                        "conversation_id": "xp02-a",
+                        "messages": [
+                            {
+                                "evidence_key": "xp02.openai",
+                                "message_id": "m-openai",
+                                "text": "UCG should act as a provider-neutral context layer for OpenAI and other models.",
+                            }
+                        ],
+                    },
+                    {
+                        "provider": "anthropic",
+                        "account_id": "main",
+                        "conversation_id": "xp02-b",
+                        "messages": [
+                            {
+                                "evidence_key": "xp02.claude",
+                                "message_id": "m-claude",
+                                "text": "The same context should be portable into an Anthropic session without changing the source evidence.",
+                            }
+                        ],
+                    },
+                    {
+                        "provider": "openai",
+                        "account_id": "secondary",
+                        "conversation_id": "xp02-c",
+                        "messages": [
+                            {
+                                "evidence_key": "xp02.dist",
+                                "message_id": "m-dist",
+                                "text": "This account contains a separate implementation optimized only for one OpenAI workflow.",
+                            }
+                        ],
+                    },
+                ]
+            },
+        }
+
+    if case_id == "XP-04":
+        return {
+            "case_id": "XP-04",
+            "provenance_map": {
+                "xp04.gold": {
+                    "provider": "openai",
+                    "account_id": "main",
+                    "conversation_id": "xp04-a",
+                    "message_id": "m-gold",
+                },
+                "xp04.dist": {
+                    "provider": "openai",
+                    "account_id": "secondary",
+                    "conversation_id": "xp04-b",
+                    "message_id": "m-dist",
+                },
+            },
+            "corpus": {
+                "conversations": [
+                    {
+                        "provider": "openai",
+                        "account_id": "main",
+                        "conversation_id": "xp04-a",
+                        "messages": [
+                            {
+                                "evidence_key": "xp04.gold",
+                                "message_id": "m-gold",
+                                "text": "Evidence from the main account must remain isolated from another account.",
+                            }
+                        ],
+                    },
+                    {
+                        "provider": "openai",
+                        "account_id": "secondary",
+                        "conversation_id": "xp04-b",
+                        "messages": [
+                            {
+                                "evidence_key": "xp04.dist",
+                                "message_id": "m-dist",
+                                "text": "This secondary account has similarly worded evidence, but it is not valid for the main account.",
+                            }
+                        ],
+                    },
+                ]
+            },
+        }
+
+    raise AssertionError(case_id)
 
 
 def test_real_shape_xp02_materializes_answer_contrast():

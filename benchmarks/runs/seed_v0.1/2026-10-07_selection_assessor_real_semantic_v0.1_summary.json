@@ -1,0 +1,86 @@
+{
+  "schema_version": "ucg-selection-assessor-real-semantic-result.v0.1",
+  "source_semantic_model": "ag/claude-sonnet-4-6",
+  "selection_model": "ag/gemini-3.8-flash",
+  "input_corpus": "seed_v0.1",
+  "cases": {
+    "NS-04": {
+      "pass1": {
+        "status": "complete",
+        "selected_candidate_ids": [
+          "C1",
+          "C2",
+          "C3"
+        ],
+        "finding": "over_selection"
+      },
+      "refined": {
+        "status": "unconfirmed",
+        "decision": "not_counted_as_pass"
+      }
+    },
+    "XP-02": {
+      "pass1": {
+        "status": "complete",
+        "selected_candidate_ids": [
+          "C1",
+          "C3"
+        ],
+        "finding": "dropped_complementary_candidate_C2"
+      },
+      "refined": {
+        "status": "complete",
+        "selected_candidate_ids": [
+          "C1",
+          "C2",
+          "C3"
+        ],
+        "relations": [
+          {
+            "from": "C1",
+            "to": "C2",
+            "type": "required_contrast"
+          },
+          {
+            "from": "C1",
+            "to": "C3",
+            "type": "required_conflict"
+          }
+        ],
+        "finding": "contract_recovered_complementary_provider_and_conflict_evidence"
+      }
+    },
+    "XP-04": {
+      "pass1": {
+        "status": "complete",
+        "selected_candidate_ids": [
+          "C1"
+        ],
+        "finding": "dropped_wrong_account_boundary_candidate_C2"
+      },
+      "refined": {
+        "status": "complete",
+        "selected_candidate_ids": [
+          "C1",
+          "C2"
+        ],
+        "relations": [
+          {
+            "from": "C1",
+            "to": "C2",
+            "type": "required_boundary_contrast"
+          }
+        ],
+        "finding": "contract_recovered_wrong_account_boundary_evidence"
+      }
+    },
+    "TU-04": {
+      "status": "UPSTREAM_SEMANTIC_FAILURE",
+      "selection_evaluable": false,
+      "failure_owner": "semantic_assessment"
+    }
+  },
+  "decision": "PARTIAL PASS",
+  "core_gate": false,
+  "next_gate": "downstream_answer_quality_after_deterministic_selection"
+}

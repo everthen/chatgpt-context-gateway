@@ -5,7 +5,10 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .selection_policy_v0_1 import select_context
+try:
+    from .selection_policy_v0_1 import select_context
+except ImportError:
+    from benchmarks.selection_policy_v0_1 import select_context
 
 
 def load_suite(path: Path) -> dict[str, Any]:

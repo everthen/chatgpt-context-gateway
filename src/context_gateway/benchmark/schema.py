@@ -70,6 +70,7 @@ class BenchmarkCase:
     expected_claims: tuple[str, ...]
     provenance_map: dict[str, dict[str, Any]]
     difficulty: str
+    retrieval_queries: tuple[str, ...] = ()
 
     @classmethod
     def from_obj(cls, obj: dict[str, Any]) -> "BenchmarkCase":
@@ -83,6 +84,9 @@ class BenchmarkCase:
         if difficulty not in {"easy", "medium", "hard", "adversarial"}:
             raise ValueError(f"unsupported difficulty: {difficulty}")
         query = str(obj["query"]).strip()
+        retrieval_queries = tuple(str(x).strip() for x in obj.get("retrieval_queries", [query]) if str(x).strip())
+        if not retrieval_queries:
+            retrieval_queries = (query,)
         if not query:
             raise ValueError("query must not be empty")
         case_id = str(obj["case_id"]).strip()
@@ -119,6 +123,7 @@ class BenchmarkCase:
             expected_claims=tuple(str(x) for x in obj["expected_claims"]),
             provenance_map=provenance_map,
             difficulty=difficulty,
+            retrieval_queries=retrieval_queries,
         )
 
 

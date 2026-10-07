@@ -192,5 +192,5 @@ def test_required_boundary_relation_carries_non_citable_guidance():
     ]
     bundle = build_context_bundle(candidates, ["gold", "wrong"])
     rel = bundle.epistemic_relations[0]
-    assert rel["answer_guidance"] == "target evidence is out of scope for the source scope and must not be merged into it"
+    assert rel["answer_guidance"] == "do not merge target evidence into the source scope; answer from the source scope only"
     assert all(x["citation_eligible"] is False for x in bundle.control_context)

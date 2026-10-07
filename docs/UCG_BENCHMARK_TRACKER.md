@@ -87,3 +87,25 @@ oracle worthiness:   93.75% recall /  0.00% noise
 ```
 
 Decision: stop treating rank/top-k admission as the main solution. The next seam is reliable, auditable worthiness annotation before final context assembly.
+
+
+## Worthiness assessment
+
+- [x] Evidence-bound worthiness assessment contract
+- [x] Lexical worthiness assessor lower bound
+- [x] Worthiness assessment benchmark
+- [x] Assessor fail-closed interface
+- [ ] Semantic/model worthiness assessor
+- [ ] Human audit of worthiness labels
+
+Latest finding:
+
+```
+lexical assessor:
+task-fit accuracy       52.08%
+role accuracy            52.08%
+worthiness precision     63.54%
+worthiness recall        87.50%
+```
+
+Decision: lexical overlap is a lower-bound control only. Next treatment is a real semantic/model assessor using the same evidence-bound assessment contract.

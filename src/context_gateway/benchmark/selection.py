@@ -255,3 +255,136 @@ def admit_temporal_conflicts(
         if len(output) >= policy.final_limit:
             break
     return output
+
+
+_WORTHINESS_ROLES = {"direct_support", "supporting", "contradiction", "contextual", "none"}
+_TASK_FIT = {"direct", "supporting", "contextual", "none"}
+
+
+@dataclass(frozen=True)
+class ContextWorthinessPolicy:
+    final_limit: int = 4
+    task_mode: str = "current"
+    require_provenance: bool = True
+    keep_contradictions: bool = True
+    deduplicate_redundancy: bool = True
+
+
+def _candidate_provenance_complete(item: dict[str, Any]) -> bool:
+    if "provenance_complete" in item:
+        return bool(item["provenance_complete"])
+    required = (
+        "provider",
+        "account_id",
+        "id",
+        "message_id",
+        "snapshot_id",
+        "raw_path",
+        "raw_hash",
+    )
+    return all(item.get(field) for field in required)
+
+
+def evaluate_context_worthiness(
+    item: dict[str, Any],
+    *,
+    policy: ContextWorthinessPolicy = ContextWorthinessPolicy(),
+) -> dict[str, Any]:
+    """Classify whether a retrieved candidate is worth sending to the LLM.
+
+    The decision consumes upstream annotations for task fit, claim relation,
+    temporal state, conflict state, and provenance. It never infers truth.
+    """
+    if policy.final_limit < 1:
+        raise ValueError("final_limit must be >= 1")
+
+    task_fit = str(item.get("task_fit", "none"))
+    role = str(item.get("worthiness_role", "none"))
+    temporal_state = str(item.get("temporal_state", "unknown"))
+    conflict_status = str(
+        (item.get("admission_annotation") or {}).get("conflict_status", "none")
+    )
+
+    reasons: list[str] = []
+
+    if task_fit not in _TASK_FIT:
+        reasons.append("invalid_task_fit")
+        return {"decision": "reject", "reasons": reasons}
+
+    if role not in _WORTHINESS_ROLES:
+        reasons.append("invalid_worthiness_role")
+        return {"decision": "reject", "reasons": reasons}
+
+    if policy.require_provenance and not _candidate_provenance_complete(item):
+        reasons.append("incomplete_provenance")
+        return {"decision": "reject", "reasons": reasons}
+
+    if policy.task_mode == "current" and temporal_state == "obsolete":
+        reasons.append("obsolete_for_current_task")
+        return {"decision": "reject", "reasons": reasons}
+
+    if task_fit == "none" or role == "none":
+        reasons.append("no_task_or_claim_value")
+        return {"decision": "reject", "reasons": reasons}
+
+    if role == "contradiction":
+        if conflict_status == "unresolved" and policy.keep_contradictions:
+            reasons.append("unresolved_conflict_is_contextual_value")
+            return {"decision": "admit_conflict", "reasons": reasons}
+        reasons.append("contradictory_evidence")
+        return {"decision": "admit", "reasons": reasons}
+
+    if role in {"direct_support", "supporting"}:
+        reasons.append("supports_claim")
+        return {"decision": "admit", "reasons": reasons}
+
+    if role == "contextual" and task_fit == "contextual":
+        reasons.append("task_context")
+        return {"decision": "admit", "reasons": reasons}
+
+    reasons.append("insufficient_claim_value")
+    return {"decision": "reject", "reasons": reasons}
+
+
+def select_context_worthy(
+    candidates: list[dict[str, Any]],
+    *,
+    policy: ContextWorthinessPolicy = ContextWorthinessPolicy(),
+) -> list[dict[str, Any]]:
+    """Select the smallest defensible context set from admitted candidates."""
+    evaluated: list[dict[str, Any]] = []
+    for item in candidates:
+        decision = evaluate_context_worthiness(item, policy=policy)
+        if decision["decision"] in {"admit", "admit_conflict"}:
+            evaluated.append(_annotate(
+                item,
+                worthiness=decision["decision"],
+                worthiness_reasons=decision["reasons"],
+            ))
+
+    ranked = sorted(evaluated, key=_rank_key)
+
+    selected: list[dict[str, Any]] = []
+    seen_ids: set[str] = set()
+    seen_redundancy: set[str] = set()
+
+    for item in ranked:
+        key = str(item["evidence_id"])
+        if key in seen_ids:
+            continue
+
+        redundancy_group = item.get("redundancy_group")
+        if policy.deduplicate_redundancy and redundancy_group:
+            group = str(redundancy_group)
+            claim_ids = tuple(sorted(str(x) for x in item.get("claim_ids", [])))
+            signature = group + "|" + ",".join(claim_ids)
+            if signature in seen_redundancy:
+                continue
+            seen_redundancy.add(signature)
+
+        selected.append(item)
+        seen_ids.add(key)
+        if len(selected) >= policy.final_limit:
+            break
+
+    return selected

@@ -168,3 +168,18 @@ MODEL RUN       BLOCKED
 ```
 
 No semantic/model quality claim is allowed until a real model response is captured and scored against the frozen gold sidecar.
+
+## EXP-2E semantic model bake-off
+
+- [x] Four-model diagnostic bake-off: Gemini 3.8 Flash, Gemini 3.8 Flash High, Muse Spark 1.2, Muse Spark 1.3
+- [x] Semantic/protocol metrics separated
+- [x] Fenced JSON normalization contract
+- [x] Raw model content retention on parse failures
+- [x] Bake-off summary + trace artifact
+- [x] Bake-off findings documented
+- [ ] Rich contextual/contradiction gold taxonomy
+- [ ] Human/oracle audit on diagnostic cases
+- [ ] Re-run Muse with raw-output diagnostics
+- [ ] Frozen 16-case semantic treatment benchmark
+
+Decision: no permanent winner declared. Gemini 3.8 Flash is the provisional treatment candidate because it completed all four diagnostic cases; Gemini 3.8 Flash High showed strong schema compliance but three timeouts; Muse 1.2/1.3 were not benchmark-ready due response normalization failures.

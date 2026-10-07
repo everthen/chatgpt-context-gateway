@@ -8,6 +8,9 @@ from typing import Any
 try:
     from .selection_policy_v0_1 import select_context
 except ImportError:
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from benchmarks.selection_policy_v0_1 import select_context
 
 

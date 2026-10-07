@@ -1,0 +1,34 @@
+{
+  "schema_version": "ucg-production-shaped-e2e-seam-attack.v0.1",
+  "date": "2026-10-07",
+  "cases": [
+    "XP-02",
+    "XP-04"
+  ],
+  "transport": {
+    "schema_version": "ucg-context-bundle.v0.1",
+    "roundtrip_canonical": true,
+    "lane_preservation": true,
+    "control_raw_text_exposed_to_answer_consumer": false
+  },
+  "attacks": {
+    "flatten_control_into_answer": "PASS",
+    "control_citation_escalation": "PASS",
+    "relation_deletion": "PASS",
+    "relation_retarget": "PASS",
+    "boundary_direction_inversion": "PASS",
+    "relation_guidance_tamper": "PASS",
+    "focused_retarget_to_answer_support": "PASS"
+  },
+  "direct_checks": {
+    "legacy_self_checks": 15,
+    "legacy_self_checks_pass": 15,
+    "focused_transport_checks": 3,
+    "focused_transport_checks_pass": 3,
+    "pytest_dependent_checks_skipped": 4,
+    "skip_reason": "pytest is not installed on hermes-vm"
+  },
+  "production_status": "not_wired",
+  "decision": "PASS production-shaped ContextBundle transport/consumer seam gate",
+  "next_gate": "real production admission -> selection -> lane materializer -> persisted ContextBundle -> relation-aware answer consumer -> broader AQ rerun"
+}

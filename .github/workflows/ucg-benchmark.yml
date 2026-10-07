@@ -1,0 +1,31 @@
+name: UCG Benchmark
+
+on:
+  pull_request:
+    paths:
+      - "src/context_gateway/**"
+      - "tests/**"
+      - "benchmarks/**"
+      - "pyproject.toml"
+      - ".github/workflows/ucg-benchmark.yml"
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: python -m pip install -e . pytest
+      - name: Test suite
+        run: pytest -q
+      - name: Run retrieval benchmark
+        run: python -m context_gateway.benchmark.cli benchmarks/data/seed_v0.1.jsonl --output-dir benchmark-run
+      - name: Upload benchmark artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ucg-benchmark-v0.1
+          path: benchmark-run/

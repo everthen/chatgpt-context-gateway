@@ -154,10 +154,22 @@ def parse_semantic_assessment(
     request: SemanticAssessmentRequest,
     raw_text: str,
 ) -> tuple[SemanticAssessment, ...]:
+    candidate_text = raw_text.strip()
+    fenced = candidate_text.startswith("```") and candidate_text.endswith("```")
+    if fenced:
+        lines = candidate_text.splitlines()
+        if lines and lines[0].strip().startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        candidate_text = "\\n".join(lines).strip()
+
     try:
-        payload = json.loads(raw_text)
+        payload = json.loads(candidate_text)
     except json.JSONDecodeError as exc:
         raise ValueError("semantic assessor did not return valid JSON") from exc
+
+    protocol_compliant = not fenced
 
     rows = payload.get("assessments")
     if not isinstance(rows, list):
@@ -219,7 +231,7 @@ def normalize_semantic_response(
         raise ValueError("semantic assessor did not return valid JSON") from exc
 
     rows = payload.get("assessments")
-    protocol_compliant = isinstance(rows, list)
+    protocol_compliant = protocol_compliant and isinstance(rows, list)
 
     if rows is None:
         rows = payload.get("candidates")

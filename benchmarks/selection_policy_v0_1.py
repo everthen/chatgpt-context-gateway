@@ -6,6 +6,7 @@ from typing import Any
 
 _REQUIRED_RELATION_TYPES = {
     "required_contrast",
+    "required_complement",
     "required_boundary_contrast",
     "required_conflict",
     "required_state_contrast",

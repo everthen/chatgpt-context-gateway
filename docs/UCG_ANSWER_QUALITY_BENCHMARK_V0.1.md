@@ -118,6 +118,8 @@ Repeat the exact frozen bundles with a different fixed answer model, then expand
 - Result artifact: `benchmarks/runs/seed_v0.1/2026-10-07_answer_quality_result_v0.1.json`
 - Experiment ID: `UCG-EVAL-AQ-20261007-v0.1`
 - Compact result SHA-256: `818d8e34456dd765c49a125451f90b0786d78b23f9f1c244eb4a0841a789a295`
-- Raw judged artifact SHA-256: `818d8e34456dd765c49a125451f90b0786d78b23f9f1c244eb4a0841a789a295`
+- Raw judged artifact SHA-256: `f0a2b76fa4aafb940ff87896d1bf4e54e5523d02bac7e98bf397bda7aafa7cd0`
+- Raw answer artifact SHA-256: `b418d214583dd1e358fce58934dd912789631957bdd560b10484ff629264cf79`
+- Rerun judge artifact SHA-256: `ed939a75f9da644e8c971f8fa37bb0662db2d85e895a92f10b891ba6fd7760d0`
 - Router runtime fix used during inference: `c477314d`
 - Temporary benchmark route was dev-only and is not part of the UCG repository.

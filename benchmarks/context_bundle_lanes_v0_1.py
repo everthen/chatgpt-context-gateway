@@ -107,6 +107,16 @@ def _infer_lane(
     )
 
 
+
+def _relation_guidance(relation_type: str) -> str:
+    return {
+        "required_contrast": "treat the target as an explicit alternative or contrast, not positive support",
+        "required_complement": "treat source and target as complementary positive support when both are selected",
+        "required_boundary_contrast": "target evidence is out of scope for the source scope and must not be merged into it",
+        "required_conflict": "treat the target as a conflicting alternative; do not silently collapse the conflict",
+        "required_state_contrast": "treat the target as a contrasting state and do not let it override the selected current state",
+    }.get(relation_type, "")
+
 def build_context_bundle(
     candidates: list[dict[str, Any]],
     selected_keys: list[str] | tuple[str, ...] | set[str],
@@ -143,13 +153,13 @@ def build_context_bundle(
                     f"required relation target {target!r} missing from selected bundle"
                 )
             incoming_relation_types[str(target)].add(relation_type)
-            relations.append(
-                {
-                    "from": source_key,
-                    "to": str(target),
-                    "relation_type": relation_type,
-                }
-            )
+            relation_record = {
+                "from": source_key,
+                "to": str(target),
+                "relation_type": relation_type,
+                "answer_guidance": _relation_guidance(relation_type),
+            }
+            relations.append(relation_record)
 
     answer_context: list[dict[str, Any]] = []
     control_context: list[dict[str, Any]] = []

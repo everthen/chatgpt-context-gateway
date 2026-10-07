@@ -12,7 +12,12 @@ from ..normalize import make_record
 from ..continuity import continuity
 from .metrics import aggregate, score_context_quality, score_retrieval
 from .schema import BenchmarkCase
-from .selection import EvidenceAdmissionConfig, admit_rrf_candidates
+from .selection import (
+    ContextWorthinessPolicy,
+    EvidenceAdmissionConfig,
+    admit_rrf_candidates,
+    select_context_worthy,
+)
 
 
 @dataclass(frozen=True)
@@ -258,6 +263,66 @@ def run_ucg_assembly_case(db: ArchiveDB, case: BenchmarkCase, limit: int = 8) ->
         latency_ms=latency_ms,
     )
 
+def _annotate_with_benchmark_oracle(
+    items: list[dict[str, Any]],
+    case: BenchmarkCase,
+) -> list[dict[str, Any]]:
+    gold = {ref.evidence_key for ref in case.gold_evidence}
+    supporting = {ref.evidence_key for ref in case.supporting_evidence}
+    obsolete = set(case.temporal_state.get("obsolete", []))
+    current = set(case.temporal_state.get("current", []))
+    annotated: list[dict[str, Any]] = []
+
+    for item in items:
+        key = item.get("evidence_key")
+        output = dict(item)
+        if key in gold:
+            output["task_fit"] = "direct"
+            output["worthiness_role"] = "direct_support"
+        elif key in supporting:
+            output["task_fit"] = "supporting"
+            output["worthiness_role"] = "supporting"
+        else:
+            output["task_fit"] = "none"
+            output["worthiness_role"] = "none"
+
+        if key in obsolete:
+            output["temporal_state"] = "obsolete"
+        elif key in current:
+            output["temporal_state"] = "current"
+        else:
+            output["temporal_state"] = "current"
+        output["provenance_complete"] = True
+        annotated.append(output)
+
+    return annotated
+
+
+def run_ucg_worthiness_oracle_case(
+    db: ArchiveDB,
+    case: BenchmarkCase,
+    *,
+    candidate_limit: int = 8,
+    config: ContextWorthinessPolicy = ContextWorthinessPolicy(final_limit=4),
+) -> CaseResult:
+    candidates, latency_ms = _automatic_multi_query_returned(db, case, candidate_limit)
+    annotated = _annotate_with_benchmark_oracle(candidates, case)
+    returned = select_context_worthy(annotated, policy=config)
+    gold = {ref.evidence_key for ref in case.gold_evidence}
+    allowed = gold | {ref.evidence_key for ref in case.supporting_evidence}
+    return CaseResult(
+        case_id=case.case_id,
+        task_family=case.task_family,
+        difficulty=case.difficulty,
+        arm="ucg_worthiness_oracle",
+        query=case.query,
+        returned=returned,
+        retrieval=score_retrieval(returned, gold, k=config.final_limit),
+        context=score_context_quality(returned, allowed_keys=allowed),
+        latency_ms=latency_ms,
+    )
+
+
 def run_ucg_admission_case(
     db: ArchiveDB,
     case: BenchmarkCase,
@@ -386,6 +451,35 @@ def run_ucg_retrieval_benchmark(
                 )
             )
         db.close()
+
+    worthiness_oracle_results: list[CaseResult] = []
+    worthiness_policy = ContextWorthinessPolicy(final_limit=4)
+    with TemporaryDirectory(prefix="ucg-worthiness-oracle-") as tmp:
+        db = ArchiveDB(Path(tmp) / "benchmark.sqlite3")
+        for case in cases:
+            seed_case_db(db, case)
+            worthiness_oracle_results.append(
+                run_ucg_worthiness_oracle_case(
+                    db,
+                    case,
+                    candidate_limit=limit,
+                    config=worthiness_policy,
+                )
+            )
+        db.close()
+
+    result_payload["worthiness_oracle"] = {
+        "arm": "ucg_worthiness_oracle",
+        "policy": {
+            "final_limit": worthiness_policy.final_limit,
+            "annotations": "benchmark_gold_oracle",
+        },
+        "case_results": [result.as_dict() for result in worthiness_oracle_results],
+        "aggregate": aggregate([
+            {**result.retrieval, **result.context, "latency_ms": result.latency_ms}
+            for result in worthiness_oracle_results
+        ]),
+    }
 
     result_payload["admission"] = {
         "arm": "ucg_admission",

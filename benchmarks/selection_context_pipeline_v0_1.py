@@ -114,9 +114,13 @@ def prepare_selection_candidates(
                 f"required relation target {target!r} is not selected"
             )
         if source in selected_ids:
+            if target not in candidate_to_key:
+                raise SelectionContextMaterializationError(
+                    f"relation target lacks evidence mapping: {target}"
+                )
             relations_by_source.setdefault(source, []).append(
                 {
-                    "target": target,
+                    "target": candidate_to_key[target],
                     "type": relation["type"],
                     "when_selected": relation["when_selected"],
                 }

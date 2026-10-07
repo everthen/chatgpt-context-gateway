@@ -5,17 +5,17 @@
 - [x] North-star recorded
 - [x] Master plan recorded
 - [x] P1/P2 design drafted
-- [ ] P1 dataset schema implementation
+- [x] P1 dataset schema implementation
 - [ ] P1 120-case diagnostic dataset
 - [ ] P1 eval split freeze
-- [ ] P2 harness skeleton
+- [x] P2 harness skeleton
 - [ ] EXP-0 oracle
 - [ ] EXP-1 native-only baseline
 - [ ] EXP-2 native + UCG
-- [ ] retrieval metrics
-- [ ] context-noise metrics
+- [x] retrieval metrics
+- [x] context-noise metrics
 - [ ] answer evaluation
-- [ ] reproducible run artifacts
+- [x] reproducible run artifacts
 - [ ] CORE GATE report
 
 ## Rule
@@ -47,3 +47,9 @@ Question:
 Does UCG improve relevant-context recall and downstream answer
 quality while reducing/controlling irrelevant context?
 ```
+
+## First executable retrieval result
+
+Recorded on 2026-10-07 in `docs/UCG_BENCHMARK_FIRST_RUN.md` and `benchmarks/runs/seed_v0.1/2026-10-07_ucg_only.json`.
+
+Key finding: UCG/FTS5 baseline reached 0.6563 gold recall with 1.0000 provenance completeness and 0.0625 context noise ratio. This is a retrieval baseline only; CORE GATE remains unanswered because Native and Oracle arms are not runnable yet.

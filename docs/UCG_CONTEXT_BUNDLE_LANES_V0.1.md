@@ -20,37 +20,41 @@ ContextBundle
 
 ### answer_context
 
-Evidence that the answer model is permitted to use as substantive support.
+Evidence the answer model is permitted to use as substantive support.
 
-Each item SHOULD retain:
+Each item retains:
 
-- evidence key
-- text
-- provenance
-- temporal state
-- answer role
-- citation eligibility
+- `key`
+- `text`
+- `provenance`
+- `role`
+- `lane`
+- `answer_visible`
+- `citation_eligible`
 
 ### control_context
 
-Evidence that is retained for selection, rejection, boundary, conflict, audit, or governance semantics.
+Evidence retained for selection, rejection, boundary, conflict, state, audit, or governance semantics.
 
-Default:
+Control evidence is never ordinary positive answer authority:
 
-`answer_visible = false`
+```text
+answer_visible = false
+citation_eligible = false
+```
 
 Examples:
 
 - wrong-account evidence;
-- rejected provider-specific alternative;
-- superseded state used to explain why it was rejected;
-- security boundary evidence.
+- security-boundary evidence;
+- rejected or superseded state;
+- conflict/rejection evidence that must remain available for governance or audit.
 
-Control evidence may influence the answer-model instruction layer, but its raw text SHOULD NOT automatically become citable answer evidence.
+The answer consumer may receive control metadata, but the raw control text must not silently become citable answer evidence.
 
 ### epistemic_relations
 
-Deterministic relations connecting the lanes.
+Deterministic relations connecting retained evidence across lanes.
 
 Examples:
 
@@ -66,9 +70,9 @@ xp02.openai
 xp02.dist
 ```
 
-## Role taxonomy
+## Role and lane taxonomy
 
-At minimum:
+Minimum supported lanes:
 
 - `answer_support`
 - `answer_contrast`
@@ -77,56 +81,111 @@ At minimum:
 - `control_state`
 - `control_rejection`
 
-This taxonomy is downstream of semantic assessment.
+Default relation mapping:
 
-Semantic assessment describes what evidence is.
+| Selection relation | Target lane | Answer-visible |
+|---|---|---|
+| `required_contrast` | `answer_contrast` | yes |
+| `required_boundary_contrast` | `control_boundary` | no |
+| `required_conflict` | `control_conflict` | no |
+| `required_state_contrast` | `control_state` | no |
 
-Selection assessment describes why the evidence must be retained and which lane it belongs to.
+`answer_contrast` is answer-visible because the contrast itself may be part of the reasoning, but downstream policy must treat it as a rejected/alternative position, not as positive support.
 
-Deterministic selection enforces the resulting plan.
+This taxonomy is downstream of semantic assessment:
 
-## Security invariant
+- semantic assessment describes what evidence is;
+- selection assessment describes why evidence must be retained and which lane it belongs to;
+- deterministic selection enforces the plan;
+- the lane materializer produces the governed downstream view.
 
-Control evidence MUST NOT silently become positive answer authority.
+## Fail-closed invariants
+
+The lane materializer rejects:
+
+- unknown selected evidence keys;
+- missing required relation targets;
+- evidence occupying both lanes;
+- control evidence marked answer-visible;
+- control evidence marked citation-eligible;
+- supporting evidence explicitly demoted into a control lane;
+- relations pointing outside the materialized bundle.
+
+Core invariant:
+
+> **Control evidence MUST NOT silently become positive answer authority.**
 
 For account isolation:
 
 ```text
 answer_context:
   xp04.gold
+  lane = answer_support
+  answer_visible = true
+  citation_eligible = true
 
 control_context:
   xp04.dist
+  lane = control_boundary
+  answer_visible = false
+  citation_eligible = false
 
-answer model instruction:
-  "Secondary-account evidence is out of scope and must not be used as support."
+epistemic_relations:
+  xp04.gold
+    --required_boundary_contrast-->
+  xp04.dist
 ```
 
-The answer model can still be told that an excluded boundary exists, without receiving the excluded text as ordinary answer evidence.
+## Downstream answer policy
 
-## Why this is preferable
+The lane-aware answer consumer SHOULD enforce:
 
-This design preserves the epistemic value of contrastive evidence without forcing every downstream consumer to treat all retained evidence as equally citable.
+1. Every factual claim is grounded in `answer_context`.
+2. `answer_support` may support positive claims.
+3. `answer_contrast` may be cited only when explicitly describing the rejected/alternative position.
+4. `control_context` is not citable and its raw text is not answer-visible.
+5. The direction of the user query must be preserved.
 
-It also creates a clean place for future policy:
+For XP-04 specifically, the answer must address the requested direction: evidence from another account must not be merged into the main account's retrieval. The answer may ground that isolation claim in valid main-account evidence without exposing the secondary-account text.
 
-- retrieval may keep broad evidence;
-- admission may decide admissibility;
-- selection may decide retention and lane;
-- answer generation receives an explicitly governed view.
+## Gate result — 2026-10-07
 
-## Next test
+Fresh downstream gate:
 
-Run XP-02 and XP-04 with the same answer and judge models comparing:
+- answer model: `ag/gemini-3.8-flash`
+- blind judge: `ag/claude-sonnet-4-6`
+- live endpoint: 9Router OpenAI-compatible `/v1/chat/completions`
+- cases: XP-02 and XP-04
 
-1. flat bundle;
-2. lane-aware bundle.
+Contract tests: **5/5 PASS**.
 
-Success criterion:
+Live answer generation: **2/2 PASS**.
 
-- XP-02 retains the contrast needed for provider-neutrality reasoning;
-- XP-04 retains boundary evidence in control_context;
-- answer_context excludes wrong-account evidence from positive citation;
-- no regression in groundedness or claim coverage.
+Blind judge:
 
-This is a design/test seam only. Do not treat it as production implementation until the lane-aware downstream gate passes.
+| Case | Claim coverage | Factual correctness | Groundedness | Abstention | Weighted |
+|---|---:|---:|---:|---:|---:|
+| XP-02 | 1.0 | 1.0 | 1.0 | 1.0 | 1.000 |
+| XP-04 | 1.0 | 1.0 | 1.0 | 1.0 | 1.000 |
+
+Observed behavior:
+
+- XP-02 retained `xp02.dist` as `answer_contrast` and used it only to describe the rejected provider-specific alternative.
+- XP-04 retained `xp04.dist` as `control_boundary`; its text was not answer-visible and it was not cited.
+- XP-04 preserved the requested contamination direction and grounded the isolation claim in `xp04.gold`.
+- No invalid citation to control evidence was observed.
+
+This passes the lane-aware downstream gate.
+
+This remains a **benchmark/contract layer**. No production retrieval path is wired to it yet.
+
+## Next gate
+
+Before production wiring:
+
+1. feed real selection-assessment output into the lane materializer;
+2. preserve lane assignment through serialized `ContextBundle`;
+3. add an explicit control-to-answer leakage attack;
+4. rerun the broader answer-quality suite, not only XP-02/XP-04.
+
+Do not mark lane-aware context as production-complete until those checks pass.

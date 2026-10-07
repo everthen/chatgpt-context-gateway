@@ -37,7 +37,8 @@
                 "type": "required_contrast",
                 "when_selected": true
               }
-            ]
+            ],
+            "coverage_mode": "best"
           }
         },
         {
@@ -55,7 +56,8 @@
             "primary": false,
             "claim_ids": [],
             "optional_noise": false,
-            "relations": []
+            "relations": [],
+            "coverage_mode": "best"
           }
         },
         {
@@ -72,7 +74,8 @@
             "primary": false,
             "claim_ids": [],
             "optional_noise": true,
-            "relations": []
+            "relations": [],
+            "coverage_mode": "best"
           }
         }
       ],
@@ -111,7 +114,8 @@
                 "type": "required_contrast",
                 "when_selected": true
               }
-            ]
+            ],
+            "coverage_mode": "all"
           }
         },
         {
@@ -135,7 +139,8 @@
                 "type": "required_contrast",
                 "when_selected": true
               }
-            ]
+            ],
+            "coverage_mode": "all"
           }
         },
         {
@@ -152,7 +157,8 @@
             "primary": false,
             "claim_ids": [],
             "optional_noise": false,
-            "relations": []
+            "relations": [],
+            "coverage_mode": "all"
           }
         },
         {
@@ -168,7 +174,8 @@
             "primary": false,
             "claim_ids": [],
             "optional_noise": true,
-            "relations": []
+            "relations": [],
+            "coverage_mode": "all"
           }
         }
       ],
@@ -208,7 +215,8 @@
                 "type": "required_boundary_contrast",
                 "when_selected": true
               }
-            ]
+            ],
+            "coverage_mode": "best"
           }
         },
         {
@@ -225,7 +233,8 @@
             "primary": false,
             "claim_ids": [],
             "optional_noise": false,
-            "relations": []
+            "relations": [],
+            "coverage_mode": "best"
           }
         },
         {
@@ -241,7 +250,8 @@
             "primary": false,
             "claim_ids": [],
             "optional_noise": true,
-            "relations": []
+            "relations": [],
+            "coverage_mode": "best"
           }
         }
       ],
@@ -275,7 +285,8 @@
               "tu-04"
             ],
             "optional_noise": false,
-            "relations": []
+            "relations": [],
+            "coverage_mode": "best"
           }
         },
         {
@@ -293,7 +304,8 @@
             "primary": false,
             "claim_ids": [],
             "optional_noise": false,
-            "relations": []
+            "relations": [],
+            "coverage_mode": "best"
           }
         },
         {
@@ -311,7 +323,8 @@
             "primary": false,
             "claim_ids": [],
             "optional_noise": false,
-            "relations": []
+            "relations": [],
+            "coverage_mode": "best"
           }
         }
       ],

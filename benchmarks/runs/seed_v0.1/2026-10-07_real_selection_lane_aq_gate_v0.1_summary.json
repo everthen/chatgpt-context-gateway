@@ -1,39 +1,33 @@
 {
   "schema_version": "ucg-real-selection-lane-aq-gate.v0.1",
   "run_date": "2026-10-07",
-  "source_semantic_model": "ag/claude-sonnet-4-6",
+  "semantic_model": "ag/claude-sonnet-4-6",
   "selection_model": "ag/gemini-3.8-flash",
   "answer_model": "ag/gemini-3.8-flash",
   "judge_model": "ag/claude-sonnet-4-6",
+  "transport": "http://127.0.0.1:20128/v1/chat/completions",
   "evaluability": {
-    "total_seed_cases": 16,
+    "seed_cases": 16,
     "selection_evaluable": 15,
-    "upstream_semantic_failure_cases": [
+    "upstream_semantic_failure": [
       "TU-04"
     ]
   },
   "real_selection_materialization": {
-    "initial_cases": 15,
-    "initial_complete": 13,
-    "initial_protocol_failures": [
-      "XP-02",
-      "XP-03"
+    "final_complete": 15,
+    "final_failures": 0,
+    "repaired_protocol_seams": [
+      "required_complement/complementary normalization",
+      "candidate-id to evidence-key relation mapping",
+      "fail-closed selected_candidate_ids shape",
+      "required_conflict lane disambiguation"
     ],
-    "repaired_complete": 15,
-    "repaired_protocol_failures": 0,
-    "protocol_repairs": [
-      "Normalize complementary/required_complement to canonical required_complement.",
-      "Map candidate-id relations to evidence-key relations during materialization.",
-      "Fail closed when selected_candidate_ids is missing instead of silently materializing an empty bundle.",
-      "Classify required_conflict using semantic role so answer-relevant contradiction remains answer_contrast."
-    ],
-    "refined_case": {
-      "case_id": "XP-04",
+    "refined_xp04": {
       "selected_candidate_ids": [
         "C1",
         "C2"
       ],
-      "relation": "required_boundary_contrast",
+      "relation_type": "required_boundary_contrast",
       "answer_context": [
         "xp04.gold"
       ],
@@ -42,31 +36,24 @@
       ]
     }
   },
-  "context_bundle": {
-    "serialized_cases": 15,
-    "relation_bearing_cases": [
-      "LS-02",
-      "XP-02",
-      "XP-03",
-      "XP-04"
-    ],
-    "control_text_leak_tests_passed": true,
-    "relation_answer_guidance_enabled": true
+  "context_bundle_contract_tests": {
+    "context_lane_tests": "7/7 PASS (direct invocation; pytest unavailable)",
+    "control_to_answer_leak_attack": "PASS"
   },
   "broader_answer_quality": {
-    "suite_cases": 15,
+    "single_run_cases": 15,
     "answer_generations": "15/15",
-    "invalid_citations": 0,
     "blind_judges": "15/15",
+    "invalid_citations": 0,
     "lane_aware_mean_weighted_score": 1,
-    "oracle_mean_weighted_score": 0.9368,
-    "note": "Lane-aware scoring uses the relation-aware downstream contract: epistemic relations are semantic control-plane facts, not citations; control raw text is not answer authority.",
-    "case_notes": {
-      "NS-04": "Non-discriminative under current answer prompt; real selection retained C1 only, yet downstream answer remained fully correct.",
-      "XP-02": "Real selection retained complementary provider evidence plus secondary-account boundary control; downstream full pass.",
-      "XP-03": "Real selection retained complementary answer support; downstream full pass.",
-      "XP-04": "Generic selection initially under-selected C2; refined real selection retained boundary control. Relation-aware downstream guidance produced full pass without citing control text."
-    }
+    "oracle_mean_weighted_score": 0.9267,
+    "per_case_lane_aware": "1.0 for all 15 cases",
+    "xp04_final_answer": "Evidence from the main account must remain isolated from another account, and evidence from the other account must not be merged into the main account [xp04.gold]."
+  },
+  "downstream_contract": {
+    "control_raw_text_citable": false,
+    "epistemic_relations_semantic_guidance": true,
+    "boundary_guidance": "for the requested source scope, explicitly state that target evidence must not be merged into the source scope; answer from the source scope only"
   },
   "production_status": "not_wired"
 }

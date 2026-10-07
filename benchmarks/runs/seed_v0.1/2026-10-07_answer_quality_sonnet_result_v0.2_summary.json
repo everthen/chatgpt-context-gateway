@@ -1,0 +1,96 @@
+{
+  "schema_version": "ucg-answer-quality-sonnet-summary.v0.2",
+  "experiment_id": "UCG-EVAL-AQ-SONNET-20261007-v0.2",
+  "dataset_hash": "977d081d4b0221d89c04bcd6ebe513c23304bbb2e94973b4fb9dbf25c5c34141",
+  "repository": "everthen/chatgpt-context-gateway",
+  "branch": "experiment/evidence-admission-v0.1",
+  "answer_model": "ag/claude-sonnet-4-6",
+  "judge_model": "ag/gemini-3.8-flash",
+  "temperature": 0,
+  "n_cases": 16,
+  "summary": {
+    "native_only": {
+      "task_completion_mean": 0,
+      "claim_coverage_mean": 0,
+      "factual_correctness_mean": 1,
+      "groundedness_mean": 1,
+      "mean_latency_seconds": 3.7937
+    },
+    "oracle": {
+      "task_completion_mean": 0.9406,
+      "claim_coverage_mean": 0.9688,
+      "factual_correctness_mean": 0.9062,
+      "groundedness_mean": 0.9062,
+      "mean_latency_seconds": 2.9728
+    },
+    "ucg_gemini": {
+      "task_completion_mean": 0.9859,
+      "claim_coverage_mean": 1,
+      "factual_correctness_mean": 0.9688,
+      "groundedness_mean": 0.9688,
+      "mean_latency_seconds": 3.1952
+    },
+    "ucg_sonnet": {
+      "task_completion_mean": 0.9062,
+      "claim_coverage_mean": 0.9062,
+      "factual_correctness_mean": 0.9688,
+      "groundedness_mean": 0.9688,
+      "mean_latency_seconds": 3.3388
+    },
+    "ucg_opus": {
+      "task_completion_mean": 1,
+      "claim_coverage_mean": 1,
+      "factual_correctness_mean": 1,
+      "groundedness_mean": 1,
+      "mean_latency_seconds": 3.3666
+    }
+  },
+  "family_summary": {
+    "native_only": {
+      "long_session": 0,
+      "new_session": 0,
+      "cross_provider": 0,
+      "temporal_update": 0
+    },
+    "oracle": {
+      "long_session": 1,
+      "new_session": 0.9437,
+      "cross_provider": 0.8187,
+      "temporal_update": 1
+    },
+    "ucg_gemini": {
+      "long_session": 1,
+      "new_session": 1,
+      "cross_provider": 0.9437,
+      "temporal_update": 1
+    },
+    "ucg_sonnet": {
+      "long_session": 1,
+      "new_session": 0.9437,
+      "cross_provider": 0.9313,
+      "temporal_update": 0.75
+    },
+    "ucg_opus": {
+      "long_session": 1,
+      "new_session": 1,
+      "cross_provider": 1,
+      "temporal_update": 1
+    }
+  },
+  "bundle_mean_sizes": {
+    "oracle": 1.6875,
+    "ucg_gemini": 1.625,
+    "ucg_sonnet": 1.9333333333,
+    "ucg_opus": 2.0625
+  },
+  "decision": "PASS cross-answer-model validation seam; NOT CORE GATE",
+  "findings": [
+    "UCG benefit persists when answer model changes from Gemini Flash to Claude Sonnet.",
+    "Opus semantic bundle is strongest in this Sonnet-answer run.",
+    "Gold-admission Oracle is not downstream-optimal; selective bundles can outperform it.",
+    "NS-04, XP-02, XP-04 expose over-pruning/contrastive-evidence seams; TU-04 remains a Sonnet admission failure."
+  ],
+  "raw_answer_sha256": "4ebcdb6eeba5dae86d5440c3f5fa2fbd8f458f56543157e00851276bac0bd24c",
+  "raw_judge_sha256": "1d1bdd270723323fec391388b1046da798e010e4c6a95921a53cb6fe10f66ceb",
+  "full_result_sha256": "c801b2a8d4c5bf278e9afca82c7a25ba840dd7ce6bda9ccf76bc0ef6385049d3"
+}

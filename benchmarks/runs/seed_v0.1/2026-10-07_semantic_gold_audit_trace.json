@@ -1,0 +1,45 @@
+{
+  "schema_version": "ucg-traceability.v0.1",
+  "experiment_id": "EXP-2E",
+  "step_id": "EXP-2E-S4",
+  "parent_step": "EXP-2E-S3",
+  "objective": "Upgrade semantic worthiness gold taxonomy and audit four diagnostic cases before the next model treatment.",
+  "repository": "everthen/chatgpt-context-gateway",
+  "branch": "experiment/evidence-admission-v0.1",
+  "code_commit": "00dda136edf37a8f1355298e0b98525eb7d38459",
+  "dataset_version": "seed_v0.1",
+  "dataset_hash": "977d081d4b0221d89c04bcd6ebe513c23304bbb2e94973b4fb9dbf25c5c34141",
+  "assessor": "oracle_manual_single_annotator",
+  "assessor_version": "gold-v0.1",
+  "configuration": {
+    "cases": [
+      "LS-02",
+      "NS-04",
+      "XP-01",
+      "TU-04"
+    ],
+    "taxonomy": [
+      "task_fit",
+      "worthiness_role",
+      "temporal_state",
+      "admission",
+      "sufficiency_role",
+      "conflict_group"
+    ]
+  },
+  "artifact_paths": [
+    "src/context_gateway/benchmark/semantic_gold.py",
+    "tests/test_semantic_gold.py",
+    "benchmarks/audits/seed_v0.1/2026-10-07_semantic_gold_audit_v0.1.json",
+    "scripts/score_semantic_gold_audit_v0.1.py",
+    "benchmarks/runs/seed_v0.1/2026-10-07_semantic_bakeoff_compact_v0.1.json",
+    "benchmarks/runs/seed_v0.1/2026-10-07_semantic_gold_score_v0.1.json",
+    "docs/UCG_SEMANTIC_GOLD_TAXONOMY_AUDIT_V0.1.md",
+    "benchmarks/data/semantic_model_candidates_v0.1.json"
+  ],
+  "status": "pass",
+  "finding": "The four-case gold audit validates semantic role, admission policy, minimal sufficiency, and conflict-complete context separately. Gemini 3.8 Flash re-scored at 79.17% role accuracy, 91.67% temporal accuracy, 91.67% admission accuracy, 100% required-evidence recall, and 62.50% contradiction recall over the four completed cases.",
+  "decision": "Freeze richer gold taxonomy and use it for the next model bake-off. Register Claude Sonnet 4.6 and Claude Opus 4.6 thinking as next-treatment candidates with capped benchmark output budget.",
+  "next_step": "Run Sonnet 4.6 and Opus 4.6 thinking on the same four cases, then expand the audit to 16 cases before any CORE GATE claim.",
+  "recorded_at": "2026-10-07T12:30:00+07:00"
+}

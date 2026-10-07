@@ -10,7 +10,7 @@ from context_gateway.benchmark.semantic_assessor import (
     build_semantic_assessment_prompt,
     normalize_semantic_response,
 )
-from scripts.run_semantic_worthiness_matrix import (
+from run_repo_runner import (
     blind_candidates,
     call_model,
     candidate_pool,

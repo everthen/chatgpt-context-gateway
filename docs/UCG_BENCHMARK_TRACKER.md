@@ -200,8 +200,9 @@ Attempt result:
 ```
 Sonnet 4.6: 4/4 blocked pre-inference
 Opus 4.6-thinking: 4/4 blocked pre-inference
-Error: API key token limit exceeded
+Error returned by request path: API key token limit exceeded
+Current /v1/models catalog: neither Claude model listed
 Scorable model responses: 0
 ```
 
-The local 9Router model catalog confirmed both candidates are registered. This run is a transport/quota block, not a model-quality result; neither candidate is ranked or downgraded. Artifact: `benchmarks/runs/seed_v0.1/2026-10-07_semantic_sonnet_opus_quota_block_v0.1.json`.
+The current router state does not expose either Claude candidate to the benchmark catalog, while direct requests are rejected before inference with a token-limit error. The exact catalog-vs-quota gating cause remains unresolved. This is not a model-quality result; neither candidate is ranked or downgraded. Artifact: `benchmarks/runs/seed_v0.1/2026-10-07_semantic_sonnet_opus_quota_block_v0.1.json`.

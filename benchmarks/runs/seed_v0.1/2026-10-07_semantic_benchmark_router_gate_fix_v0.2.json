@@ -1,0 +1,21 @@
+{
+  "schema_version": "ucg-semantic-benchmark-router-gate-fix.v0.2",
+  "recorded_at": "2026-10-07",
+  "key_scope": "UCG Semantic Benchmark",
+  "before": {
+    "tokenLimit": 250000,
+    "rpmLimit": 20,
+    "tpmLimit": 50000
+  },
+  "after": {
+    "tokenLimit": 250000,
+    "rpmLimit": 60,
+    "tpmLimit": 50000
+  },
+  "reason": "The 16-case concurrent treatment hit the local benchmark-key RPM gate. The limit was raised on the benchmark-only key so the blocked Opus cases could be replayed without changing prompt, model, or output budget.",
+  "result": {
+    "opus_blocked_cases_replayed": 11,
+    "opus_cases_complete_after_recovery": 16
+  },
+  "note": "No secret key material is stored in this artifact."
+}

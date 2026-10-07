@@ -109,3 +109,22 @@ worthiness recall        87.50%
 ```
 
 Decision: lexical overlap is a lower-bound control only. Next treatment is a real semantic/model assessor using the same evidence-bound assessment contract.
+
+
+## Traceability
+
+- [x] Traceability protocol v0.1
+- [x] Trace record validation contract
+- [x] Dataset SHA-256 helper
+- [x] Traceability contract smoke test
+- [ ] Enforce trace record generation in every benchmark CLI run
+
+Rule:
+
+```
+commit + dataset hash + config + assessor + artifact
++ finding + decision + next step
+= traceable experiment
+```
+
+A local pass without a reconstructable trace is not accepted as a research result.

@@ -18,6 +18,7 @@ from .selection import (
     admit_rrf_candidates,
     select_context_worthy,
 )
+from .worthiness_eval import rule_assess, score_assessments
 
 
 @dataclass(frozen=True)
@@ -263,6 +264,32 @@ def run_ucg_assembly_case(db: ArchiveDB, case: BenchmarkCase, limit: int = 8) ->
         latency_ms=latency_ms,
     )
 
+def run_worthiness_rule_case(
+    case: BenchmarkCase,
+    candidates: list[dict[str, Any]],
+) -> dict[str, Any]:
+    predictions = []
+    for item in candidates:
+        assessment = rule_assess(
+            evidence=item,
+            query=case.query,
+            temporal_state="current",
+        )
+        predictions.append((str(item["evidence_key"]), assessment))
+    scores = score_assessments(case, predictions)
+    return {
+        "case_id": case.case_id,
+        "predictions": [
+            {
+                "evidence_key": key,
+                "assessment": assessment.as_dict(),
+            }
+            for key, assessment in predictions
+        ],
+        "scores": scores,
+    }
+
+
 def _annotate_with_benchmark_oracle(
     items: list[dict[str, Any]],
     case: BenchmarkCase,
@@ -451,6 +478,25 @@ def run_ucg_retrieval_benchmark(
                 )
             )
         db.close()
+
+    worthiness_rule_results: list[dict[str, Any]] = []
+    with TemporaryDirectory(prefix="ucg-worthiness-rule-") as tmp:
+        db = ArchiveDB(Path(tmp) / "benchmark.sqlite3")
+        for case in cases:
+            seed_case_db(db, case)
+            candidates, _ = _automatic_multi_query_returned(db, case, limit)
+            worthiness_rule_results.append(run_worthiness_rule_case(case, candidates))
+        db.close()
+
+    rule_scores = aggregate([
+        result["scores"] for result in worthiness_rule_results
+    ])
+    result_payload["worthiness_rule"] = {
+        "arm": "worthiness_rule",
+        "assessor": "lexical-v0.1",
+        "case_results": worthiness_rule_results,
+        "aggregate": rule_scores,
+    }
 
     worthiness_oracle_results: list[CaseResult] = []
     worthiness_policy = ContextWorthinessPolicy(final_limit=4)

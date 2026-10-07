@@ -53,3 +53,18 @@ quality while reducing/controlling irrelevant context?
 Recorded on 2026-10-07 in `docs/UCG_BENCHMARK_FIRST_RUN.md` and `benchmarks/runs/seed_v0.1/2026-10-07_ucg_only.json`.
 
 Key finding: UCG/FTS5 baseline reached 0.6563 gold recall with 1.0000 provenance completeness and 0.0625 context noise ratio. This is a retrieval baseline only; CORE GATE remains unanswered because Native and Oracle arms are not runnable yet.
+
+## EXP-2 results
+
+- [x] Explicit multi-query evidence assembly
+- [x] Lexical automatic decomposition control
+- [x] RRF ranking experiment
+- [x] Raw run artifacts recorded
+- [x] E2E Oracle/Native/UCG contract drafted
+- [ ] Real Oracle model adapter
+- [ ] Real Native-memory adapter
+- [ ] Real UCG model adapter
+- [ ] Blind answer evaluator
+- [ ] CORE GATE end-to-end report
+
+Latest retrieval finding: auto lexical decomposition reaches 93.75% gold recall but 31.25% context noise; explicit decomposition reaches 75.00% recall with 14.58% noise. No north-star conclusion yet.

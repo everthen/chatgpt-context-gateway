@@ -201,6 +201,91 @@ def parse_semantic_assessment(
     return tuple(results)
 
 
+def normalize_semantic_response(
+    raw_text: str,
+    request: SemanticAssessmentRequest,
+) -> tuple[tuple[SemanticAssessment, ...], bool]:
+    """Normalize semantically valid model variants for research scoring.
+
+    Returns (assessments, protocol_compliant). The production contract remains
+    strict via parse_semantic_assessment(); this helper only prevents a model's
+    richer-but-equivalent JSON shape from becoming a semantic-quality score of
+    zero. Extra fields are ignored, and a top-level candidates collection is
+    accepted as a benchmark variant.
+    """
+    try:
+        payload = json.loads(raw_text)
+    except json.JSONDecodeError as exc:
+        raise ValueError("semantic assessor did not return valid JSON") from exc
+
+    rows = payload.get("assessments")
+    protocol_compliant = isinstance(rows, list)
+
+    if rows is None:
+        rows = payload.get("candidates")
+    if not isinstance(rows, list):
+        raise ValueError("semantic response must contain assessments[] or candidates[]")
+
+    normalized: list[dict[str, Any]] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            raise ValueError("assessment entry must be an object")
+        normalized.append(
+            {
+                "candidate_id": str(row.get("candidate_id", "")),
+                "task_fit": str(row.get("task_fit", "")),
+                "worthiness_role": str(row.get("worthiness_role", "")),
+                "temporal_state": str(row.get("temporal_state", "")),
+                "claim_ids": tuple(str(value) for value in row.get("claim_ids", [])),
+                "conflict_group": (
+                    str(row["conflict_group"])
+                    if row.get("conflict_group") is not None
+                    else None
+                ),
+                "redundancy_group": (
+                    str(row["redundancy_group"])
+                    if row.get("redundancy_group") is not None
+                    else None
+                ),
+                "provenance_complete": bool(row.get("provenance_complete", False)),
+                "confidence": float(row.get("confidence", -1)),
+            }
+        )
+
+    try:
+        canonical = tuple(
+            parse_semantic_assessment(
+                request,
+                json.dumps({"assessments": normalized}),
+            )
+        )
+        return canonical, protocol_compliant
+    except ValueError as strict_exc:
+        expected_ids = request.candidate_ids
+        seen: set[str] = set()
+        results: list[SemanticAssessment] = []
+        for row in normalized:
+            result = SemanticAssessment(
+                candidate_id=row["candidate_id"],
+                task_fit=row["task_fit"],
+                worthiness_role=row["worthiness_role"],
+                temporal_state=row["temporal_state"],
+                claim_ids=row["claim_ids"],
+                conflict_group=row["conflict_group"],
+                redundancy_group=row["redundancy_group"],
+                provenance_complete=row["provenance_complete"],
+                confidence=row["confidence"],
+            )
+            result.validate(expected_ids)
+            if result.candidate_id in seen:
+                raise ValueError(f"duplicate assessment for {result.candidate_id}") from strict_exc
+            seen.add(result.candidate_id)
+            results.append(result)
+        if seen != expected_ids:
+            raise ValueError("assessment coverage mismatch") from strict_exc
+        return tuple(results), False
+
+
 class UnavailableSemanticAssessor:
     name = "unavailable"
 

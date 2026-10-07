@@ -1,0 +1,39 @@
+{
+  "schema_version": "ucg-traceability.v0.1",
+  "experiment_id": "EXP-2E",
+  "step_id": "EXP-2E-S5",
+  "parent_step": "EXP-2E-S4",
+  "objective": "Run the frozen four-case semantic worthiness treatment on Claude Sonnet 4.6 and Claude Opus 4.6-thinking after clearing the local benchmark transport gate.",
+  "repository": "everthen/chatgpt-context-gateway",
+  "branch": "experiment/evidence-admission-v0.1",
+  "code_commit": "00dda136edf37a8f1355298e0b98525eb7d38459",
+  "dataset_version": "seed_v0.1",
+  "dataset_hash": "977d081d4b0221d89c04bcd6ebe513c23304bbb2e94973b4fb9dbf25c5c34141",
+  "assessor": "semantic-model-via-local-9router",
+  "assessor_version": "semantic-assessor-v0.1",
+  "configuration": {
+    "cases": [
+      "LS-02",
+      "NS-04",
+      "XP-01",
+      "TU-04"
+    ],
+    "models": [
+      "ag/claude-sonnet-4-6",
+      "ag/claude-opus-4-6-thinking"
+    ],
+    "temperature": 0,
+    "max_output_tokens": 1024,
+    "protocol_normalization": "normalize_semantic_response"
+  },
+  "artifacts": [
+    "benchmarks/runs/seed_v0.1/2026-10-07_semantic_benchmark_router_gate_fix_v0.1.json",
+    "benchmarks/runs/seed_v0.1/2026-10-07_sonnet_opus_bakeoff_compact_v0.1.json",
+    "benchmarks/runs/seed_v0.1/2026-10-07_sonnet_opus_gold_score_v0.1.json"
+  ],
+  "status": "pass",
+  "finding": "Both models completed all four cases and recovered 100% of required evidence. Sonnet had 91.67% role accuracy, 75% temporal accuracy, 58.33% admission accuracy; Opus had 83.33% role accuracy, 75% temporal accuracy, 75% admission accuracy. TU-04 was the dominant failure seam for both.",
+  "decision": "Do not declare a semantic-model winner from four cases. Preserve the frozen prompt and scoring and expand to 16 cases before model/prompt tuning.",
+  "next_step": "Freeze richer 16-case semantic gold audit and rerun both candidates on the same protocol.",
+  "recorded_at": "2026-10-07T12:00:00+07:00"
+}

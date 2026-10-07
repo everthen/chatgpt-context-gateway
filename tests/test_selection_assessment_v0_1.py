@@ -114,3 +114,32 @@ def test_rejects_invalid_confidence():
             },
             IDS,
         )
+
+def test_normalizes_complementary_relation_aliases():
+    from benchmarks.selection_assessment_v0_1 import normalize_selection_assessment
+
+    result = normalize_selection_assessment(
+        {
+            "selected_candidate_ids": ["C1", "C2"],
+            "relations": [
+                {
+                    "from": "C1",
+                    "to": "C2",
+                    "relation_type": "complementary",
+                    "when_selected": True,
+                }
+            ],
+            "excluded_candidate_ids": [],
+            "confidence": 0.9,
+        },
+        {"C1", "C2"},
+    )
+    assert result["relations"] == [
+        {
+            "source": "C1",
+            "target": "C2",
+            "type": "required_complement",
+            "when_selected": True,
+        }
+    ]
+

@@ -51,6 +51,6 @@ def test_dataset_hash_is_real_sha256(tmp_path: Path):
     path = tmp_path / "dataset.txt"
     path.write_text("hello", encoding="utf-8")
     assert sha256_file(path) == (
-        "2cf24dba5fb0a30e26e83b2ac5b9e29c1d94e5f4"
-        "6a7a845e7f8f5c5fbd1c8b5e4b8f9f5d4e8f5e9"
+        "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1"
+        "fa7425e73043362938b9824"
     )

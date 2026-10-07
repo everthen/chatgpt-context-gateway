@@ -57,6 +57,9 @@ def test_ucg_retrieval_benchmark_runs_end_to_end(tmp_path: Path):
     assert result["schema_version"] == "ucg-benchmark-run.v0.1"
     assert result["dataset_cases"] == 16
     assert result["runnable_arms"] == ["ucg"]
+    assert result["assembly"]["arm"] == "ucg_assembly"
+    assert len(result["assembly"]["case_results"]) == 16
+    assert result["assembly"]["aggregate"]["recall"] >= result["aggregate"]["recall"]
     assert len(result["case_results"]) == 16
     assert (tmp_path / "manifest.json").exists()
     assert (tmp_path / "results.json").exists()

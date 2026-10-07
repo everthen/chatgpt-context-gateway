@@ -1,0 +1,67 @@
+{
+  "schema_version": "ucg-semantic-bakeoff.v0.1",
+  "dataset_version": "seed_v0.1",
+  "dataset_hash": "977d081d4b0221d89c04bcd6ebe513c23304bbb2e94973b4fb9dbf25c5c34141",
+  "candidate_source": "seed_corpus_full",
+  "cases": [
+    "LS-02",
+    "NS-04",
+    "XP-01",
+    "TU-04"
+  ],
+  "models": {
+    "ag/gemini-3.8-flash": {
+      "complete": 4,
+      "total": 4,
+      "protocol_compliance_rate": 0,
+      "strict_support_precision": 0.5833333333,
+      "strict_support_recall": 1,
+      "temporal_accuracy": 0.1666666667,
+      "exact_role_accuracy": 0.4583333333,
+      "contextual_on_distractor_rate": 0.1666666667,
+      "mean_confidence": 0.918125,
+      "mean_latency_ms": 17826.2248,
+      "observation": "All four cases completed. Responses commonly used markdown JSON fences, so semantic normalization succeeded while strict protocol compliance remained false."
+    },
+    "ag/gemini-3.8-flash-high": {
+      "complete": 1,
+      "total": 4,
+      "protocol_compliance_rate": 1,
+      "strict_support_precision": 1,
+      "strict_support_recall": 1,
+      "temporal_accuracy": 0,
+      "exact_role_accuracy": 0.5,
+      "contextual_on_distractor_rate": 0.6666666667,
+      "mean_confidence": 0.9325,
+      "mean_latency_ms": 34117.9638,
+      "observation": "LS-02 completed with exact schema and no fence. NS-04, XP-01 and TU-04 timed out at roughly 90 seconds."
+    },
+    "oc/muse-spark-1.2-contributor-free": {
+      "complete": 0,
+      "total": 4,
+      "protocol_compliance_rate": 0,
+      "observation": "All four bake-off cases failed semantic JSON normalization. A follow-up raw probe also did not complete within the probe window."
+    },
+    "oc/muse-spark-1.3-contributor-free": {
+      "complete": 0,
+      "total": 4,
+      "protocol_compliance_rate": 0,
+      "observation": "All four bake-off cases failed semantic JSON normalization. A follow-up raw probe also did not complete within the probe window."
+    }
+  },
+  "findings": [
+    "Semantic model quality and protocol compliance must be scored separately.",
+    "Gemini 3.8 Flash currently has the best operational completeness among tested candidates.",
+    "Gemini 3.8 Flash produced rich conflict/context classifications on the diagnostic cases, but the current gold labels are too coarse to treat contextual/contradiction decisions as pure errors.",
+    "Gemini 3.8 Flash High showed stronger strict schema compliance on the one completed case but unacceptable latency/timeouts on the other three.",
+    "Muse 1.2 and 1.3 are not benchmark-ready in the current adapter path; their failure mode is JSON/response normalization rather than a demonstrated semantic-quality failure."
+  ],
+  "decision": "Do not declare a permanent semantic-assessor winner. Use ag/gemini-3.8-flash as the provisional treatment candidate for the next frozen benchmark, while improving the gold taxonomy and instrumenting Muse raw responses separately.",
+  "next_step": [
+    "Expand worthiness gold taxonomy with direct_support, supporting, contextual, contradiction, obsolete/proposed labels.",
+    "Run a small fixed human/oracle audit on the same 4 cases.",
+    "Re-test Gemini 3.8 Flash on the expanded taxonomy.",
+    "Build a raw-response capture path for Muse so parse failures remain diagnosable.",
+    "Only then run the 16-case semantic treatment benchmark."
+  ]
+}

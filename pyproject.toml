@@ -10,3 +10,4 @@ mcp = ["mcp>=1.29"]
 
 [project.scripts]
 chatgpt-context = "context_gateway.cli:main"
+ucg-benchmark = "context_gateway.benchmark.cli:main"

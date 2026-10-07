@@ -1,0 +1,211 @@
+[Reading 207 lines from start (total: 207 lines, 0 remaining)]
+
+{
+  "schema_version": "ucg-semantic-gold-audit.v0.2",
+  "audit_id": "AUDIT-EXP-2E-16CASES",
+  "dataset_version": "seed_v0.1",
+  "dataset_hash": "977d081d4b0221d89c04bcd6ebe513c23304bbb2e94973b4fb9dbf25c5c34141",
+  "annotation_method": "oracle_manual_single_annotator",
+  "independence": "not_independent_human_review",
+  "note": "Manual/oracle audit against the frozen synthetic corpus. This is not an independent human inter-rater study.",
+  "cases": [
+    {
+      "case_id": "LS-01",
+      "query_mode": "current_fact",
+      "labels": [
+        {"evidence_key":"ls01.gold","task_fit":"direct","worthiness_role":"direct_support","temporal_state":"current","admission":"admit","sufficiency_role":"required","claim_ids":["deployment-region-singapore"],"rationale":"Directly states the preferred production deployment region."},
+        {"evidence_key":"ls01.anchor","task_fit":"contextual","worthiness_role":"contextual","temporal_state":"unknown","admission":"reject","sufficiency_role":"optional","claim_ids":["decision-rationale"],"rationale":"Explains why the decision was made but does not identify the region."},
+        {"evidence_key":"ls01.dist","task_fit":"contextual","worthiness_role":"contradiction","temporal_state":"obsolete","admission":"reject","sufficiency_role":"not_needed","claim_ids":["deployment-region-frankfurt"],"conflict_group":"deployment-region","rationale":"Explicitly describes an early proposal that was not the final decision."}
+      ],
+      "minimal_sufficient_set":["ls01.gold"],
+      "conflict_complete_set":["ls01.gold","ls01.dist"],
+      "audit_rationale":"Latest preferred deployment fact requires the final decision; the earlier proposal is historical conflict, not current answer material."
+    },
+    {
+      "case_id": "LS-02",
+      "query_mode": "current_fact",
+      "labels": [
+        {"evidence_key":"ls02.anchor","task_fit":"contextual","worthiness_role":"contextual","temporal_state":"unknown","admission":"reject","sufficiency_role":"optional","claim_ids":["pipeline-revisited"],"rationale":"Thread context without the retention value."},
+        {"evidence_key":"ls02.gold","task_fit":"direct","worthiness_role":"direct_support","temporal_state":"current","admission":"admit","sufficiency_role":"required","claim_ids":["retention-policy-30-days"],"rationale":"Directly states the final retention policy."},
+        {"evidence_key":"ls02.note","task_fit":"contextual","worthiness_role":"contextual","temporal_state":"unknown","admission":"reject","sufficiency_role":"optional","claim_ids":["cold-archival-separate-scope"],"rationale":"Useful boundary context but not required for retention."},
+        {"evidence_key":"ls02.dist","task_fit":"contextual","worthiness_role":"contradiction","temporal_state":"obsolete","admission":"reject","sufficiency_role":"not_needed","claim_ids":["retention-policy-90-days"],"conflict_group":"retention-policy","rationale":"Historical proposal conflicts with the final policy."}
+      ],
+      "minimal_sufficient_set":["ls02.gold"],
+      "conflict_complete_set":["ls02.gold","ls02.dist"],
+      "audit_rationale":"A current-fact answer needs the final 30-day policy. Earlier proposals belong only in historical reconstruction."
+    },
+    {
+      "case_id": "LS-03",
+      "query_mode": "current_fact",
+      "labels": [
+        {"evidence_key":"ls03.support","task_fit":"supporting","worthiness_role":"supporting","temporal_state":"unknown","admission":"admit","sufficiency_role":"complementary","claim_ids":["mobile-release-needs-approval"],"rationale":"Establishes the approval requirement that makes the owner relationship relevant."},
+        {"evidence_key":"ls03.gold","task_fit":"direct","worthiness_role":"direct_support","temporal_state":"current","admission":"admit","sufficiency_role":"required","claim_ids":["mobile-release-owner-mira"],"rationale":"Directly names the final approval owner."},
+        {"evidence_key":"ls03.dist","task_fit":"contextual","worthiness_role":"contradiction","temporal_state":"obsolete","admission":"reject","sufficiency_role":"not_needed","claim_ids":["previous-release-owner-jon"],"conflict_group":"mobile-release-owner","rationale":"Names an owner for a previous release cycle, not the current release."}
+      ],
+      "minimal_sufficient_set":["ls03.gold"],
+      "conflict_complete_set":["ls03.gold","ls03.dist"],
+      "audit_rationale":"The owner is directly stated; the approval requirement can support interpretation but is not sufficient by itself. Previous-cycle ownership is obsolete."
+    },
+    {
+      "case_id": "LS-04",
+      "query_mode": "current_fact",
+      "labels": [
+        {"evidence_key":"ls04.gold","task_fit":"direct","worthiness_role":"direct_support","temporal_state":"current","admission":"admit","sufficiency_role":"required","claim_ids":["fallback-db-cockroachdb"],"rationale":"Directly states the fallback database after the failover test."},
+        {"evidence_key":"ls04.context","task_fit":"contextual","worthiness_role":"contextual","temporal_state":"unknown","admission":"reject","sufficiency_role":"optional","claim_ids":["test-target-recovery"],"rationale":"Explains test scope but not the database choice."},
+        {"evidence_key":"ls04.dist1","task_fit":"contextual","worthiness_role":"contradiction","temporal_state":"obsolete","admission":"reject","sufficiency_role":"not_needed","claim_ids":["fallback-db-postgresql"],"conflict_group":"fallback-database","rationale":"An earlier proposal explicitly predates the failover test."},
+        {"evidence_key":"ls04.dist2","task_fit":"contextual","worthiness_role":"contextual","temporal_state":"unknown","admission":"reject","sufficiency_role":"optional","claim_ids":["cockroachdb-benchmark-option"],"rationale":"Shows CockroachDB was benchmarked, but does not itself establish it as the selected fallback."}
+      ],
+      "minimal_sufficient_set":["ls04.gold"],
+      "conflict_complete_set":["ls04.gold","ls04.dist1"],
+      "audit_rationale":"The selected fallback is directly established. PostgreSQL is obsolete conflict; the benchmark note is background rather than selection evidence."
+    },
+    {
+      "case_id": "NS-01",
+      "query_mode": "current_fact",
+      "labels": [
+        {"evidence_key":"ns01.gold","task_fit":"direct","worthiness_role":"direct_support","temporal_state":"current","admission":"admit","sufficiency_role":"required","claim_ids":["notebook-export-jsonl"],"rationale":"Directly states the portability export format."},
+        {"evidence_key":"ns01.dist","task_fit":"contextual","worthiness_role":"contradiction","temporal_state":"obsolete","admission":"reject","sufficiency_role":"not_needed","claim_ids":["notebook-export-csv"],"conflict_group":"notebook-export-format","rationale":"Temporary earlier experiment conflicts with the current portability format."}
+      ],
+      "minimal_sufficient_set":["ns01.gold"],
+      "conflict_complete_set":["ns01.gold","ns01.dist"],
+      "audit_rationale":"The current export format is JSONL; CSV is explicitly historical temporary state."
+    },
+    {
+      "case_id": "NS-02",
+      "query_mode": "current_goal",
+      "labels": [
+        {"evidence_key":"ns02.gold","task_fit":"direct","worthiness_role":"direct_support","temporal_state":"current","admission":"admit","sufficiency_role":"required","claim_ids":["eval-split-freeze-after-harness-stable"],"rationale":"States the current freeze condition."},
+        {"evidence_key":"ns02.support","task_fit":"supporting","worthiness_role":"supporting","temporal_state":"current","admission":"admit","sufficiency_role":"complementary","claim_ids":["train-dev-remain-mutable"],"rationale":"Clarifies which other splits remain mutable during development."},
+        {"evidence_key":"ns02.dist","task_fit":"contextual","worthiness_role":"contradiction","temporal_state":"obsolete","admission":"reject","sufficiency_role":"not_needed","claim_ids":["freeze-immediately-draft"],"conflict_group":"benchmark-split-freeze","rationale":"Explicitly labels itself as an early draft and conflicts with the current freeze condition."}
+      ],
+      "minimal_sufficient_set":["ns02.gold"],
+      "conflict_complete_set":["ns02.gold","ns02.support","ns02.dist"],
+      "audit_rationale":"The current policy says when the evaluation split freezes. Supporting detail and obsolete draft explain scope/history but are not required for the direct answer."
+    },
+    {
+      "case_id": "NS-03",
+      "query_mode": "current_fact",
+      "labels": [
+        {"evidence_key":"ns03.gold","task_fit":"direct","worthiness_role":"direct_support","temporal_state":"current","admission":"admit","sufficiency_role":"required","claim_ids":["context-evaluation-owner-raka"],"rationale":"Directly names the owner and sign-off responsibility."},
+        {"evidence_key":"ns03.dist","task_fit":"contextual","worthiness_role":"contextual","temporal_state":"unknown","admission":"reject","sufficiency_role":"optional","claim_ids":["retrieval-owner-sinta-not-context-eval"],"rationale":"Narrows Sinta's role but does not establish who owns context evaluation."}
+      ],
+      "minimal_sufficient_set":["ns03.gold"],
+      "conflict_complete_set":["ns03.gold"],
+      "audit_rationale":"Only the explicit Raka ownership statement is required. The adjacent ownership note is useful context but not material enough for admission."
+    },
+    {
+      "case_id": "NS-04",
+      "query_mode": "current_goal_with_conflict_awareness",
+      "labels": [
+        {"evidence_key":"ns04.gold","task_fit":"direct","worthiness_role":"direct_support","temporal_state":"current","admission":"admit","sufficiency_role":"required","claim_ids":["north-star-recall-less-noise"],"rationale":"Directly states the benchmark north star."},
+        {"evidence_key":"ns04.dist1","task_fit":"contextual","worthiness_role":"contradiction","temporal_state":"unknown","admission":"admit_conflict","sufficiency_role":"complementary","claim_ids":["goal-maximize-volume-noisy"],"conflict_group":"goal-framing","rationale":"Materially conflicts with the north-star framing and matters under conflict awareness."},
+        {"evidence_key":"ns04.dist2","task_fit":"contextual","worthiness_role":"contradiction","temporal_state":"unknown","admission":"admit_conflict","sufficiency_role":"complementary","claim_ids":["goal-billing-not-recall"],"conflict_group":"goal-framing","rationale":"Competing immediate goal creates scope tension."}
+      ],
+      "minimal_sufficient_set":["ns04.gold"],
+      "conflict_complete_set":["ns04.gold","ns04.dist1","ns04.dist2"],
+      "audit_rationale":"Minimal answer requires the north star. Conflict-aware interpretation should retain the competing goal framings."
+    },
+    {
+      "case_id": "XP-01",
+      "query_mode": "cross_provider_design_requirement",
+      "labels": [
+        {"evidence_key":"xp01.openai","task_fit":"direct","worthiness_role":"direct_support","temporal_state":"unknown","admission":"admit","sufficiency_role":"required","claim_ids":["exact-message-provenance-required"],"rationale":"Requires exact message identity."},
+        {"evidence_key":"xp01.google","task_fit":"direct","worthiness_role":"direct_support","temporal_state":"unknown","admission":"admit","sufficiency_role":"required","claim_ids":["provider-account-exact-message-provenance"],"rationale":"Adds provider and account identity to the provenance requirement."},
+        {"evidence_key":"xp01.dist","task_fit":"contextual","worthiness_role":"contradiction","temporal_state":"proposed","admission":"admit_conflict","sufficiency_role":"complementary","claim_ids":["draft-lacks-exact-message-provenance"],"conflict_group":"provenance-design","rationale":"Draft-state gap conflicts with the intended provenance requirement and can matter for design history."}
+      ],
+      "minimal_sufficient_set":["xp01.openai","xp01.google"],
+      "conflict_complete_set":["xp01.openai","xp01.google","xp01.dist"],
+      "audit_rationale":"The positive design requirement is distributed across two providers, so both are required. The draft-gap is complementary conflict/history evidence."
+    },
+    {
+      "case_id": "XP-02",
+      "query_mode": "cross_provider_design_requirement",
+      "labels": [
+        {"evidence_key":"xp02.openai","task_fit":"direct","worthiness_role":"direct_support","temporal_state":"unknown","admission":"admit","sufficiency_role":"required","claim_ids":["provider-neutral-context-layer"],"rationale":"Directly states provider neutrality."},
+        {"evidence_key":"xp02.claude","task_fit":"direct","worthiness_role":"direct_support","temporal_state":"unknown","admission":"admit","sufficiency_role":"required","claim_ids":["anthropic-context-portability"],"rationale":"Demonstrates portability into another provider session without changing evidence."},
+        {"evidence_key":"xp02.dist","task_fit":"contextual","worthiness_role":"contradiction","temporal_state":"unknown","admission":"admit_conflict","sufficiency_role":"complementary","claim_ids":["account-specific-openai-workflow"],"conflict_group":"provider-neutrality","rationale":"A separate account-specific implementation creates a material boundary tension with provider-neutral intent, though it does not replace the primary design."}
+      ],
+      "minimal_sufficient_set":["xp02.openai","xp02.claude"],
+      "conflict_complete_set":["xp02.openai","xp02.claude","xp02.dist"],
+      "audit_rationale":"Two positive cross-provider statements jointly establish neutrality and portability. The secondary-account implementation is a material but non-authoritative counter-signal."
+    },
+    {
+      "case_id": "XP-03",
+      "query_mode": "architecture_boundary",
+      "labels": [
+        {"evidence_key":"xp03.gemini","task_fit":"direct","worthiness_role":"direct_support","temporal_state":"current","admission":"admit","sufficiency_role":"required","claim_ids":["native-memory-and-ucg-coexist"],"rationale":"Defines coexistence and the evidence/context role of UCG."},
+        {"evidence_key":"xp03.chatgpt","task_fit":"direct","worthiness_role":"direct_support","temporal_state":"current","admission":"admit","sufficiency_role":"required","claim_ids":["llm-retains-final-judgment"],"rationale":"Explicitly assigns final interpretation and decision to the LLM."},
+        {"evidence_key":"xp03.dist","task_fit":"contextual","worthiness_role":"contradiction","temporal_state":"proposed","admission":"admit_conflict","sufficiency_role":"complementary","claim_ids":["gateway-final-decision"],"conflict_group":"judgment-boundary","rationale":"Competing architecture proposal materially conflicts with the intended decision boundary."}
+      ],
+      "minimal_sufficient_set":["xp03.gemini","xp03.chatgpt"],
+      "conflict_complete_set":["xp03.gemini","xp03.chatgpt","xp03.dist"],
+      "audit_rationale":"Both positive statements are required to establish coexistence plus retained final judgment. The competing gateway-verdict proposal is conflict/history evidence."
+    },
+    {
+      "case_id": "XP-04",
+      "query_mode": "account_isolation",
+      "labels": [
+        {"evidence_key":"xp04.gold","task_fit":"direct","worthiness_role":"direct_support","temporal_state":"current","admission":"admit","sufficiency_role":"required","claim_ids":["main-account-isolation"],"rationale":"Directly states account isolation requirement."},
+        {"evidence_key":"xp04.dist","task_fit":"supporting","worthiness_role":"supporting","temporal_state":"unknown","admission":"admit","sufficiency_role":"complementary","claim_ids":["secondary-account-not-valid-for-main"],"rationale":"Provides concrete cross-account evidence that similar content must not be merged into the main account."}
+      ],
+      "minimal_sufficient_set":["xp04.gold"],
+      "conflict_complete_set":["xp04.gold","xp04.dist"],
+      "audit_rationale":"The gold statement defines the requirement. The secondary-account example is useful supporting evidence rather than noise because it concretely exercises account isolation."
+    },
+    {
+      "case_id": "TU-01",
+      "query_mode": "latest_current_decision",
+      "labels": [
+        {"evidence_key":"tu01.gold","task_fit":"direct","worthiness_role":"direct_support","temporal_state":"current","admission":"admit","sufficiency_role":"required","claim_ids":["cache-eviction-lru-ttl"],"rationale":"Directly states the current cache policy."},
+        {"evidence_key":"tu01.dist","task_fit":"contextual","worthiness_role":"contradiction","temporal_state":"obsolete","admission":"reject","sufficiency_role":"not_needed","claim_ids":["cache-eviction-fifo"],"conflict_group":"cache-eviction-policy","rationale":"Explicitly marked as old."}
+      ],
+      "minimal_sufficient_set":["tu01.gold"],
+      "conflict_complete_set":["tu01.gold","tu01.dist"],
+      "audit_rationale":"Latest-current query should reject obsolete policy and preserve current LRU plus TTL."
+    },
+    {
+      "case_id": "TU-02",
+      "query_mode": "latest_current_decision",
+      "labels": [
+        {"evidence_key":"tu02.gold","task_fit":"direct","worthiness_role":"direct_support","temporal_state":"current","admission":"admit","sufficiency_role":"required","claim_ids":["retrieval-ftS5-message-granularity"],"rationale":"Directly states the current retrieval baseline."},
+        {"evidence_key":"tu02.dist","task_fit":"contextual","worthiness_role":"contradiction","temporal_state":"obsolete","admission":"reject","sufficiency_role":"not_needed","claim_ids":["retrieval-vector-db-plan"],"conflict_group":"retrieval-method","rationale":"Explicitly marked as the old plan."}
+      ],
+      "minimal_sufficient_set":["tu02.gold"],
+      "conflict_complete_set":["tu02.gold","tu02.dist"],
+      "audit_rationale":"Current benchmark method is FTS5; the vector database plan is obsolete."
+    },
+    {
+      "case_id": "TU-03",
+      "query_mode": "latest_current_decision",
+      "labels": [
+        {"evidence_key":"tu03.gold","task_fit":"direct","worthiness_role":"direct_support","temporal_state":"current","admission":"admit","sufficiency_role":"required","claim_ids":["hermes-governance-outside-ucg-core"],"rationale":"Directly states the current architectural boundary."},
+        {"evidence_key":"tu03.dist","task_fit":"contextual","worthiness_role":"contradiction","temporal_state":"obsolete","admission":"reject","sufficiency_role":"not_needed","claim_ids":["gateway-contained-governance"],"conflict_group":"ucg-hermes-boundary","rationale":"Explicitly describes an earlier proposal."}
+      ],
+      "minimal_sufficient_set":["tu03.gold"],
+      "conflict_complete_set":["tu03.gold","tu03.dist"],
+      "audit_rationale":"The current boundary excludes Hermes governance from UCG core; the earlier proposal is obsolete."
+    },
+    {
+      "case_id": "TU-04",
+      "query_mode": "latest_current_decision",
+      "labels": [
+        {"evidence_key":"tu04.gold","task_fit":"direct","worthiness_role":"direct_support","temporal_state":"current","admission":"admit","sufficiency_role":"required","claim_ids":["automatic-recall-remains-hypothesis"],"rationale":"Directly states the latest current position."},
+        {"evidence_key":"tu04.dist1","task_fit":"contextual","worthiness_role":"contradiction","temporal_state":"obsolete","admission":"reject","sufficiency_role":"not_needed","claim_ids":["automatic-recall-default-proposal"],"conflict_group":"automatic-recall-decision","rationale":"Older proposal conflicts with the current conservative position."},
+        {"evidence_key":"tu04.dist2","task_fit":"contextual","worthiness_role":"contradiction","temporal_state":"obsolete","admission":"reject","sufficiency_role":"not_needed","claim_ids":["automatic-recall-always-better"],"conflict_group":"automatic-recall-decision","rationale":"Obsolete assertion of a settled decision."}
+      ],
+      "minimal_sufficient_set":["tu04.gold"],
+      "conflict_complete_set":["tu04.gold","tu04.dist1","tu04.dist2"],
+      "audit_rationale":"The latest decision is deliberately conservative; obsolete automatic-recall proposals should be rejected in latest-current mode."
+    }
+  ],
+  "quality_checks": {
+    "all_seed_cases_covered": true,
+    "distributed_positive_claims_preserved": true,
+    "unresolved_conflicts_preserved_when_material": true,
+    "obsolete_current_mode_rejected": true,
+    "contextual_not_equated_with_admit": true,
+    "account_boundary_test_present": true
+  }
+}
+
+[executed on device: hermes-vm (24be9d7a-f374-4723-94ee-b7833b4dd0cb)]

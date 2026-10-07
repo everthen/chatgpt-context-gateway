@@ -1,0 +1,507 @@
+[Reading 503 lines from start (total: 503 lines, 0 remaining)]
+
+{
+  "schema_version": "ucg-semantic-gold-score.v0.1",
+  "gold_path": "audit/gold_16_v0.1.json",
+  "results_path": "sonnet_opus_16_for_score.jsonl",
+  "summary": {
+    "ag/claude-opus-4-6-thinking": {
+      "cases_scored": 16,
+      "task_fit_accuracy": 0.625,
+      "worthiness_role_accuracy": 0.6770833333333334,
+      "temporal_accuracy": 0.8777777777777778,
+      "admission_accuracy": 0.8333333333333334,
+      "required_evidence_recall": 1.0,
+      "contradiction_precision": 0.625,
+      "contradiction_recall": 0.5625
+    },
+    "ag/claude-sonnet-4-6": {
+      "cases_scored": 15,
+      "task_fit_accuracy": 0.6777777777777778,
+      "worthiness_role_accuracy": 0.7444444444444445,
+      "temporal_accuracy": 0.9404761904761905,
+      "admission_accuracy": 0.7944444444444444,
+      "required_evidence_recall": 1.0,
+      "contradiction_precision": 0.7333333333333333,
+      "contradiction_recall": 0.7333333333333333
+    }
+  },
+  "case_results": [
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "LS-01",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.6666666666666666,
+        "worthiness_role_accuracy": 0.3333333333333333,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 0.6666666666666666,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "LS-02",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.5,
+        "worthiness_role_accuracy": 0.75,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 0.75,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "LS-03",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 0.6666666666666666,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "LS-04",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.5,
+        "worthiness_role_accuracy": 0.75,
+        "temporal_accuracy": 0.5,
+        "admission_accuracy": 0.5,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "NS-01",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.5,
+        "worthiness_role_accuracy": 1.0,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "NS-02",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.6666666666666666,
+        "worthiness_role_accuracy": 1.0,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 0.6666666666666666,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "NS-03",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.5,
+        "worthiness_role_accuracy": 0.5,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 0.5,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "NS-04",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.3333333333333333,
+        "worthiness_role_accuracy": 1.0,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 0.3333333333333333,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "XP-01",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.6666666666666666,
+        "worthiness_role_accuracy": 1.0,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "XP-02",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.6666666666666666,
+        "worthiness_role_accuracy": 0.6666666666666666,
+        "temporal_accuracy": null,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "XP-03",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.6666666666666666,
+        "worthiness_role_accuracy": 1.0,
+        "temporal_accuracy": 0.6666666666666666,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "XP-04",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.5,
+        "worthiness_role_accuracy": 0.5,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 0.5,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "TU-01",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 0.5,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "TU-02",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 0.5,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "TU-03",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 1.0,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "TU-04",
+      "status": "parse_or_runtime_error",
+      "metrics": {
+        "scorable": false,
+        "reason": "assessment coverage mismatch"
+      }
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "LS-01",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.6666666666666666,
+        "worthiness_role_accuracy": 0.3333333333333333,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 0.6666666666666666,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "LS-02",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.5,
+        "worthiness_role_accuracy": 0.75,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "LS-03",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 0.6666666666666666,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "LS-04",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.5,
+        "worthiness_role_accuracy": 0.75,
+        "temporal_accuracy": 0.5,
+        "admission_accuracy": 0.5,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "NS-01",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.5,
+        "worthiness_role_accuracy": 0.5,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "NS-02",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.6666666666666666,
+        "worthiness_role_accuracy": 1.0,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 0.6666666666666666,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "NS-03",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.5,
+        "worthiness_role_accuracy": 0.5,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 0.5,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "NS-04",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.3333333333333333,
+        "worthiness_role_accuracy": 0.6666666666666666,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 0.6666666666666666,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 0.5
+      }
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "TU-01",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 0.5,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "TU-02",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 0.5,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "TU-03",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.5,
+        "worthiness_role_accuracy": 0.5,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "TU-04",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.3333333333333333,
+        "worthiness_role_accuracy": 0.6666666666666666,
+        "temporal_accuracy": 0.0,
+        "admission_accuracy": 0.3333333333333333,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 0.5
+      }
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "XP-01",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.6666666666666666,
+        "worthiness_role_accuracy": 1.0,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "XP-02",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.6666666666666666,
+        "worthiness_role_accuracy": 1.0,
+        "temporal_accuracy": null,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "XP-03",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.6666666666666666,
+        "worthiness_role_accuracy": 1.0,
+        "temporal_accuracy": 0.6666666666666666,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "XP-04",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.5,
+        "worthiness_role_accuracy": 0.5,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    }
+  ]
+}
+
+[executed on device: hermes-vm (24be9d7a-f374-4723-94ee-b7833b4dd0cb)]

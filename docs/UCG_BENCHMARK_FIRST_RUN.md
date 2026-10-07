@@ -87,3 +87,45 @@ The benchmark schema should eventually label these challenge types explicitly so
 ## Known implementation fix
 
 The first executable benchmark invocation exposed and fixed a CLI defect: `python -m context_gateway.benchmark.cli` exited successfully without running because `cli.py` lacked the `__main__` guard. The fix was committed before this recorded run.
+
+## EXP-2a: explicit multi-query evidence assembly
+
+Recorded on 2026-10-07 in `benchmarks/runs/seed_v0.1/2026-10-07_ucg_assembly.json`.
+
+The benchmark now carries explicit `retrieval_queries` for each case. These are **benchmark-supplied decomposition hints**, not an automatic decomposer. This isolates evidence-assembly capability from query-decomposition capability.
+
+| Metric | FTS5 single query | Multi-query assembly |
+|---|---:|---:|
+| Gold recall / coverage | 65.63% | **75.00%** |
+| Precision | 62.50% | **66.67%** |
+| MRR | 65.63% | **71.88%** |
+| nDCG | 66.44% | **73.83%** |
+| Context noise ratio | **6.25%** | 14.58% |
+| Provenance completeness | 100% | 100% |
+| Mean retrieval latency | 0.81 ms | 0.82 ms |
+
+Family recall with assembly:
+
+- Long Session: 75.0%
+- New Session: 100.0%
+- Cross Provider: 50.0%
+- Temporal Update: 75.0%
+
+### Interpretation
+
+This is evidence that **evidence assembly is a real bottleneck** in the current UCG retrieval path. Supplying two focused retrieval queries improves coverage substantially, especially for cross-provider cases.
+
+It is not yet evidence that automatic query decomposition works. The decomposition was supplied by the benchmark.
+
+The cost is context noise: naive union/rank fusion raises noise from 6.25% to 14.58%. Therefore the next optimization target is **multi-query reranking / deduplication / evidence-set selection**, not simply adding more retrieval queries.
+
+### Next experiment
+
+EXP-2b should generate subqueries automatically while keeping the gold set frozen. Compare:
+
+1. single FTS5 query;
+2. benchmark-supplied subqueries;
+3. automatic decomposition + multi-query assembly.
+
+A successful 2b result must improve recall without reproducing the 2a noise increase.
+

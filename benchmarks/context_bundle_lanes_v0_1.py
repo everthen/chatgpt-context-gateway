@@ -112,7 +112,7 @@ def _relation_guidance(relation_type: str) -> str:
     return {
         "required_contrast": "treat the target as an explicit alternative or contrast, not positive support",
         "required_complement": "treat source and target as complementary positive support when both are selected",
-        "required_boundary_contrast": "do not merge target evidence into the source scope; answer from the source scope only",
+        "required_boundary_contrast": "for the requested source scope, explicitly state that target evidence must not be merged into the source scope; answer from the source scope only",
         "required_conflict": "treat the target as a conflicting alternative; do not silently collapse the conflict",
         "required_state_contrast": "treat the target as a contrasting state and do not let it override the selected current state",
     }.get(relation_type, "")

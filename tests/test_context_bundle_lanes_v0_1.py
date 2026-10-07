@@ -80,6 +80,7 @@ def test_xp04_wrong_account_is_control_only():
             "from": "xp04.gold",
             "to": "xp04.dist",
             "relation_type": "required_boundary_contrast",
+            "answer_guidance": "target evidence is out of scope for the source scope and must not be merged into it",
         },
     )
 
@@ -179,3 +180,17 @@ def test_control_to_answer_leak_attack_fails_closed():
     else:
         raise AssertionError("control-to-answer leakage must fail closed")
 
+def test_required_boundary_relation_carries_non_citable_guidance():
+    candidates = [
+        candidate(
+            "gold",
+            "supporting",
+            "account-A",
+            [{"target":"wrong","type":"required_boundary_contrast","when_selected":True}],
+        ),
+        candidate("wrong", "contrastive", "account-B"),
+    ]
+    bundle = build_context_bundle(candidates, ["gold", "wrong"])
+    rel = bundle.epistemic_relations[0]
+    assert rel["answer_guidance"] == "target evidence is out of scope for the source scope and must not be merged into it"
+    assert all(x["citation_eligible"] is False for x in bundle.control_context)

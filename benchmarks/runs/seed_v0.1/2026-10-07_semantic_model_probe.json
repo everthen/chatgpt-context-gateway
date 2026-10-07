@@ -1,0 +1,13 @@
+{
+  "schema_version": "ucg-semantic-model-probe.v0.1",
+  "timestamp_utc": "2026-10-07T03:50:55Z",
+  "endpoint": "http://127.0.0.1:20127",
+  "provider": "openai-compatible",
+  "model": "not_configured",
+  "status": "unavailable",
+  "raw_response": null,
+  "error": "Connection refused while probing local 9Router health endpoint; service is not listening on 127.0.0.1:20127.",
+  "treatment_run_allowed": false,
+  "next_step": "Start/configure a real model endpoint and rerun the frozen blind assessment pack.",
+  "trace_reference": "benchmarks/runs/seed_v0.1/2026-10-07_semantic_assessor_model_probe_trace.json"
+}

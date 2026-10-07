@@ -1,0 +1,75 @@
+{
+  "schema_version": "ucg-final-real-selection-lane-aq-gate.v0.1",
+  "date": "2026-10-07",
+  "models": {
+    "semantic": "ag/claude-sonnet-4-6",
+    "selection": "ag/gemini-3.8-flash",
+    "answer": "ag/gemini-3.8-flash",
+    "judge": "ag/claude-sonnet-4-6"
+  },
+  "evaluability": {
+    "seed_cases": 16,
+    "selection_evaluable": 15,
+    "upstream_semantic_failure": [
+      "TU-04"
+    ]
+  },
+  "real_selection_materialization": {
+    "evaluable_cases": 15,
+    "final_complete": 15,
+    "final_materialization_failures": 0,
+    "final_transport_failures": 0,
+    "protocol_repairs": [
+      "candidate-id relations are mapped to evidence-key relations",
+      "complementary/required_complement aliases normalize to required_complement",
+      "noncanonical missing selected_candidate_ids fails closed",
+      "required_conflict lane assignment honors semantic role"
+    ]
+  },
+  "serialized_context_bundle": {
+    "lanes": [
+      "answer_context",
+      "control_context",
+      "epistemic_relations"
+    ],
+    "relation_guidance": true,
+    "control_to_answer_leak_attack": "PASS",
+    "invalid_control_citations": 0
+  },
+  "broader_answer_quality": {
+    "cases": 15,
+    "answer_generations": "15/15",
+    "invalid_citations": 0,
+    "blind_judges": "15/15",
+    "lane_aware_mean_weighted": 1,
+    "oracle_mean_weighted": 0.935,
+    "final_targeted_xp04": {
+      "lane_aware": {
+        "claim_coverage": 1,
+        "factual_correctness": 1,
+        "groundedness": 1,
+        "abstention_correctness": 1,
+        "weighted": 1
+      }
+    },
+    "note": "Lane-aware aggregate reflects the 15-case broad suite with the final XP-04 targeted rerun after direction-explicit boundary relation guidance. Other 14 case scores were unchanged."
+  },
+  "xp04_final_bundle": {
+    "selected_candidate_ids": [
+      "C1",
+      "C2"
+    ],
+    "relation": "required_boundary_contrast",
+    "answer_context": [
+      "xp04.gold"
+    ],
+    "control_context": [
+      "xp04.dist"
+    ],
+    "control_answer_visible": false,
+    "control_citation_eligible": false,
+    "relation_answer_guidance": "for the requested source scope, explicitly state that target evidence must not be merged into the source scope; answer from the source scope only"
+  },
+  "production_status": "not_wired",
+  "decision": "PASS benchmark/contract integration gate; production wiring still blocked pending production-shaped end-to-end gate"
+}

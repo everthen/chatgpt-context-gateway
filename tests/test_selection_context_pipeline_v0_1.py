@@ -163,9 +163,10 @@ def test_real_shape_xp02_materializes_answer_contrast():
     assert [x["key"] for x in bundle["bundle"]["answer_context"]] == [
         "xp02.openai",
         "xp02.claude",
+        "xp02.dist",
     ]
-    assert [x["key"] for x in bundle["bundle"]["control_context"]] == ["xp02.dist"]
-    assert bundle["bundle"]["control_context"][0]["lane"] == "control_conflict"
+    assert bundle["bundle"]["control_context"] == []
+    assert bundle["bundle"]["answer_context"][2]["lane"] == "answer_contrast"
 
 
 def test_complementary_relation_preserves_answer_support():

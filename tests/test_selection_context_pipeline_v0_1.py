@@ -165,6 +165,7 @@ def test_real_shape_xp02_materializes_answer_contrast():
         "xp02.claude",
     ]
     assert [x["key"] for x in bundle["bundle"]["control_context"]] == ["xp02.dist"]
+    assert bundle["bundle"]["control_context"][0]["lane"] == "control_conflict"
 
 
 def test_complementary_relation_preserves_answer_support():

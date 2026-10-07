@@ -1,0 +1,263 @@
+[Reading 259 lines from start (total: 259 lines, 0 remaining)]
+
+{
+  "schema_version": "ucg-semantic-gold-score.v0.1",
+  "gold_path": "audit/gold_16_v0.1.json",
+  "results_path": "gemini_16_for_score.jsonl",
+  "summary": {
+    "ag/gemini-3.8-flash": {
+      "cases_scored": 16,
+      "task_fit_accuracy": 0.8645833333333334,
+      "worthiness_role_accuracy": 0.6666666666666666,
+      "temporal_accuracy": 0.9777777777777777,
+      "admission_accuracy": 0.9791666666666666,
+      "required_evidence_recall": 1.0,
+      "contradiction_precision": 0.375,
+      "contradiction_recall": 0.34375
+    }
+  },
+  "case_results": [
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "LS-01",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 0.6666666666666666,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "LS-02",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.75,
+        "worthiness_role_accuracy": 0.5,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "LS-03",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 0.6666666666666666,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "LS-04",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.75,
+        "worthiness_role_accuracy": 0.5,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "NS-01",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 0.5,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "NS-02",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 0.6666666666666666,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "NS-03",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 1.0,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "NS-04",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.6666666666666666,
+        "worthiness_role_accuracy": 1.0,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "XP-01",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.3333333333333333,
+        "worthiness_role_accuracy": 0.6666666666666666,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "XP-02",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.6666666666666666,
+        "worthiness_role_accuracy": 0.3333333333333333,
+        "temporal_accuracy": null,
+        "admission_accuracy": 0.6666666666666666,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "XP-03",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.6666666666666666,
+        "worthiness_role_accuracy": 1.0,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "XP-04",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 1.0,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "TU-01",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 0.5,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "TU-02",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 0.5,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "TU-03",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 0.5,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "TU-04",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 1.0,
+        "worthiness_role_accuracy": 0.6666666666666666,
+        "temporal_accuracy": 0.6666666666666666,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 0.5
+      }
+    }
+  ]
+}
+
+[executed on device: hermes-vm (24be9d7a-f374-4723-94ee-b7833b4dd0cb)]

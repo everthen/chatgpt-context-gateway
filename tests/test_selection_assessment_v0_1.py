@@ -143,3 +143,15 @@ def test_normalizes_complementary_relation_aliases():
         }
     ]
 
+def test_missing_selected_candidate_ids_fails_closed():
+    from benchmarks.selection_assessment_v0_1 import normalize_selection_assessment
+
+    try:
+        normalize_selection_assessment(
+            {"selected_candidates": [{"candidate_id": "C1"}]},
+            {"C1"},
+        )
+    except ValueError as exc:
+        assert "selected_candidate_ids is required" in str(exc)
+    else:
+        raise AssertionError("non-canonical selection shape must fail closed")

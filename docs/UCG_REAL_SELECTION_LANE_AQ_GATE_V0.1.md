@@ -146,7 +146,7 @@ This is semantic control-plane metadata, not evidence text and not a citation.
 
 ## Broader answer-quality gate
 
-15 evaluable cases were run through the lane-aware consumer.
+A final single-run evaluation ran all 15 evaluable cases through the lane-aware consumer.
 
 Results:
 
@@ -156,7 +156,7 @@ Results:
 | Invalid citations | 0 |
 | Blind judges | 15/15 |
 | Lane-aware mean weighted score | **1.0000** |
-| Oracle mean weighted score | **0.9368** |
+| Oracle mean weighted score | **0.9267** |
 
 Weighted score:
 
@@ -167,7 +167,7 @@ Weighted score:
 + 0.10*abstention_correctness
 ```
 
-The lane-aware judge contract treats epistemic relations as deterministic semantic facts that may guide interpretation, while control raw text remains non-authoritative and non-citable.
+The lane-aware judge contract treats epistemic relations as deterministic semantic facts that may guide interpretation, while control raw text remains non-authoritative and non-citable. In the final XP-04 answer, the consumer preserved both isolation directions while citing only `xp04.gold`.
 
 Relation-bearing cases that were rechecked after the semantic-guidance change:
 

@@ -1,0 +1,94 @@
+{
+  "schema_version": "ucg-selection-downstream-gate.v0.1",
+  "answer_model": "ag/gemini-3.8-flash",
+  "judge_model": "ag/claude-sonnet-4-6",
+  "transport": "http://127.0.0.1:20128/v1/chat/completions",
+  "answer_generations": {
+    "successful": 9,
+    "total": 9
+  },
+  "blind_judges": {
+    "successful": 3,
+    "total": 3
+  },
+  "cases": [
+    "NS-04",
+    "XP-02",
+    "XP-04"
+  ],
+  "arms": {
+    "NS-04": {
+      "weak": [
+        "ns04.gold"
+      ],
+      "observed_strong": [
+        "ns04.dist1",
+        "ns04.gold"
+      ],
+      "selection_reference": [
+        "ns04.gold",
+        "ns04.dist1"
+      ]
+    },
+    "XP-02": {
+      "weak": [
+        "xp02.claude",
+        "xp02.openai"
+      ],
+      "observed_strong": [
+        "xp02.claude",
+        "xp02.dist",
+        "xp02.openai"
+      ],
+      "selection_reference": [
+        "xp02.openai",
+        "xp02.claude",
+        "xp02.dist"
+      ]
+    },
+    "XP-04": {
+      "weak": [
+        "xp04.gold"
+      ],
+      "observed_strong": [
+        "xp04.dist",
+        "xp04.gold"
+      ],
+      "selection_reference": [
+        "xp04.gold",
+        "xp04.dist"
+      ]
+    }
+  },
+  "scores": {
+    "weak": 0.9583,
+    "observed_strong": 0.8,
+    "selection_reference": 0.9083
+  },
+  "per_case": {
+    "NS-04": {
+      "weak": 1,
+      "observed_strong": 1,
+      "selection_reference": 1
+    },
+    "XP-02": {
+      "weak": 1,
+      "observed_strong": 0.675,
+      "selection_reference": 1
+    },
+    "XP-04": {
+      "weak": 0.875,
+      "observed_strong": 0.725,
+      "selection_reference": 0.725
+    }
+  },
+  "findings": [
+    "NS-04 is non-discriminative under the fresh Gemini answer prompt.",
+    "XP-02 selection reference matches the stronger bundle and avoids the observed weak contrastive omission.",
+    "XP-04 selection correctly retains boundary evidence, but current answer consumption treats wrong-account evidence as positive authority; this creates a downstream role-semantics seam.",
+    "A control-only boundary lane is needed so retained boundary evidence is auditable without automatically becoming answer-citable."
+  ],
+  "decision": "PARTIAL PASS",
+  "core_gate": false,
+  "next_gate": "multi-lane ContextBundle: answer_context + control_context + epistemic_relations"
+}

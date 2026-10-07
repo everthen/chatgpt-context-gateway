@@ -129,3 +129,27 @@ EXP-2b should generate subqueries automatically while keeping the gold set froze
 
 A successful 2b result must improve recall without reproducing the 2a noise increase.
 
+
+## EXP-2b: lexical automatic decomposition + RRF
+
+Recorded on 2026-10-07 in `benchmarks/runs/seed_v0.1/2026-10-07_decomposition_rrf.json`.
+
+| Metric | Single query | Explicit subqueries + RRF | Auto decomposition + RRF |
+|---|---:|---:|---:|
+| Gold recall / coverage | 65.63% | 75.00% | **93.75%** |
+| Precision | 62.50% | 66.67% | 66.67% |
+| MRR | 65.63% | 78.13% | **89.58%** |
+| nDCG | 66.44% | 78.94% | **92.26%** |
+| Context noise ratio | **6.25%** | 14.58% | 31.25% |
+| Provenance completeness | 100% | 100% | 100% |
+
+This is a deliberately simple lexical control, not a semantic/LLM decomposer. It demonstrates a strong retrieval-recall opportunity, but the context-noise increase is unacceptable as a direct product strategy.
+
+RRF improved ranking quality for explicit assembly without reducing the noise ratio. Therefore the next retrieval research target is **evidence-set selection / noise control**, not more aggressive query fan-out.
+
+The benchmark now has a clean ladder:
+
+`single lexical < explicit decomposition + assembly < automatic lexical decomposition + assembly`
+
+for recall, while noise moves in the opposite direction. This is exactly the trade-off the north-star benchmark needs to expose.
+

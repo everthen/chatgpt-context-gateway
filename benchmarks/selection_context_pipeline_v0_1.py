@@ -6,6 +6,7 @@ from .context_bundle_lanes_v0_1 import (
     ContextBundle,
     ContextBundleValidationError,
     build_context_bundle,
+    serialize_context_bundle,
 )
 from .selection_assessment_v0_1 import normalize_selection_assessment
 
@@ -195,6 +196,8 @@ def materialize_selection_assessment(
     ]
     bundle: ContextBundle = build_context_bundle(candidates, selected_key_order)
 
+    serialized_context_bundle = serialize_context_bundle(bundle)
+
     return {
         "schema_version": "ucg-context-bundle.v0.1",
         "case_id": case["case_id"],
@@ -205,4 +208,5 @@ def materialize_selection_assessment(
             row["candidate_id"]: row["key"] for row in candidates
         },
         "bundle": bundle.as_dict(),
+        "serialized_context_bundle": serialized_context_bundle,
     }

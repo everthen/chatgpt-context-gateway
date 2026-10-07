@@ -15,6 +15,7 @@ ALL_LANES = ANSWER_LANES | CONTROL_LANES
 
 _RELATION_TO_TARGET_LANE = {
     "required_contrast": "answer_contrast",
+    "required_complement": "answer_support",
     "required_boundary_contrast": "control_boundary",
     "required_conflict": "control_conflict",
     "required_state_contrast": "control_state",
@@ -94,6 +95,7 @@ def _infer_lane(
         "required_boundary_contrast",
         "required_state_contrast",
         "required_contrast",
+        "required_complement",
     ):
         if relation_type in incoming_relation_types:
             return _RELATION_TO_TARGET_LANE[relation_type]

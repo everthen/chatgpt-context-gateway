@@ -12,6 +12,7 @@ from ..normalize import make_record
 from ..continuity import continuity
 from .metrics import aggregate, score_context_quality, score_retrieval
 from .schema import BenchmarkCase
+from .selection import EvidenceAdmissionConfig, admit_rrf_candidates
 
 
 @dataclass(frozen=True)
@@ -179,7 +180,9 @@ def _automatic_multi_query_returned(
                 f"{hit['provider']}|{hit['account_id']}|"
                 f"{hit['id']}|{hit['message_id']}"
             )
-            by_evidence.setdefault(key, dict(hit))
+            item = by_evidence.setdefault(key, dict(hit))
+            support = item.setdefault("query_support", [])
+            support.append({"query_index": query_index, "query": subquery, "rank": rank})
             rrf_scores[key] = rrf_scores.get(key, 0.0) + (1.0 / (60 + rank))
     ranked = sorted(
         by_evidence.values(),
@@ -225,7 +228,9 @@ def _multi_query_returned(
                 f"{hit['provider']}|{hit['account_id']}|"
                 f"{hit['id']}|{hit['message_id']}"
             )
-            by_evidence.setdefault(key, dict(hit))
+            item = by_evidence.setdefault(key, dict(hit))
+            support = item.setdefault("query_support", [])
+            support.append({"query_index": query_index, "query": subquery, "rank": rank})
             rrf_scores[key] = rrf_scores.get(key, 0.0) + (1.0 / (60 + rank))
 
     ranked = sorted(
@@ -252,6 +257,30 @@ def run_ucg_assembly_case(db: ArchiveDB, case: BenchmarkCase, limit: int = 8) ->
         context=score_context_quality(returned, allowed_keys=allowed),
         latency_ms=latency_ms,
     )
+
+def run_ucg_admission_case(
+    db: ArchiveDB,
+    case: BenchmarkCase,
+    *,
+    candidate_limit: int = 8,
+    config: EvidenceAdmissionConfig = EvidenceAdmissionConfig(),
+) -> CaseResult:
+    candidates, latency_ms = _automatic_multi_query_returned(db, case, candidate_limit)
+    returned = admit_rrf_candidates(candidates, config=config)
+    gold = {ref.evidence_key for ref in case.gold_evidence}
+    allowed = gold | {ref.evidence_key for ref in case.supporting_evidence}
+    return CaseResult(
+        case_id=case.case_id,
+        task_family=case.task_family,
+        difficulty=case.difficulty,
+        arm="ucg_admission",
+        query=case.query,
+        returned=returned,
+        retrieval=score_retrieval(returned, gold, k=config.final_limit),
+        context=score_context_quality(returned, allowed_keys=allowed),
+        latency_ms=latency_ms,
+    )
+
 
 def run_ucg_case(db: ArchiveDB, case: BenchmarkCase, limit: int = 8) -> CaseResult:
     started = time.perf_counter()
@@ -341,6 +370,36 @@ def run_ucg_retrieval_benchmark(
         ]),
     }
 
+
+    admission_results: list[CaseResult] = []
+    admission_config = EvidenceAdmissionConfig(per_query_cap=2, final_limit=4)
+    with TemporaryDirectory(prefix="ucg-admission-") as tmp:
+        db = ArchiveDB(Path(tmp) / "benchmark.sqlite3")
+        for case in cases:
+            seed_case_db(db, case)
+            admission_results.append(
+                run_ucg_admission_case(
+                    db,
+                    case,
+                    candidate_limit=limit,
+                    config=admission_config,
+                )
+            )
+        db.close()
+
+    result_payload["admission"] = {
+        "arm": "ucg_admission",
+        "policy": {
+            "per_query_cap": admission_config.per_query_cap,
+            "final_limit": admission_config.final_limit,
+            "candidate_limit": limit,
+        },
+        "case_results": [result.as_dict() for result in admission_results],
+        "aggregate": aggregate([
+            {**result.retrieval, **result.context, "latency_ms": result.latency_ms}
+            for result in admission_results
+        ]),
+    }
 
     if output_dir:
         out = Path(output_dir)

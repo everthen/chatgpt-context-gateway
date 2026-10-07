@@ -1,0 +1,55 @@
+{
+  "schema_version": "ucg-contrastive-retention-summary.v0.1",
+  "suite_id": "UCG-CRT-20261007-v0.1",
+  "basis": {
+    "observed_cases": [
+      "NS-04",
+      "XP-02",
+      "XP-04",
+      "TU-04"
+    ],
+    "source_branch": "experiment/evidence-admission-v0.1",
+    "source_head": "62b7d29d9ee4bf352c7fde48fc4dd13e91f362f1",
+    "fixture_type": "deterministic synthetic selection-layer benchmark",
+    "harness_tests": "6 passed"
+  },
+  "vectors": [
+    {
+      "attack_vector": "gold_only",
+      "pass_rate": 0.25,
+      "mean_required_recall": 0.6667,
+      "mean_contrastive_retention": 0.25,
+      "mean_distractor_rejection": 1
+    },
+    {
+      "attack_vector": "score_greedy_2",
+      "pass_rate": 0.25,
+      "mean_required_recall": 0.6667,
+      "mean_contrastive_retention": 0.25,
+      "mean_distractor_rejection": 0.5
+    },
+    {
+      "attack_vector": "all_admitted",
+      "pass_rate": 0.25,
+      "mean_required_recall": 1,
+      "mean_contrastive_retention": 1,
+      "mean_distractor_rejection": 0.25
+    },
+    {
+      "attack_vector": "contrastive_aware",
+      "pass_rate": 1,
+      "mean_required_recall": 1,
+      "mean_contrastive_retention": 1,
+      "mean_distractor_rejection": 1
+    },
+    {
+      "attack_vector": "empty_admission_tu04",
+      "n_applicable": 1,
+      "pass_rate": 1,
+      "selection_evaluable_cases": 0,
+      "failure_owner": "admission"
+    }
+  ],
+  "decision": "PASS benchmark harness self-test; NOT CORE GATE",
+  "note": "This does not claim that the production selector passes. It establishes a deterministic falsification harness and failure-attribution contract."
+}

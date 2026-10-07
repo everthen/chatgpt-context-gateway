@@ -9,8 +9,16 @@
   "dataset_hash": "977d081d4b0221d89c04bcd6ebe513c23304bbb2e94973b4fb9dbf25c5c34141",
   "assessor": "semantic-model-via-local-9router",
   "configuration": {
-    "cases": ["LS-02", "NS-04", "XP-01", "TU-04"],
-    "models": ["ag/claude-sonnet-4-6", "ag/claude-opus-4-6-thinking"],
+    "cases": [
+      "LS-02",
+      "NS-04",
+      "XP-01",
+      "TU-04"
+    ],
+    "models": [
+      "ag/claude-sonnet-4-6",
+      "ag/claude-opus-4-6-thinking"
+    ],
     "max_output_tokens": 1024,
     "temperature": 0,
     "endpoint": "http://127.0.0.1:20128/v1/chat/completions",
@@ -24,16 +32,56 @@
     "error": "API key token limit exceeded"
   },
   "per_request": [
-    {"model": "ag/claude-sonnet-4-6", "case_id": "LS-02", "status": "blocked_pre_inference", "error": "API key token limit exceeded"},
-    {"model": "ag/claude-sonnet-4-6", "case_id": "NS-04", "status": "blocked_pre_inference", "error": "API key token limit exceeded"},
-    {"model": "ag/claude-sonnet-4-6", "case_id": "XP-01", "status": "blocked_pre_inference", "error": "API key token limit exceeded"},
-    {"model": "ag/claude-sonnet-4-6", "case_id": "TU-04", "status": "blocked_pre_inference", "error": "API key token limit exceeded"},
-    {"model": "ag/claude-opus-4-6-thinking", "case_id": "LS-02", "status": "blocked_pre_inference", "error": "API key token limit exceeded"},
-    {"model": "ag/claude-opus-4-6-thinking", "case_id": "NS-04", "status": "blocked_pre_inference", "error": "API key token limit exceeded"},
-    {"model": "ag/claude-opus-4-6-thinking", "case_id": "XP-01", "status": "blocked_pre_inference", "error": "API key token limit exceeded"},
-    {"model": "ag/claude-opus-4-6-thinking", "case_id": "TU-04", "status": "blocked_pre_inference", "error": "API key token limit exceeded"}
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "LS-02",
+      "status": "blocked_pre_inference",
+      "error": "API key token limit exceeded"
+    },
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "NS-04",
+      "status": "blocked_pre_inference",
+      "error": "API key token limit exceeded"
+    },
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "XP-01",
+      "status": "blocked_pre_inference",
+      "error": "API key token limit exceeded"
+    },
+    {
+      "model": "ag/claude-sonnet-4-6",
+      "case_id": "TU-04",
+      "status": "blocked_pre_inference",
+      "error": "API key token limit exceeded"
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "LS-02",
+      "status": "blocked_pre_inference",
+      "error": "API key token limit exceeded"
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "NS-04",
+      "status": "blocked_pre_inference",
+      "error": "API key token limit exceeded"
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "XP-01",
+      "status": "blocked_pre_inference",
+      "error": "API key token limit exceeded"
+    },
+    {
+      "model": "ag/claude-opus-4-6-thinking",
+      "case_id": "TU-04",
+      "status": "blocked_pre_inference",
+      "error": "API key token limit exceeded"
+    }
   ],
-  "finding": "Sonnet 4.6 and Opus 4.6 were present in the router model catalog, but the benchmark API key rejected every request before inference. No model-quality conclusion is permitted.",
-  "decision": "Keep both models as next-treatment candidates. Do not score, rank, or downgrade either model from this run.",
-  "next_step": "Re-run the identical four-case treatment with the same frozen gold and 1024 output cap when the benchmark API-key token window permits inference; retain this blocked run as an audit trail."
+  "finding": "Current /v1/models did not list either Claude candidate. Direct requests for both model IDs were nevertheless rejected before inference with `API key token limit exceeded`. Therefore the exact upstream failure classification is unresolved (catalog exposure vs quota/gating), but zero model inference occurred and no quality conclusion is permitted.",
+  "decision": "Keep both models as registered experiment candidates in the research plan, but mark the current router path as unavailable. Do not score, rank, or downgrade either model from this run.",
+  "next_step": "Diagnose 9Router Claude connection/catalog state and benchmark API-key quota independently; once the model IDs are exposed to the benchmark key, rerun the identical four-case treatment with the same frozen gold and 1024 output cap."
 }

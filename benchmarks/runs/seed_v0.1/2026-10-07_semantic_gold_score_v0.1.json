@@ -1,0 +1,225 @@
+{
+  "schema_version": "ucg-semantic-gold-score.v0.1",
+  "gold_path": "/tmp/ucg-semantic-run/audit/gold.json",
+  "results_path": "/tmp/ucg-semantic-run/bakeoff_v0.1.jsonl",
+  "summary": {
+    "ag/gemini-3.8-flash": {
+      "cases_scored": 4,
+      "task_fit_accuracy": 0.5208333333333333,
+      "worthiness_role_accuracy": 0.7916666666666666,
+      "temporal_accuracy": 0.9166666666666666,
+      "admission_accuracy": 0.9166666666666666,
+      "required_evidence_recall": 1.0,
+      "contradiction_precision": 0.75,
+      "contradiction_recall": 0.625
+    },
+    "ag/gemini-3.8-flash-high": {
+      "cases_scored": 1,
+      "task_fit_accuracy": 0.75,
+      "worthiness_role_accuracy": 0.5,
+      "temporal_accuracy": 1.0,
+      "admission_accuracy": 1.0,
+      "required_evidence_recall": 1.0,
+      "contradiction_precision": 0.0,
+      "contradiction_recall": 0.0
+    },
+    "oc/muse-spark-1.2-contributor-free": {
+      "cases_scored": 0,
+      "task_fit_accuracy": null,
+      "worthiness_role_accuracy": null,
+      "temporal_accuracy": null,
+      "admission_accuracy": null,
+      "required_evidence_recall": null,
+      "contradiction_precision": null,
+      "contradiction_recall": null
+    },
+    "oc/muse-spark-1.3-contributor-free": {
+      "cases_scored": 0,
+      "task_fit_accuracy": null,
+      "worthiness_role_accuracy": null,
+      "temporal_accuracy": null,
+      "admission_accuracy": null,
+      "required_evidence_recall": null,
+      "contradiction_precision": null,
+      "contradiction_recall": null
+    }
+  },
+  "case_results": [
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "NS-04",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.3333333333333333,
+        "worthiness_role_accuracy": 1.0,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "LS-02",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.75,
+        "worthiness_role_accuracy": 0.5,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "XP-01",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.6666666666666666,
+        "worthiness_role_accuracy": 1.0,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 1.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash",
+      "case_id": "TU-04",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.3333333333333333,
+        "worthiness_role_accuracy": 0.6666666666666666,
+        "temporal_accuracy": 0.6666666666666666,
+        "admission_accuracy": 0.6666666666666666,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 1.0,
+        "contradiction_recall": 0.5
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash-high",
+      "case_id": "LS-02",
+      "status": "complete",
+      "metrics": {
+        "scorable": true,
+        "task_fit_accuracy": 0.75,
+        "worthiness_role_accuracy": 0.5,
+        "temporal_accuracy": 1.0,
+        "admission_accuracy": 1.0,
+        "required_evidence_recall": 1.0,
+        "contradiction_precision": 0.0,
+        "contradiction_recall": 0.0
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash-high",
+      "case_id": "NS-04",
+      "status": "parse_or_runtime_error",
+      "metrics": {
+        "scorable": false,
+        "reason": "assessment coverage mismatch"
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash-high",
+      "case_id": "XP-01",
+      "status": "parse_or_runtime_error",
+      "metrics": {
+        "scorable": false,
+        "reason": "assessment coverage mismatch"
+      }
+    },
+    {
+      "model": "oc/muse-spark-1.2-contributor-free",
+      "case_id": "LS-02",
+      "status": "parse_or_runtime_error",
+      "metrics": {
+        "scorable": false,
+        "reason": "assessment coverage mismatch"
+      }
+    },
+    {
+      "model": "ag/gemini-3.8-flash-high",
+      "case_id": "TU-04",
+      "status": "parse_or_runtime_error",
+      "metrics": {
+        "scorable": false,
+        "reason": "assessment coverage mismatch"
+      }
+    },
+    {
+      "model": "oc/muse-spark-1.2-contributor-free",
+      "case_id": "XP-01",
+      "status": "parse_or_runtime_error",
+      "metrics": {
+        "scorable": false,
+        "reason": "assessment coverage mismatch"
+      }
+    },
+    {
+      "model": "oc/muse-spark-1.2-contributor-free",
+      "case_id": "NS-04",
+      "status": "parse_or_runtime_error",
+      "metrics": {
+        "scorable": false,
+        "reason": "assessment coverage mismatch"
+      }
+    },
+    {
+      "model": "oc/muse-spark-1.2-contributor-free",
+      "case_id": "TU-04",
+      "status": "parse_or_runtime_error",
+      "metrics": {
+        "scorable": false,
+        "reason": "assessment coverage mismatch"
+      }
+    },
+    {
+      "model": "oc/muse-spark-1.3-contributor-free",
+      "case_id": "LS-02",
+      "status": "parse_or_runtime_error",
+      "metrics": {
+        "scorable": false,
+        "reason": "assessment coverage mismatch"
+      }
+    },
+    {
+      "model": "oc/muse-spark-1.3-contributor-free",
+      "case_id": "NS-04",
+      "status": "parse_or_runtime_error",
+      "metrics": {
+        "scorable": false,
+        "reason": "assessment coverage mismatch"
+      }
+    },
+    {
+      "model": "oc/muse-spark-1.3-contributor-free",
+      "case_id": "XP-01",
+      "status": "parse_or_runtime_error",
+      "metrics": {
+        "scorable": false,
+        "reason": "assessment coverage mismatch"
+      }
+    },
+    {
+      "model": "oc/muse-spark-1.3-contributor-free",
+      "case_id": "TU-04",
+      "status": "parse_or_runtime_error",
+      "metrics": {
+        "scorable": false,
+        "reason": "assessment coverage mismatch"
+      }
+    }
+  ]
+}
+
+[executed on device: hermes-vm (24be9d7a-f374-4723-94ee-b7833b4dd0cb)]

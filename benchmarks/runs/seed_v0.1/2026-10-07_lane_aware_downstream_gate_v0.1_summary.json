@@ -1,0 +1,64 @@
+{
+  "schema_version": "ucg-lane-aware-downstream-gate.v0.1",
+  "run_date": "2026-10-07",
+  "answer_model": "ag/gemini-3.8-flash",
+  "judge_model": "ag/claude-sonnet-4-6",
+  "cases": [
+    "XP-02",
+    "XP-04"
+  ],
+  "contract_tests": {
+    "passed": 6,
+    "failed": 0,
+    "runner": "direct function invocation; pytest unavailable on hermes-vm"
+  },
+  "live_generation": {
+    "generated_cases": 2,
+    "failed_cases": 0,
+    "invalid_citation_cases": 0,
+    "outputs": {
+      "XP-02": {
+        "answer": "UCG serves as a provider-neutral context layer for OpenAI and other models [xp02.openai], enabling the same context to be portable into an Anthropic session without changing the source evidence [xp02.claude]. This contrasts with an alternative implementation optimized solely for a single OpenAI workflow [xp02.dist].",
+        "answer_context": [
+          "xp02.openai",
+          "xp02.claude",
+          "xp02.dist"
+        ],
+        "control_context": [],
+        "dist_lane": "answer_contrast"
+      },
+      "XP-04": {
+        "answer": "Evidence from another account must not be merged into the main account, as evidence from the main account must remain isolated from another account [xp04.gold].",
+        "answer_context": [
+          "xp04.gold"
+        ],
+        "control_context": [
+          "xp04.dist"
+        ],
+        "dist_lane": "control_boundary"
+      }
+    }
+  },
+  "blind_judge": {
+    "XP-02": {
+      "claim_coverage": 1,
+      "factual_correctness": 1,
+      "groundedness": 1,
+      "abstention_correctness": 1,
+      "weighted": 1
+    },
+    "XP-04": {
+      "claim_coverage": 1,
+      "factual_correctness": 1,
+      "groundedness": 1,
+      "abstention_correctness": 1,
+      "weighted": 1
+    }
+  },
+  "security_attack": {
+    "control_to_answer_leak_attempted": true,
+    "result": "FAIL_CLOSED",
+    "observed_error": "evidence cannot inhabit both lanes"
+  },
+  "production_status": "not_wired"
+}

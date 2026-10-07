@@ -1,0 +1,175 @@
+{
+  "schema_version": "ucg-contrastive-retention-suite.v0.1",
+  "suite_id": "UCG-CRT-20261007-v0.1",
+  "purpose": "Falsify over-pruning by requiring retention of evidence that is contrastive rather than directly answer-bearing.",
+  "principles": {
+    "optimization_target": "minimum sufficient context under downstream usefulness",
+    "admission_is_not_selection": true,
+    "contrastive_evidence_may_be_required": true,
+    "low_semantic_score_does_not_imply_low_worthiness": true
+  },
+  "cases": [
+    {
+      "case_id": "NS-04",
+      "family": "long_session",
+      "seam": "over_pruning",
+      "task": "Determine the governing intent when a current objective conflicts with an earlier design goal.",
+      "candidates": [
+        {
+          "key": "ns04.gold",
+          "role": "supporting",
+          "semantic_score": 0.96,
+          "admission": "required",
+          "provenance": {"provider": "chatgpt", "account": "primary", "temporal": "current"}
+        },
+        {
+          "key": "ns04.conflict",
+          "role": "contrastive",
+          "semantic_score": 0.42,
+          "admission": "required",
+          "provenance": {"provider": "chatgpt", "account": "primary", "temporal": "earlier"},
+          "contrastive_purpose": "make the competing goal explicit so the answer can reject or reconcile it"
+        },
+        {
+          "key": "ns04.unrelated",
+          "role": "distractor",
+          "semantic_score": 0.76,
+          "admission": "optional",
+          "provenance": {"provider": "chatgpt", "account": "primary", "temporal": "nearby"}
+        }
+      ],
+      "minimal_sufficient_keys": ["ns04.gold", "ns04.conflict"],
+      "must_drop_keys": ["ns04.unrelated"]
+    },
+    {
+      "case_id": "XP-02",
+      "family": "cross_provider",
+      "seam": "contrastive_provider_evidence",
+      "task": "Resolve a provider-crossing implementation choice where the rejected alternative is needed to explain why the selected direction is correct.",
+      "candidates": [
+        {
+          "key": "xp02.openai",
+          "role": "supporting",
+          "semantic_score": 0.93,
+          "admission": "required",
+          "provenance": {"provider": "openai", "account": "primary"}
+        },
+        {
+          "key": "xp02.claude",
+          "role": "supporting",
+          "semantic_score": 0.91,
+          "admission": "required",
+          "provenance": {"provider": "anthropic", "account": "primary"}
+        },
+        {
+          "key": "xp02.dist",
+          "role": "contrastive",
+          "semantic_score": 0.38,
+          "admission": "required",
+          "provenance": {"provider": "cross-provider", "account": "primary"},
+          "contrastive_purpose": "expose the rejected provider assumption needed to justify the final choice"
+        },
+        {
+          "key": "xp02.unrelated",
+          "role": "distractor",
+          "semantic_score": 0.72,
+          "admission": "optional",
+          "provenance": {"provider": "chatgpt", "account": "primary"}
+        }
+      ],
+      "minimal_sufficient_keys": ["xp02.openai", "xp02.claude", "xp02.dist"],
+      "must_drop_keys": ["xp02.unrelated"]
+    },
+    {
+      "case_id": "XP-04",
+      "family": "cross_provider",
+      "seam": "account_isolation",
+      "task": "Answer for the requested account while retaining wrong-account evidence as explicit rejection context.",
+      "candidates": [
+        {
+          "key": "xp04.gold",
+          "role": "supporting",
+          "semantic_score": 0.95,
+          "admission": "required",
+          "provenance": {"provider": "chatgpt", "account": "account-A"}
+        },
+        {
+          "key": "xp04.dist",
+          "role": "contrastive",
+          "semantic_score": 0.44,
+          "admission": "required",
+          "provenance": {"provider": "chatgpt", "account": "account-B"},
+          "contrastive_purpose": "demonstrate why same-topic evidence from another account must be rejected rather than silently ignored"
+        },
+        {
+          "key": "xp04.unrelated",
+          "role": "distractor",
+          "semantic_score": 0.70,
+          "admission": "optional",
+          "provenance": {"provider": "chatgpt", "account": "account-A"}
+        }
+      ],
+      "minimal_sufficient_keys": ["xp04.gold", "xp04.dist"],
+      "must_drop_keys": ["xp04.unrelated"]
+    },
+    {
+      "case_id": "TU-04",
+      "family": "temporal_update",
+      "seam": "admission_failure",
+      "task": "Reach the latest decision while preserving enough temporal context to distinguish current evidence from older references.",
+      "candidates": [
+        {
+          "key": "tu04.gold",
+          "role": "supporting",
+          "semantic_score": 0.97,
+          "admission": "required",
+          "provenance": {"provider": "chatgpt", "account": "primary", "temporal": "latest"}
+        },
+        {
+          "key": "tu04.dist1",
+          "role": "contrastive",
+          "semantic_score": 0.61,
+          "admission": "optional",
+          "provenance": {"provider": "chatgpt", "account": "primary", "temporal": "older"},
+          "contrastive_purpose": "show the superseded state"
+        },
+        {
+          "key": "tu04.dist2",
+          "role": "contrastive",
+          "semantic_score": 0.54,
+          "admission": "optional",
+          "provenance": {"provider": "chatgpt", "account": "primary", "temporal": "older"},
+          "contrastive_purpose": "show another prior state that must not override the latest evidence"
+        }
+      ],
+      "minimal_sufficient_keys": ["tu04.gold"],
+      "must_drop_keys": [],
+      "admission_attack": {
+        "empty_admission_expected_status": "UPSTREAM_ADMISSION_FAILURE",
+        "required_admission_keys": ["tu04.gold"]
+      }
+    }
+  ],
+  "attack_vectors": {
+    "gold_only": {
+      "description": "Retain only directly supporting evidence; simulates aggressive over-pruning.",
+      "selection_rule": "supporting"
+    },
+    "score_greedy_2": {
+      "description": "Select the two highest semantic-score items; simulates relevance-only top-k.",
+      "selection_rule": "top_score:2"
+    },
+    "all_admitted": {
+      "description": "Retain every admitted item; simulates admission without selection.",
+      "selection_rule": "all_admitted"
+    },
+    "contrastive_aware": {
+      "description": "Retain the declared minimal sufficient set.",
+      "selection_rule": "minimal_sufficient"
+    },
+    "empty_admission_tu04": {
+      "description": "No evidence survives admission for TU-04; selection must attribute failure upstream.",
+      "selection_rule": "empty_admission"
+    }
+  }
+}

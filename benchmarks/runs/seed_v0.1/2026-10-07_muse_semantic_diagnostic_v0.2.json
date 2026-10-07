@@ -1,0 +1,39 @@
+{
+  "schema_version": "ucg-semantic-muse-diagnostic.v0.2",
+  "experiment_id": "EXP-2E",
+  "step_id": "EXP-2E-S5-MUSE",
+  "dataset_version": "seed_v0.1",
+  "dataset_hash": "977d081d4b0221d89c04bcd6ebe513c23304bbb2e94973b4fb9dbf25c5c34141",
+  "cases": [
+    "LS-02",
+    "NS-04",
+    "XP-01",
+    "TU-04"
+  ],
+  "models": [
+    "oc/muse-spark-1.2-contributor-free",
+    "oc/muse-spark-1.3-contributor-free"
+  ],
+  "router_fix_commit": "c477314d",
+  "adapter_regression_tests": "9/9 pass",
+  "simple_smoke": {
+    "muse_1_2": "non-stream valid JSON + finish_reason=stop",
+    "muse_1_3": "non-stream valid JSON + finish_reason=stop"
+  },
+  "semantic_probe": {
+    "requests": 8,
+    "completed_scorable": 0,
+    "both_models": {
+      "oc/muse-spark-1.2-contributor-free": "4/4 returned empty content with finish_reason=in_progress and zero usage through non-stream path",
+      "oc/muse-spark-1.3-contributor-free": "4/4 returned empty content with finish_reason=in_progress and zero usage through non-stream path"
+    },
+    "streaming_diagnostic": {
+      "muse_1_2_without_reasoning_effort": "finish_reason=stop but no final content on LS-02 semantic prompt",
+      "muse_1_2_reasoning_effort_low": "reasoning_content emitted, no final JSON content",
+      "reasoning_effort_none": "provider rejects none for Muse Spark"
+    }
+  },
+  "finding": "The prior Responses non-stream converter bug was real and fixed, but after the fix Muse still does not produce a final structured JSON answer for the semantic assessor prompt. Simple prompts work. This is not sufficient evidence of inferior intelligence; it is a benchmark-path/model-behavior incompatibility.",
+  "decision": "Keep Muse 1.2 and 1.3 out of semantic score and permanent model ranking for now. Retain as blocked candidates and revisit only after a dedicated Responses/agent prompt treatment is designed.",
+  "next_step": "Proceed with bundle downstream bakeoff for Oracle, Gemini, Sonnet, and Opus; separately create a Muse-specific treatment experiment rather than silently changing the frozen semantic protocol."
+}

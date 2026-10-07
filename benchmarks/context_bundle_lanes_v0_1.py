@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
+from collections.abc import Mapping
 from typing import Any
 
 
@@ -12,6 +14,7 @@ CONTROL_LANES = {
     "control_rejection",
 }
 ALL_LANES = ANSWER_LANES | CONTROL_LANES
+CONTEXT_BUNDLE_SCHEMA_VERSION = "ucg-context-bundle.v0.1"
 
 _RELATION_TO_TARGET_LANE = {
     "required_contrast": "answer_contrast",
@@ -116,6 +119,65 @@ def _relation_guidance(relation_type: str) -> str:
         "required_conflict": "treat the target as a conflicting alternative; do not silently collapse the conflict",
         "required_state_contrast": "treat the target as a contrasting state and do not let it override the selected current state",
     }.get(relation_type, "")
+
+
+def serialize_context_bundle(bundle: ContextBundle) -> str:
+    """Serialize a validated ContextBundle without flattening its lanes."""
+    validate_context_bundle(bundle)
+    envelope = {
+        "schema_version": CONTEXT_BUNDLE_SCHEMA_VERSION,
+        "bundle": bundle.as_dict(),
+    }
+    return json.dumps(
+        envelope,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def deserialize_context_bundle(payload: str | Mapping[str, Any]) -> ContextBundle:
+    """Deserialize and validate a wire ContextBundle fail-closed."""
+    if isinstance(payload, str):
+        try:
+            payload = json.loads(payload)
+        except json.JSONDecodeError as exc:
+            raise ContextBundleValidationError("serialized ContextBundle is not valid JSON") from exc
+    if not isinstance(payload, Mapping):
+        raise ContextBundleValidationError("serialized ContextBundle must be an object")
+    if payload.get("schema_version") != CONTEXT_BUNDLE_SCHEMA_VERSION:
+        raise ContextBundleValidationError("unsupported ContextBundle schema version")
+
+    raw_bundle = payload.get("bundle")
+    if not isinstance(raw_bundle, Mapping):
+        raise ContextBundleValidationError("serialized ContextBundle missing bundle object")
+
+    def _records(name: str) -> tuple[dict[str, Any], ...]:
+        value = raw_bundle.get(name)
+        if not isinstance(value, list) or not all(isinstance(item, Mapping) for item in value):
+            raise ContextBundleValidationError(f"serialized {name} must be an array of objects")
+        return tuple(dict(item) for item in value)
+
+    relations = raw_bundle.get("epistemic_relations")
+    if not isinstance(relations, list) or not all(isinstance(item, Mapping) for item in relations):
+        raise ContextBundleValidationError("serialized epistemic_relations must be an array of objects")
+
+    bundle = ContextBundle(
+        answer_context=_records("answer_context"),
+        control_context=_records("control_context"),
+        epistemic_relations=tuple(dict(item) for item in relations),
+    )
+    validate_context_bundle(bundle)
+    return bundle
+
+
+def answer_consumer_view(bundle: ContextBundle) -> dict[str, Any]:
+    """Return only governed material exposed to the answer generator."""
+    validate_context_bundle(bundle)
+    return {
+        "answer_context": [dict(item) for item in bundle.answer_context],
+        "epistemic_relations": [dict(item) for item in bundle.epistemic_relations],
+    }
 
 def build_context_bundle(
     candidates: list[dict[str, Any]],
@@ -237,9 +299,50 @@ def validate_context_bundle(bundle: ContextBundle) -> None:
                 f"non-control lane leaked into control_context: {item.get('key')}"
             )
 
-    all_keys = answer_keys | control_keys
+    all_items = {
+        item["key"]: item
+        for item in list(bundle.answer_context) + list(bundle.control_context)
+    }
+    all_keys = set(all_items)
+    incoming_relations: dict[str, set[str]] = {key: set() for key in all_keys}
     for rel in bundle.epistemic_relations:
-        if rel.get("from") not in all_keys or rel.get("to") not in all_keys:
+        source = rel.get("from")
+        target = rel.get("to")
+        relation_type = rel.get("relation_type")
+        if source not in all_keys or target not in all_keys:
             raise ContextBundleValidationError(
                 "epistemic relation references evidence outside the bundle"
             )
+        if source == target:
+            raise ContextBundleValidationError("epistemic relation cannot target itself")
+        if relation_type not in _RELATION_TO_TARGET_LANE:
+            raise ContextBundleValidationError(f"unknown epistemic relation type: {relation_type}")
+        expected_guidance = _relation_guidance(relation_type)
+        if rel.get("answer_guidance") != expected_guidance:
+            raise ContextBundleValidationError(
+                "epistemic relation guidance does not match relation type"
+            )
+        incoming_relations[target].add(relation_type)
+
+        target_item = all_items[target]
+        target_role = str(target_item.get("role") or "").strip()
+        expected_lane = _RELATION_TO_TARGET_LANE[relation_type]
+        if relation_type == "required_conflict" and target_role in {"contrastive", "answer_contrast"}:
+            expected_lane = "answer_contrast"
+        if target_item.get("lane") != expected_lane:
+            raise ContextBundleValidationError(
+                f"epistemic relation target lane mismatch: {target} expected {expected_lane}"
+            )
+
+    for item in bundle.control_context:
+        lane = item.get("lane")
+        if lane in {"control_boundary", "control_conflict", "control_state"}:
+            required_type = {
+                "control_boundary": "required_boundary_contrast",
+                "control_conflict": "required_conflict",
+                "control_state": "required_state_contrast",
+            }[lane]
+            if required_type not in incoming_relations[item["key"]]:
+                raise ContextBundleValidationError(
+                    f"control lane lacks required epistemic relation: {item.get('key')}"
+                )

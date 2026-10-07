@@ -183,3 +183,13 @@ No semantic/model quality claim is allowed until a real model response is captur
 - [ ] Frozen 16-case semantic treatment benchmark
 
 Decision: no permanent winner declared. Gemini 3.8 Flash is the provisional treatment candidate because it completed all four diagnostic cases; Gemini 3.8 Flash High showed strong schema compliance but three timeouts; Muse 1.2/1.3 were not benchmark-ready due response normalization failures.
+## EXP-2E gold taxonomy + four-case audit
+
+- [x] Split semantic role from admission and sufficiency
+- [x] Freeze LS-02 / NS-04 / XP-01 / TU-04 oracle/manual audit
+- [x] Add minimal sufficient set and conflict-complete set
+- [x] Add identity-bound semantic re-score
+- [x] Validate gold against seed corpus
+- [x] Register Sonnet 4.6 and Opus 4.6 as next treatment candidates
+- [ ] Run Sonnet/Opus four-case treatment with capped output budget
+- [ ] Expand gold audit to 16 cases

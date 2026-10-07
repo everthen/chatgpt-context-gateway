@@ -1,4 +1,5 @@
 from context_gateway.benchmark.semantic_assessor import (
+    normalize_semantic_response,
     UnavailableSemanticAssessor,
     blind_candidates,
     build_semantic_assessment_prompt,
@@ -117,3 +118,20 @@ def test_unavailable_semantic_assessor_fails_closed():
         assert "unavailable" in str(exc)
     else:
         raise AssertionError("expected unavailable assessor failure")
+
+
+def test_normalize_richer_candidate_response():
+    candidates = blind_candidates(items())
+    request = build_semantic_assessment_prompt("production region", candidates)
+    raw = """{
+      "candidates": [
+        {"candidate_id":"C1","task_fit":"direct","worthiness_role":"direct_support","temporal_state":"current","provenance_complete":true,"confidence":0.9,"assessment":"direct"},
+        {"candidate_id":"C2","task_fit":"contextual","worthiness_role":"contextual","temporal_state":"obsolete","provenance_complete":true,"confidence":0.8,"assessment":"historical"}
+      ],
+      "claim_groupings": []
+    }"""
+    results, compliant = normalize_semantic_response(raw, request)
+    assert not compliant
+    assert len(results) == 2
+    assert results[0].candidate_id == "C1"
+    assert results[1].worthiness_role == "contextual"

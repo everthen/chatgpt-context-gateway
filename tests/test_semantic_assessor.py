@@ -135,3 +135,38 @@ def test_normalize_richer_candidate_response():
     assert len(results) == 2
     assert results[0].candidate_id == "C1"
     assert results[1].worthiness_role == "contextual"
+
+def test_normalize_fenced_json():
+    candidates = blind_candidates(items())
+    request = build_semantic_assessment_prompt("production region", candidates)
+    raw = """```json
+    {
+      "assessments": [
+        {
+          "candidate_id": "C1",
+          "task_fit": "direct",
+          "worthiness_role": "direct_support",
+          "temporal_state": "current",
+          "claim_ids": ["claim-1"],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.9
+        },
+        {
+          "candidate_id": "C2",
+          "task_fit": "none",
+          "worthiness_role": "none",
+          "temporal_state": "unknown",
+          "claim_ids": [],
+          "conflict_group": null,
+          "redundancy_group": null,
+          "provenance_complete": true,
+          "confidence": 0.7
+        }
+      ]
+    }
+    ```"""
+    results, compliant = normalize_semantic_response(raw, request)
+    assert not compliant
+    assert len(results) == 2

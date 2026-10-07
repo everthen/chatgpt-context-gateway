@@ -145,3 +145,26 @@ Current trace:
 `benchmarks/runs/seed_v0.1/2026-10-07_semantic_assessor_trace.json`
 
 Decision: the evaluator and blind input contract are now frozen for the treatment experiment. Only the real model/provider adapter remains unbound.
+
+
+## EXP-2E — Semantic model treatment
+
+- [x] Blind semantic assessor contract
+- [x] Strict response parser
+- [x] Blind/gold pack separation
+- [x] OpenAI-compatible model adapter
+- [x] Adapter contract smoke test
+- [x] Real endpoint probe recorded
+- [x] Fail-closed treatment behavior
+- [ ] Real semantic model run
+
+Treatment status:
+
+```
+CONTRACT        PASS
+ADAPTER         PASS
+ENDPOINT        BLOCKED
+MODEL RUN       BLOCKED
+```
+
+No semantic/model quality claim is allowed until a real model response is captured and scored against the frozen gold sidecar.

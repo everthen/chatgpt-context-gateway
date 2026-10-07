@@ -68,3 +68,22 @@ Key finding: UCG/FTS5 baseline reached 0.6563 gold recall with 1.0000 provenance
 - [ ] CORE GATE end-to-end report
 
 Latest retrieval finding: auto lexical decomposition reaches 93.75% gold recall but 31.25% context noise; explicit decomposition reaches 75.00% recall with 14.58% noise. No north-star conclusion yet.
+
+## Context worthiness
+
+- [x] Evidence admission policy v0.1
+- [x] Temporal/conflict admission attack suite
+- [x] Context worthiness gate implementation
+- [x] Context worthiness attack suite
+- [x] Oracle-worthiness ceiling benchmark
+- [ ] Reliable worthiness annotation layer
+
+Finding:
+
+```
+auto decomposition: 93.75% recall / 31.25% noise
+generic admission:   87.50% recall / 30.21% noise
+oracle worthiness:   93.75% recall /  0.00% noise
+```
+
+Decision: stop treating rank/top-k admission as the main solution. The next seam is reliable, auditable worthiness annotation before final context assembly.

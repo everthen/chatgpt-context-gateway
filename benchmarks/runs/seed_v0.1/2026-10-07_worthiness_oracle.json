@@ -1,0 +1,214 @@
+{
+  "schema_version": "ucg-worthiness-oracle-run.v0.1",
+  "dataset_cases": 16,
+  "candidate_limit": 8,
+  "worthiness_policy": {
+    "final_limit": 4,
+    "annotations": "benchmark_gold_oracle"
+  },
+  "baseline": {
+    "auto_assembly": {
+      "context_noise_ratio": 0.3125,
+      "gold_coverage": 0.9375,
+      "hits": 1.0625,
+      "irrelevant_rate": 0.3125,
+      "latency_ms": 0.6600734996027313,
+      "mrr": 0.8958333333333334,
+      "ndcg": 0.9226162191964322,
+      "precision": 0.6666666666666666,
+      "provenance_completeness": 1.0,
+      "recall": 0.9375,
+      "returned": 1.875
+    },
+    "admission": {
+      "context_noise_ratio": 0.3020833333333333,
+      "gold_coverage": 0.875,
+      "hits": 1.0,
+      "irrelevant_rate": 0.3020833333333333,
+      "latency_ms": 0.963381418841891,
+      "mrr": 0.875,
+      "ndcg": 0.8913662191964322,
+      "precision": 0.6770833333333334,
+      "provenance_completeness": 1.0,
+      "recall": 0.875,
+      "returned": 1.6875
+    }
+  },
+  "worthiness_oracle": {
+    "context_noise_ratio": 0.0,
+    "gold_coverage": 0.9375,
+    "hits": 1.0625,
+    "irrelevant_rate": 0.0,
+    "latency_ms": 0.8598797576269135,
+    "mrr": 1.0,
+    "ndcg": 1.0,
+    "precision": 0.96875,
+    "provenance_completeness": 1.0,
+    "recall": 0.9375,
+    "returned": 1.125
+  },
+  "cases": [
+    {
+      "case_id": "LS-01",
+      "returned": [
+        "ls01.gold"
+      ],
+      "recall": 1.0,
+      "precision": 1.0,
+      "mrr": 1.0,
+      "noise": 0.0
+    },
+    {
+      "case_id": "LS-02",
+      "returned": [
+        "ls02.gold"
+      ],
+      "recall": 1.0,
+      "precision": 1.0,
+      "mrr": 1.0,
+      "noise": 0.0
+    },
+    {
+      "case_id": "LS-03",
+      "returned": [
+        "ls03.gold",
+        "ls03.support"
+      ],
+      "recall": 1.0,
+      "precision": 0.5,
+      "mrr": 1.0,
+      "noise": 0.0
+    },
+    {
+      "case_id": "LS-04",
+      "returned": [
+        "ls04.gold"
+      ],
+      "recall": 1.0,
+      "precision": 1.0,
+      "mrr": 1.0,
+      "noise": 0.0
+    },
+    {
+      "case_id": "NS-01",
+      "returned": [
+        "ns01.gold"
+      ],
+      "recall": 1.0,
+      "precision": 1.0,
+      "mrr": 1.0,
+      "noise": 0.0
+    },
+    {
+      "case_id": "NS-02",
+      "returned": [
+        "ns02.gold"
+      ],
+      "recall": 1.0,
+      "precision": 1.0,
+      "mrr": 1.0,
+      "noise": 0.0
+    },
+    {
+      "case_id": "NS-03",
+      "returned": [
+        "ns03.gold"
+      ],
+      "recall": 1.0,
+      "precision": 1.0,
+      "mrr": 1.0,
+      "noise": 0.0
+    },
+    {
+      "case_id": "NS-04",
+      "returned": [
+        "ns04.gold"
+      ],
+      "recall": 1.0,
+      "precision": 1.0,
+      "mrr": 1.0,
+      "noise": 0.0
+    },
+    {
+      "case_id": "XP-01",
+      "returned": [
+        "xp01.google",
+        "xp01.openai"
+      ],
+      "recall": 1.0,
+      "precision": 1.0,
+      "mrr": 1.0,
+      "noise": 0.0
+    },
+    {
+      "case_id": "XP-02",
+      "returned": [
+        "xp02.openai"
+      ],
+      "recall": 0.5,
+      "precision": 1.0,
+      "mrr": 1.0,
+      "noise": 0.0
+    },
+    {
+      "case_id": "XP-03",
+      "returned": [
+        "xp03.gemini"
+      ],
+      "recall": 0.5,
+      "precision": 1.0,
+      "mrr": 1.0,
+      "noise": 0.0
+    },
+    {
+      "case_id": "XP-04",
+      "returned": [
+        "xp04.gold"
+      ],
+      "recall": 1.0,
+      "precision": 1.0,
+      "mrr": 1.0,
+      "noise": 0.0
+    },
+    {
+      "case_id": "TU-01",
+      "returned": [
+        "tu01.gold"
+      ],
+      "recall": 1.0,
+      "precision": 1.0,
+      "mrr": 1.0,
+      "noise": 0.0
+    },
+    {
+      "case_id": "TU-02",
+      "returned": [
+        "tu02.gold"
+      ],
+      "recall": 1.0,
+      "precision": 1.0,
+      "mrr": 1.0,
+      "noise": 0.0
+    },
+    {
+      "case_id": "TU-03",
+      "returned": [
+        "tu03.gold"
+      ],
+      "recall": 1.0,
+      "precision": 1.0,
+      "mrr": 1.0,
+      "noise": 0.0
+    },
+    {
+      "case_id": "TU-04",
+      "returned": [
+        "tu04.gold"
+      ],
+      "recall": 1.0,
+      "precision": 1.0,
+      "mrr": 1.0,
+      "noise": 0.0
+    }
+  ]
+}

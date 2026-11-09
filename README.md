@@ -1,5 +1,11 @@
 # Universal AI Context Gateway
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python: 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://python.org)
+[![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-green.svg)](https://modelcontextprotocol.io)
+[![Tests](https://img.shields.io/badge/Tests-59%20passed-brightgreen.svg)]()
+
+
 Local-first historical context plane for conversations from ChatGPT and, later, Gemini/Perplexity and other AI providers.
 
 ## Evidence Continuity v0.1 target
